@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
+  base: "/geo-caching/",
   plugins: [
     react(),
     VitePWA({
@@ -11,7 +12,8 @@ export default defineConfig({
         name: "Paikka-hälytin",
         short_name: "Paikka-hälytin",
         description: "Tallenna paikkoja ja saa hälytys, kun olet lähellä.",
-        start_url: "/",
+        start_url: "/geo-caching/",
+        scope: "/geo-caching/",
         display: "standalone",
         theme_color: "#1d4ed8",
         background_color: "#ffffff",
