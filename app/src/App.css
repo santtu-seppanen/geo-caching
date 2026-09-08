@@ -1,0 +1,235 @@
+:root {
+  --vari-tausta: #f4f6fb;
+  --vari-pinta: #ffffff;
+  --vari-reuna: #e0e4ec;
+  --vari-teksti: #1a1d29;
+  --vari-teksti-himmea: #5b6072;
+  --vari-ensisijainen: #1d4ed8;
+  --vari-ensisijainen-tumma: #1740ac;
+  --vari-halytys-tausta: #fff4d6;
+  --vari-halytys-reuna: #f2b705;
+  --vari-halytys-teksti: #6b4e00;
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--vari-tausta);
+  color: var(--vari-teksti);
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    sans-serif;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.sovellus {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 1rem;
+  padding-bottom: 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.otsikko {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.otsikko h1 {
+  margin: 0;
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  color: var(--vari-ensisijainen-tumma);
+}
+
+.alaotsikko {
+  margin: 0.25rem 0 0;
+  color: var(--vari-teksti-himmea);
+  font-size: 0.95rem;
+}
+
+.halytysbanneri {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  background: var(--vari-halytys-tausta);
+  border: 1px solid var(--vari-halytys-reuna);
+  color: var(--vari-halytys-teksti);
+  border-radius: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(242, 183, 5, 0.25);
+}
+
+.lomakekortti {
+  background: var(--vari-pinta);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 1rem;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.kentta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.kentan-nimi {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--vari-teksti-himmea);
+}
+
+.teksti-syote {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  font-size: 1rem;
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.6rem;
+  background: var(--vari-tausta);
+  color: var(--vari-teksti);
+}
+
+.teksti-syote:focus {
+  outline: 2px solid var(--vari-ensisijainen);
+  outline-offset: 1px;
+}
+
+.tiedosto-syote {
+  width: 100%;
+  min-height: 44px;
+  font-size: 0.95rem;
+  padding: 0.4rem 0;
+}
+
+.esikatselu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+}
+
+.esikatselu img {
+  width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  border: 1px solid var(--vari-reuna);
+}
+
+.nappi {
+  min-height: 44px;
+  padding: 0.7rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  border-radius: 0.6rem;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.nappi:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.nappi-ensisijainen {
+  width: 100%;
+  background: var(--vari-ensisijainen);
+  color: #fff;
+}
+
+.nappi-ensisijainen:not(:disabled):active {
+  background: var(--vari-ensisijainen-tumma);
+}
+
+.nappi-toissijainen {
+  background: var(--vari-tausta);
+  color: var(--vari-teksti);
+  border: 1px solid var(--vari-reuna);
+}
+
+.nappi-toissijainen:not(:disabled):active {
+  background: var(--vari-reuna);
+}
+
+.paikkalista h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem;
+}
+
+.tyhja-tila {
+  color: var(--vari-teksti-himmea);
+  font-style: italic;
+}
+
+.paikat {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.paikka-kortti {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  background: var(--vari-pinta);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.85rem;
+  padding: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+
+.paikka-kuva {
+  width: 64px;
+  height: 64px;
+  flex-shrink: 0;
+  object-fit: cover;
+  border-radius: 0.6rem;
+  background: var(--vari-tausta);
+}
+
+.paikka-tiedot {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.paikka-kuvaus {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: break-word;
+}
+
+.paikka-aika {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--vari-teksti-himmea);
+}
+
+@media (min-width: 640px) {
+  .sovellus {
+    padding: 2rem 1rem;
+  }
+
+  .nappi-ensisijainen {
+    width: auto;
+    align-self: flex-start;
+  }
+}
