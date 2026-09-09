@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { haePaikat, tallennaPaikka } from "./features/paikat/api";
 import type { Paikka } from "./features/paikat/types";
 import { useNearbyAlert } from "./features/etsi/useNearbyAlert";
+import heroKuva from "./assets/hero-illustration.svg";
 import "./App.css";
 
 export function App() {
@@ -66,7 +67,12 @@ export function App() {
   return (
     <main className="sovellus">
       <header className="otsikko">
-        <h1>Paikka-hälytin</h1>
+        <img
+          className="hero-kuva"
+          src={heroKuva}
+          alt="Piirroshahmo seikkailemassa mäen pihalla ja mäntymetsässä, etsimässä kätköä"
+        />
+        <h1>Viinakätköily</h1>
         <p className="alaotsikko">Tallenna paikkoja ja saa hälytys, kun olet lähellä.</p>
       </header>
 

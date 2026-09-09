@@ -1,11 +1,13 @@
 :root {
-  --vari-tausta: #f4f6fb;
-  --vari-pinta: #ffffff;
-  --vari-reuna: #e0e4ec;
-  --vari-teksti: #1a1d29;
-  --vari-teksti-himmea: #5b6072;
-  --vari-ensisijainen: #1d4ed8;
-  --vari-ensisijainen-tumma: #1740ac;
+  --vari-tausta-ylhaalta: #fff2de;
+  --vari-tausta-alhaalta: #ffe1c2;
+  --vari-pinta: rgba(255, 255, 255, 0.88);
+  --vari-reuna: rgba(87, 63, 36, 0.14);
+  --vari-teksti: #2b2118;
+  --vari-teksti-himmea: #7a6a58;
+  --vari-ensisijainen: #2f6b4f;
+  --vari-ensisijainen-tumma: #1f5039;
+  --vari-aksentti: #c0392b;
   --vari-halytys-tausta: #fff4d6;
   --vari-halytys-reuna: #f2b705;
   --vari-halytys-teksti: #6b4e00;
@@ -18,7 +20,8 @@
 
 body {
   margin: 0;
-  background: var(--vari-tausta);
+  background: linear-gradient(180deg, var(--vari-tausta-ylhaalta) 0%, var(--vari-tausta-alhaalta) 55%, #ffd7ad 100%);
+  background-attachment: fixed;
   color: var(--vari-teksti);
   font-family:
     system-ui,
@@ -41,19 +44,32 @@ body {
 
 .otsikko {
   text-align: center;
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 0;
+}
+
+.hero-kuva {
+  width: 100%;
+  max-width: 520px;
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 28px rgba(120, 72, 30, 0.22);
+  margin-bottom: 0.75rem;
 }
 
 .otsikko h1 {
   margin: 0;
-  font-size: clamp(1.5rem, 5vw, 2rem);
-  color: var(--vari-ensisijainen-tumma);
+  font-size: clamp(1.9rem, 6vw, 2.6rem);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  background: linear-gradient(120deg, var(--vari-ensisijainen-tumma), var(--vari-aksentti));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .alaotsikko {
-  margin: 0.25rem 0 0;
+  margin: 0.35rem 0 0;
   color: var(--vari-teksti-himmea);
-  font-size: 0.95rem;
+  font-size: 1rem;
 }
 
 .halytysbanneri {
@@ -70,13 +86,14 @@ body {
 
 .lomakekortti {
   background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--vari-reuna);
-  border-radius: 1rem;
-  padding: 1.25rem;
+  border-radius: 1.25rem;
+  padding: 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 10px 24px rgba(120, 72, 30, 0.1);
 }
 
 .kentta {
@@ -131,13 +148,15 @@ body {
 
 .nappi {
   min-height: 44px;
-  padding: 0.7rem 1.2rem;
+  padding: 0.75rem 1.4rem;
   font-size: 1rem;
-  font-weight: 600;
-  border-radius: 0.6rem;
+  font-weight: 700;
+  border-radius: 999px;
   border: none;
   cursor: pointer;
-  transition: background-color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    transform 0.1s ease;
 }
 
 .nappi:disabled {
@@ -147,12 +166,14 @@ body {
 
 .nappi-ensisijainen {
   width: 100%;
-  background: var(--vari-ensisijainen);
+  background: linear-gradient(120deg, var(--vari-ensisijainen), var(--vari-ensisijainen-tumma));
   color: #fff;
+  box-shadow: 0 8px 18px rgba(31, 80, 57, 0.28);
 }
 
 .nappi-ensisijainen:not(:disabled):active {
   background: var(--vari-ensisijainen-tumma);
+  transform: scale(0.98);
 }
 
 .nappi-toissijainen {
@@ -189,10 +210,11 @@ body {
   align-items: center;
   gap: 0.9rem;
   background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--vari-reuna);
-  border-radius: 0.85rem;
-  padding: 0.75rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  border-radius: 1rem;
+  padding: 0.85rem;
+  box-shadow: 0 6px 14px rgba(120, 72, 30, 0.08);
 }
 
 .paikka-kuva {

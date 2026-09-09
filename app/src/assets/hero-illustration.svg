@@ -1,0 +1,147 @@
+<svg viewBox="0 0 800 460" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="heroTitle">
+  <title id="heroTitle">Seikkailija etsimässä kätköä mäen pihalla ja mäntymetsässä</title>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#fde3a7" />
+      <stop offset="45%" stop-color="#fbb78e" />
+      <stop offset="100%" stop-color="#f3907e" />
+    </linearGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff3c4" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#fff3c4" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="farHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#a9d9a0" />
+      <stop offset="100%" stop-color="#8fcf8a" />
+    </linearGradient>
+    <linearGradient id="yardHill" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#7fc46b" />
+      <stop offset="100%" stop-color="#579a4a" />
+    </linearGradient>
+    <linearGradient id="pineDark" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2f6b4f" />
+      <stop offset="100%" stop-color="#1f5039" />
+    </linearGradient>
+    <linearGradient id="pineMid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#3c8461" />
+      <stop offset="100%" stop-color="#2a6249" />
+    </linearGradient>
+  </defs>
+
+  <rect x="0" y="0" width="800" height="460" fill="url(#sky)" />
+
+  <circle cx="645" cy="95" r="95" fill="url(#sunGlow)" />
+  <circle cx="645" cy="95" r="42" fill="#ffe9a8" />
+
+  <g opacity="0.85" fill="#ffffff">
+    <ellipse cx="120" cy="80" rx="55" ry="18" />
+    <ellipse cx="165" cy="70" rx="40" ry="15" />
+    <ellipse cx="90" cy="65" rx="35" ry="13" />
+  </g>
+
+  <path d="M0,260 C120,220 220,290 340,250 C460,215 560,270 680,235 C730,222 780,235 800,245 L800,460 L0,460 Z" fill="url(#farHill)" opacity="0.65" />
+
+  <g fill="url(#pineDark)" opacity="0.9">
+    <polygon points="30,300 65,230 100,300" />
+    <polygon points="70,305 110,225 150,305" />
+    <polygon points="120,300 155,235 190,300" />
+    <polygon points="560,300 600,230 640,300" />
+    <polygon points="605,305 648,222 690,305" />
+    <polygon points="655,300 692,238 730,300" />
+    <polygon points="705,308 742,232 780,308" />
+  </g>
+
+  <path d="M0,460 L0,340 C90,300 150,340 230,320 C330,296 420,340 520,318 C620,296 720,330 800,310 L800,460 Z" fill="url(#yardHill)" />
+
+  <g stroke="#8a5a34" stroke-width="4" stroke-linecap="round" opacity="0.9">
+    <line x1="235" y1="300" x2="235" y2="325" />
+    <line x1="265" y1="294" x2="265" y2="319" />
+    <line x1="295" y1="290" x2="295" y2="315" />
+    <line x1="325" y1="288" x2="325" y2="313" />
+    <line x1="355" y1="290" x2="355" y2="315" />
+    <line x1="385" y1="294" x2="385" y2="319" />
+    <line x1="235" y1="303" x2="385" y2="303" />
+  </g>
+
+  <g transform="translate(560,225)">
+    <polygon points="0,0 45,0 22,-32" fill="#b5493c" />
+    <rect x="4" y="0" width="37" height="34" fill="#f2ded0" />
+    <rect x="16" y="14" width="12" height="20" fill="#8a5a34" />
+    <rect x="8" y="6" width="8" height="8" fill="#a8d7e6" />
+    <rect x="29" y="6" width="8" height="8" fill="#a8d7e6" />
+    <rect x="-6" y="-38" width="5" height="16" fill="#7a4a2c" />
+  </g>
+
+  <g>
+    <g transform="translate(60,255)">
+      <rect x="-5" y="70" width="10" height="30" fill="#6f4a2c" />
+      <polygon points="-38,72 38,72 0,10" fill="url(#pineMid)" />
+      <polygon points="-30,44 30,44 0,-14" fill="url(#pineMid)" />
+      <polygon points="-22,16 22,16 0,-38" fill="url(#pineMid)" />
+    </g>
+    <g transform="translate(150,270)">
+      <rect x="-6" y="75" width="12" height="32" fill="#6f4a2c" />
+      <polygon points="-42,78 42,78 0,12" fill="url(#pineDark)" />
+      <polygon points="-33,48 33,48 0,-16" fill="url(#pineDark)" />
+      <polygon points="-24,18 24,18 0,-42" fill="url(#pineDark)" />
+    </g>
+    <g transform="translate(730,270)">
+      <rect x="-6" y="75" width="12" height="32" fill="#6f4a2c" />
+      <polygon points="-42,78 42,78 0,12" fill="url(#pineMid)" />
+      <polygon points="-33,48 33,48 0,-16" fill="url(#pineMid)" />
+      <polygon points="-24,18 24,18 0,-42" fill="url(#pineMid)" />
+    </g>
+  </g>
+
+  <path d="M300,460 C330,400 380,380 400,340 C420,380 470,400 500,460 Z" fill="#e4cd8f" opacity="0.9" />
+
+  <g transform="translate(430,330)">
+    <ellipse cx="0" cy="88" rx="42" ry="10" fill="#3a5c2c" opacity="0.35" />
+    <rect x="-6" y="18" width="10" height="12" fill="#d9a441" />
+    <rect x="4" y="18" width="10" height="12" fill="#d9a441" />
+    <path d="M-10,18 L14,18 L14,4 C14,-4 -10,-4 -10,4 Z" fill="#274b8c" />
+    <path d="M-6,20 h12 M-6,26 h12 M-6,32 h12" stroke="#a86e2d" stroke-width="2" fill="none" />
+    <rect x="4" y="-24" width="4" height="30" fill="#8a5a34" />
+    <ellipse cx="6" cy="-26" rx="12" ry="10" fill="#5b2f14" />
+    <circle cx="0" cy="-6" r="9" fill="#f6e27a" />
+    <path d="M-6,-6 a6,6 0 0 1 12,0" fill="none" stroke="#fff7d6" stroke-width="1.5" opacity="0.6" />
+    <g fill="#fff3b0" opacity="0.9">
+      <polygon points="-24,-8 -20,-2 -14,-4 -19,1 -16,7 -22,3 -28,7 -25,1 -30,-4 -24,-2" />
+      <polygon points="24,10 27,15 32,16 27,19 26,24 23,19 18,20 22,16 21,11" />
+    </g>
+  </g>
+
+  <g transform="translate(395,300)">
+    <ellipse cx="10" cy="130" rx="36" ry="9" fill="#3a5c2c" opacity="0.3" />
+
+    <path d="M-8,55 C-14,80 -12,104 -6,128 L4,128 C0,104 0,82 4,60 Z" fill="#3b6b9e" />
+    <path d="M18,58 C24,82 24,106 18,128 L28,128 C32,104 30,80 26,58 Z" fill="#345f8c" />
+
+    <path d="M-14,-6 C-22,20 -20,42 -12,58 L26,58 C32,40 30,16 20,-8 C6,-18 -4,-16 -14,-6 Z" fill="#c0392b" />
+
+    <path d="M-16,4 C-30,10 -34,30 -26,44 L-16,40 C-22,28 -20,14 -12,6 Z" fill="#a5301f" />
+    <path d="M28,0 C40,8 44,26 36,42 L26,36 C32,24 30,10 22,2 Z" fill="#a5301f" />
+
+    <rect x="-6" y="6" width="24" height="30" rx="4" fill="#6b4a2e" />
+    <path d="M-4,10 L20,10 M-4,16 L20,16" stroke="#503522" stroke-width="1.5" />
+
+    <circle cx="4" cy="-30" r="15" fill="#f0b088" />
+    <path d="M-11,-32 C-13,-44 3,-50 12,-42 C18,-38 18,-30 14,-26 C16,-34 8,-40 -1,-38 C-8,-36 -10,-30 -11,-32 Z" fill="#4a3323" />
+    <path d="M-13,-28 C-16,-24 -14,-18 -8,-18" stroke="#f0b088" stroke-width="4" stroke-linecap="round" fill="none" />
+
+    <g transform="translate(4,-46) rotate(-8)">
+      <path d="M-16,4 C-16,-6 16,-6 16,4 C16,10 8,10 0,7 C-8,10 -16,10 -16,4 Z" fill="#e0563f" />
+    </g>
+
+    <circle cx="-22" cy="-2" r="9" fill="none" stroke="#3a2a18" stroke-width="2.5" />
+    <line x1="-16" y1="4" x2="-8" y2="12" stroke="#3a2a18" stroke-width="2.5" stroke-linecap="round" />
+    <path d="M-30,-2 L-14,-2" stroke="#3a2a18" stroke-width="0" />
+  </g>
+
+  <g fill="#4f8a3d" opacity="0.9">
+    <path d="M40,452 q6,-18 12,0 q6,-14 12,0" stroke="#4f8a3d" stroke-width="4" fill="none" stroke-linecap="round" />
+    <path d="M600,450 q6,-16 12,0 q6,-12 12,0" stroke="#3d7a2f" stroke-width="4" fill="none" stroke-linecap="round" />
+    <path d="M700,455 q6,-18 12,0 q6,-14 12,0" stroke="#3d7a2f" stroke-width="4" fill="none" stroke-linecap="round" />
+    <path d="M240,455 q6,-16 12,0 q6,-12 12,0" stroke="#4f8a3d" stroke-width="4" fill="none" stroke-linecap="round" />
+  </g>
+</svg>
