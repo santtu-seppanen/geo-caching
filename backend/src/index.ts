@@ -11,8 +11,11 @@ app.use("/api/paikat", paikatRouter);
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
 
-app.listen(port, () => {
-  console.log(`backend kuuntelee portissa ${port}`);
-});
+// Kuuntele porttia vain jos tämä ei ole testi-ympäristö
+if (process.env.NODE_ENV !== "test") {
+  app.listen(port, () => {
+    console.log(`backend kuuntelee portissa ${port}`);
+  });
+}
 
 export { app };

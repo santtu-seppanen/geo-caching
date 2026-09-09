@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/features/etsi/distance.test.ts","./src/features/etsi/distance.ts","./src/features/etsi/usenearbyalert.ts","./src/features/paikat/api.test.ts","./src/features/paikat/api.ts","./src/features/paikat/types.ts","./src/lib/geolocation.ts"],"version":"5.9.3"}

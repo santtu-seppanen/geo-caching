@@ -2,10 +2,18 @@ import Database from "better-sqlite3";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 
-const dataDir = path.resolve(import.meta.dirname, "../data");
-mkdirSync(dataDir, { recursive: true });
+const isTest = process.env.NODE_ENV === "test";
 
-export const db = new Database(path.join(dataDir, "paikat.db"));
+let dbPath: string;
+if (isTest) {
+  dbPath = ":memory:";
+} else {
+  const dataDir = path.resolve(import.meta.dirname, "../data");
+  mkdirSync(dataDir, { recursive: true });
+  dbPath = path.join(dataDir, "paikat.db");
+}
+
+export const db = new Database(dbPath);
 db.pragma("journal_mode = WAL");
 
 db.exec(`
