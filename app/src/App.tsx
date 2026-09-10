@@ -1,68 +1,28 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { haePaikat, tallennaPaikka } from "./features/paikat/api";
+import { useCallback, useMemo, useState } from "react";
+import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
+import { ryhmitteleAlueiksi } from "./features/paikat/alueet";
+import { Etusivu } from "./features/paikat/Etusivu";
+import { Aluesivu } from "./features/paikat/Aluesivu";
 import type { Paikka } from "./features/paikat/types";
-import { useNearbyAlert } from "./features/etsi/useNearbyAlert";
+import paikatData from "./data/paikat.json";
 import heroKuva from "./assets/hero-illustration.svg";
 import "./App.css";
 
+const paikat = paikatData as Paikka[];
+
 export function App() {
-  const [paikat, setPaikat] = useState<Paikka[]>([]);
-  const [kuvaus, setKuvaus] = useState("");
-  const [kuva, setKuva] = useState<File | null>(null);
-  const [kuvaEsikatselu, setKuvaEsikatselu] = useState<string | null>(null);
-  const [tallennetaan, setTallennetaan] = useState(false);
+  const [valittuAlue, setValittuAlue] = useState<string | null>(null);
   const [viimeisinHalytys, setViimeisinHalytys] = useState<string | null>(null);
-  const tiedostoInputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    haePaikat().then(setPaikat).catch(console.error);
-  }, []);
-
-  useEffect(() => {
-    if (!kuva) {
-      setKuvaEsikatselu(null);
-      return;
-    }
-    const url = URL.createObjectURL(kuva);
-    setKuvaEsikatselu(url);
-    return () => URL.revokeObjectURL(url);
-  }, [kuva]);
-
-  const onHalytys = useCallback((lahella: { paikka: Paikka; etaisyysMetreina: number }) => {
+  const onHalytys = useCallback((lahella: LahellaOlevaPaikka) => {
     setViimeisinHalytys(
       `Olet ${Math.round(lahella.etaisyysMetreina)} m paikasta "${lahella.paikka.kuvaus}"`,
     );
   }, []);
 
   const { sijainti } = useNearbyAlert(paikat, onHalytys);
-
-  function valitseKuva(e: React.ChangeEvent<HTMLInputElement>) {
-    const tiedosto = e.target.files?.[0] ?? null;
-    setKuva(tiedosto);
-  }
-
-  function poistaValittuKuva() {
-    setKuva(null);
-    if (tiedostoInputRef.current) tiedostoInputRef.current.value = "";
-  }
-
-  async function tallenna() {
-    if (!sijainti || !kuvaus.trim()) return;
-    setTallennetaan(true);
-    try {
-      const uusi = await tallennaPaikka({
-        kuvaus,
-        lat: sijainti.lat,
-        lng: sijainti.lng,
-        kuva: kuva ?? undefined,
-      });
-      setPaikat((edelliset) => [uusi, ...edelliset]);
-      setKuvaus("");
-      poistaValittuKuva();
-    } finally {
-      setTallennetaan(false);
-    }
-  }
+  const alueet = useMemo(() => ryhmitteleAlueiksi(paikat), []);
+  const aktiivinenAlue = alueet.find((alue) => alue.alue === valittuAlue) ?? null;
 
   return (
     <main className="sovellus">
@@ -73,7 +33,7 @@ export function App() {
           alt="Piirroshahmo seikkailemassa mäen pihalla ja mäntymetsässä, etsimässä kätköä"
         />
         <h1>Viinakätköily</h1>
-        <p className="alaotsikko">Tallenna paikkoja ja saa hälytys, kun olet lähellä.</p>
+        <p className="alaotsikko">Etsi kätköjä lähelläsi ja merkitse löydöt.</p>
       </header>
 
       {viimeisinHalytys && (
@@ -82,81 +42,15 @@ export function App() {
         </p>
       )}
 
-      <section className="lomakekortti">
-        <label className="kentta">
-          <span className="kentan-nimi">Kuvaus</span>
-          <input
-            className="teksti-syote"
-            value={kuvaus}
-            onChange={(e) => setKuvaus(e.target.value)}
-            placeholder="Esim. Kiva näköalapaikka"
-          />
-        </label>
-
-        <label className="kentta">
-          <span className="kentan-nimi">Kuva (valinnainen)</span>
-          <input
-            ref={tiedostoInputRef}
-            className="tiedosto-syote"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={valitseKuva}
-          />
-        </label>
-
-        {kuvaEsikatselu && (
-          <div className="esikatselu">
-            <img src={kuvaEsikatselu} alt="Esikatselu valitusta kuvasta" />
-            <button
-              type="button"
-              className="nappi nappi-toissijainen"
-              onClick={poistaValittuKuva}
-            >
-              Poista kuva
-            </button>
-          </div>
-        )}
-
-        <button
-          className="nappi nappi-ensisijainen"
-          onClick={tallenna}
-          disabled={!sijainti || !kuvaus.trim() || tallennetaan}
-        >
-          {tallennetaan
-            ? "Tallennetaan…"
-            : sijainti
-              ? "Tallenna nykyinen sijainti"
-              : "Haetaan sijaintia…"}
-        </button>
-      </section>
-
-      <section className="paikkalista">
-        <h2>Tallennetut paikat</h2>
-        {paikat.length === 0 ? (
-          <p className="tyhja-tila">Ei vielä tallennettuja paikkoja.</p>
-        ) : (
-          <ul className="paikat">
-            {paikat.map((paikka) => (
-              <li key={paikka.id} className="paikka-kortti">
-                {paikka.kuva_tiedosto && (
-                  <img
-                    className="paikka-kuva"
-                    src={paikka.kuva_tiedosto}
-                    alt={paikka.kuvaus}
-                  />
-                )}
-                <div className="paikka-tiedot">
-                  <p className="paikka-kuvaus">{paikka.kuvaus}</p>
-                  <p className="paikka-aika">
-                    {new Date(paikka.luotu).toLocaleString("fi-FI")}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+      {aktiivinenAlue ? (
+        <Aluesivu
+          alue={aktiivinenAlue}
+          sijainti={sijainti}
+          onTakaisin={() => setValittuAlue(null)}
+        />
+      ) : (
+        <Etusivu alueet={alueet} sijainti={sijainti} onValitseAlue={setValittuAlue} />
+      )}
     </main>
   );
 }
