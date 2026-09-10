@@ -1,0 +1,13 @@
+name = "paikka-halytin-loyda"
+main = "src/index.ts"
+compatibility_date = "2024-09-01"
+
+[vars]
+GITHUB_OWNER = "santtu-seppanen"
+GITHUB_REPO = "geo-caching"
+GITHUB_BRANCH = "main"
+CORS_ORIGIN = "https://santtu-seppanen.github.io"
+
+# Salaisuudet (eivät tässä tiedostossa, eivät koskaan gitissä):
+#   wrangler secret put GITHUB_TOKEN
+#   wrangler secret put JAETTU_SALASANA
