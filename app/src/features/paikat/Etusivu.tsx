@@ -1,7 +1,7 @@
 import type { Alue } from "./alueet";
 import type { Sijainti } from "../../lib/geolocation";
-import { etaisyysMetreina } from "../etsi/distance";
-import { ALUE_AVAUTUU_METREINA } from "../etsi/kynnykset";
+import { etaisyysMetreina, etenemisprosentti } from "../etsi/distance";
+import { ALUE_AVAUTUU_METREINA, ALUE_TUTKA_METREINA } from "../etsi/kynnykset";
 
 interface EtusivuProps {
   alueet: Alue[];
@@ -18,6 +18,10 @@ export function Etusivu({ alueet, sijainti, onValitseAlue }: EtusivuProps) {
         {alueet.map((alue) => {
           const etaisyys = sijainti ? etaisyysMetreina(sijainti, alue.keskipiste) : null;
           const avoinna = etaisyys !== null && etaisyys <= ALUE_AVAUTUU_METREINA;
+          const etenema =
+            etaisyys !== null
+              ? etenemisprosentti(etaisyys, ALUE_AVAUTUU_METREINA, ALUE_TUTKA_METREINA)
+              : 0;
 
           const sisalto = (
             <>
@@ -25,6 +29,21 @@ export function Etusivu({ alueet, sijainti, onValitseAlue }: EtusivuProps) {
               <span className="alue-etaisyys">
                 {etaisyys !== null ? `${Math.round(etaisyys)} m` : "…"}
               </span>
+              {sijainti && (
+                <span
+                  className="alue-edistyminen"
+                  role="progressbar"
+                  aria-label={`Etäisyys alueeseen ${alue.alue}`}
+                  aria-valuenow={Math.round(etenema * 100)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <span
+                    className="alue-edistyminen-tayte"
+                    style={{ width: `${etenema * 100}%` }}
+                  />
+                </span>
+              )}
               <span className="alue-vihje">{alue.alueVihje}</span>
             </>
           );

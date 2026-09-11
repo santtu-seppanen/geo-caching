@@ -1,13 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Alue } from "./alueet";
-import type { Paikka } from "./types";
+import type { Paikka, Loyto } from "./types";
 import type { Sijainti } from "../../lib/geolocation";
 import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
-import { omaSijaintiIkoni } from "./leafletIkonit";
+import { omaSijaintiIkoni, loydettyIkoni } from "./leafletIkonit";
+import loydotData from "../../data/loydot.json";
+
+const loydot = loydotData as Loyto[];
 
 interface AluesivuProps {
   alue: Alue;
@@ -30,6 +33,16 @@ function SovitaKarttaAlueeseen({ paikat }: { paikat: Paikka[] }) {
 export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
   const [valittuPaikka, setValittuPaikka] = useState<Paikka | null>(null);
   const [vihjeViesti, setVihjeViesti] = useState<string | null>(null);
+  const [omatLoydot, setOmatLoydot] = useState<Loyto[]>([]);
+
+  const loydetytIdt = useMemo(
+    () => new Set([...loydot, ...omatLoydot].map((loyto) => loyto.paikkaId)),
+    [omatLoydot],
+  );
+
+  function lisaaLoyto(loyto: Loyto) {
+    setOmatLoydot((edelliset) => [...edelliset, loyto]);
+  }
 
   function valitsePaikka(paikka: Paikka) {
     if (!sijainti) {
@@ -78,6 +91,7 @@ export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
             <Marker
               key={paikka.id}
               position={[paikka.lat, paikka.lng]}
+              icon={loydetytIdt.has(paikka.id) ? loydettyIkoni : undefined}
               eventHandlers={{ click: () => valitsePaikka(paikka) }}
             />
           ))}
@@ -88,7 +102,12 @@ export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
       </div>
 
       {valittuPaikka && (
-        <KatkoPaneeli paikka={valittuPaikka} onSulje={() => setValittuPaikka(null)} />
+        <KatkoPaneeli
+          paikka={valittuPaikka}
+          omatLoydot={omatLoydot}
+          onLoyto={lisaaLoyto}
+          onSulje={() => setValittuPaikka(null)}
+        />
       )}
     </section>
   );

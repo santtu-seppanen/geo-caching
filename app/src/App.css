@@ -221,6 +221,27 @@ body {
   font-size: 0.9rem;
 }
 
+.alue-edistyminen {
+  display: block;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--vari-reuna);
+  overflow: hidden;
+}
+
+.alue-edistyminen-tayte {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--vari-ensisijainen), var(--vari-ensisijainen-tumma));
+  transition: width 0.3s ease;
+}
+
+.alue-rivi.lukittu .alue-edistyminen-tayte {
+  background: var(--vari-aksentti);
+}
+
 .aluesivu {
   display: flex;
   flex-direction: column;
@@ -268,6 +289,25 @@ body {
   background: var(--vari-aksentti);
   border: 3px solid #fff;
   box-shadow: 0 0 0 2px var(--vari-aksentti);
+}
+
+.loydetty-merkki {
+  background: transparent;
+  border: none;
+}
+
+.loydetty-piste {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--vari-ensisijainen);
+  color: #fff;
+  font-weight: 700;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(31, 80, 57, 0.35);
 }
 
 .katko-paneeli {
