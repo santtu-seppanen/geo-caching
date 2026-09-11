@@ -47,3 +47,16 @@ export function seuraaSijaintia(
 
   return () => navigator.geolocation.clearWatch(watchId);
 }
+
+export function virheTeksti(virhe: SijaintiVirhe): string {
+  switch (virhe.koodi) {
+    case "EI_TUETTU":
+      return "Selaimesi ei tue sijainninhakua.";
+    case "LUPA_EVATTY":
+      return "Sijaintilupa on evätty. Salli sijainti selaimen asetuksista nähdäksesi lähellä olevat alueet.";
+    case "AIKAKATKAISU":
+      return "Sijainnin haku aikakatkaistiin. Tarkista verkkoyhteys ja yritä uudelleen.";
+    case "MUU":
+      return "Sijaintia ei saatu juuri nyt.";
+  }
+}

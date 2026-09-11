@@ -12,6 +12,11 @@ L.Icon.Default.mergeOptions({
   shadowUrl: varjoKuva,
 });
 
+// Aina eksplisiittinen ikoni Markereille — react-leaflet siirtää `icon`-propin
+// suoraan Leafletin optioihin, joten `icon={undefined}` ylikirjoittaisi
+// Leafletin sisäänrakennetun oletuksen ja kaataisi kartan renderöinnin.
+export const oletusIkoni = new L.Icon.Default();
+
 export const omaSijaintiIkoni = L.divIcon({
   className: "oma-sijainti-merkki",
   html: '<span class="oma-sijainti-piste"></span>',

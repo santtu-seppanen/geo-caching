@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { seuraaSijaintia, type Sijainti } from "../../lib/geolocation";
+import { seuraaSijaintia, type Sijainti, type SijaintiVirhe } from "../../lib/geolocation";
 import { etaisyysMetreina } from "./distance";
 import { KATKO_AVAUTUU_METREINA } from "./kynnykset";
 import type { Paikka } from "../paikat/types";
@@ -20,10 +20,11 @@ export function useNearbyAlert(
   onHalytys: (lahella: LahellaOlevaPaikka) => void,
 ) {
   const [sijainti, setSijainti] = useState<Sijainti | null>(null);
+  const [virhe, setVirhe] = useState<SijaintiVirhe | null>(null);
   const halytetytIdt = useRef(new Set<string>());
 
   useEffect(() => {
-    return seuraaSijaintia(setSijainti, () => {});
+    return seuraaSijaintia(setSijainti, setVirhe);
   }, []);
 
   useEffect(() => {
@@ -42,5 +43,5 @@ export function useNearbyAlert(
     }
   }, [sijainti, paikat, onHalytys]);
 
-  return { sijainti };
+  return { sijainti, virhe };
 }
