@@ -5,6 +5,7 @@ import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import type { Paikka } from "./features/paikat/types";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
+import { virheTeksti } from "./lib/geolocation";
 import paikatData from "./data/paikat.json";
 import heroKuva from "./assets/hero-illustration.svg";
 import "./App.css";
@@ -26,7 +27,7 @@ export function App() {
     if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   }, []);
 
-  const { sijainti } = useNearbyAlert(paikat, onHalytys);
+  const { sijainti, virhe } = useNearbyAlert(paikat, onHalytys);
   const alueet = useMemo(() => ryhmitteleAlueiksi(paikat), []);
   const aktiivinenAlue = alueet.find((alue) => alue.alue === valittuAlue) ?? null;
 
@@ -41,6 +42,12 @@ export function App() {
         <h1>Viinakätköily</h1>
         <p className="alaotsikko">Etsi kätköjä lähelläsi ja merkitse löydöt.</p>
       </header>
+
+      {virhe && (
+        <p className="halytysbanneri" role="alert">
+          {virheTeksti(virhe)}
+        </p>
+      )}
 
       {viimeisinHalytys && (
         <p className="halytysbanneri" role="alert">

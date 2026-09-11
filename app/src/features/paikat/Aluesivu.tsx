@@ -7,7 +7,7 @@ import type { Sijainti } from "../../lib/geolocation";
 import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
-import { omaSijaintiIkoni, loydettyIkoni } from "./leafletIkonit";
+import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
 import loydotData from "../../data/loydot.json";
 
 const loydot = loydotData as Loyto[];
@@ -91,7 +91,7 @@ export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
             <Marker
               key={paikka.id}
               position={[paikka.lat, paikka.lng]}
-              icon={loydetytIdt.has(paikka.id) ? loydettyIkoni : undefined}
+              icon={loydetytIdt.has(paikka.id) ? loydettyIkoni : oletusIkoni}
               eventHandlers={{ click: () => valitsePaikka(paikka) }}
             />
           ))}
