@@ -18,3 +18,10 @@ export const omaSijaintiIkoni = L.divIcon({
   iconSize: [18, 18],
   iconAnchor: [9, 9],
 });
+
+export const loydettyIkoni = L.divIcon({
+  className: "loydetty-merkki",
+  html: '<span class="loydetty-piste">✓</span>',
+  iconSize: [28, 28],
+  iconAnchor: [14, 14],
+});

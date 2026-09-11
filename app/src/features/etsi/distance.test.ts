@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { etaisyysMetreina } from "./distance";
+import { etaisyysMetreina, etenemisprosentti } from "./distance";
 
 describe("etaisyysMetreina", () => {
   it("palauttaa 0 kun pisteet ovat samat", () => {
@@ -43,5 +43,21 @@ describe("etaisyysMetreina", () => {
     // Noin 3333 km
     expect(etaisyys).toBeGreaterThan(3300000);
     expect(etaisyys).toBeLessThan(3400000);
+  });
+});
+
+describe("etenemisprosentti", () => {
+  it("palauttaa 1 kynnyksen sisällä", () => {
+    expect(etenemisprosentti(500, 2000, 10000)).toBe(1);
+    expect(etenemisprosentti(2000, 2000, 10000)).toBe(1);
+  });
+
+  it("palauttaa 0 kantaman päässä tai kauempana", () => {
+    expect(etenemisprosentti(10000, 2000, 10000)).toBe(0);
+    expect(etenemisprosentti(50000, 2000, 10000)).toBe(0);
+  });
+
+  it("interpoloi lineaarisesti kynnyksen ja kantaman välillä", () => {
+    expect(etenemisprosentti(6000, 2000, 10000)).toBeCloseTo(0.5);
   });
 });

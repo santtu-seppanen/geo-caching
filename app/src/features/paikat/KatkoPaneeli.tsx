@@ -8,18 +8,19 @@ const loydot = loydotData as Loyto[];
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
+  omatLoydot: Loyto[];
+  onLoyto: (loyto: Loyto) => void;
   onSulje: () => void;
 }
 
-export function KatkoPaneeli({ paikka, onSulje }: KatkoPaneeliProps) {
+export function KatkoPaneeli({ paikka, omatLoydot, onLoyto, onSulje }: KatkoPaneeliProps) {
   const [nimi, setNimi] = useState("");
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
-  const [omatLoydot, setOmatLoydot] = useState<Loyto[]>([]);
 
   const naytettavatLoydot = [
     ...loydot.filter((loyto) => loyto.paikkaId === paikka.id),
-    ...omatLoydot,
+    ...omatLoydot.filter((loyto) => loyto.paikkaId === paikka.id),
   ];
 
   async function lahetaLoyto(e: FormEvent) {
@@ -31,10 +32,7 @@ export function KatkoPaneeli({ paikka, onSulje }: KatkoPaneeliProps) {
     setVirhe(null);
     try {
       await ilmoitaLoyto(paikka.id, siistittyNimi);
-      setOmatLoydot((edelliset) => [
-        ...edelliset,
-        { paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date().toISOString() },
-      ]);
+      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date().toISOString() });
       setNimi("");
     } catch (virhe) {
       setVirhe(virhe instanceof Error ? virhe.message : "Löydön tallennus epäonnistui");

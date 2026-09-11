@@ -19,3 +19,18 @@ export function etaisyysMetreina(
 
   return 2 * MAAPALLON_SADE_METREINA * Math.asin(Math.min(1, Math.sqrt(h)));
 }
+
+/**
+ * Muuntaa etäisyyden edistymisprosentiksi väliltä [0, 1]: 1 kynnyksen
+ * sisällä (tai lähempänä), 0 kantaman päässä tai kauempana, siltä väliltä
+ * lineaarisesti.
+ */
+export function etenemisprosentti(
+  etaisyysMetreina: number,
+  kynnysMetreina: number,
+  kantamaMetreina: number,
+): number {
+  if (etaisyysMetreina <= kynnysMetreina) return 1;
+  if (etaisyysMetreina >= kantamaMetreina) return 0;
+  return (kantamaMetreina - etaisyysMetreina) / (kantamaMetreina - kynnysMetreina);
+}
