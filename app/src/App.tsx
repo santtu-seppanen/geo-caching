@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
 import { ryhmitteleAlueiksi } from "./features/paikat/alueet";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import type { Paikka } from "./features/paikat/types";
+import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import paikatData from "./data/paikat.json";
 import heroKuva from "./assets/hero-illustration.svg";
 import "./App.css";
@@ -14,10 +15,15 @@ export function App() {
   const [valittuAlue, setValittuAlue] = useState<string | null>(null);
   const [viimeisinHalytys, setViimeisinHalytys] = useState<string | null>(null);
 
+  useEffect(() => {
+    pyydaIlmoituslupa();
+  }, []);
+
   const onHalytys = useCallback((lahella: LahellaOlevaPaikka) => {
-    setViimeisinHalytys(
-      `Olet ${Math.round(lahella.etaisyysMetreina)} m paikasta "${lahella.paikka.kuvaus}"`,
-    );
+    const viesti = `Olet ${Math.round(lahella.etaisyysMetreina)} m paikasta "${lahella.paikka.kuvaus}"`;
+    setViimeisinHalytys(viesti);
+    nayttaIlmoitus("Kätkö lähellä!", viesti);
+    if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
   }, []);
 
   const { sijainti } = useNearbyAlert(paikat, onHalytys);
