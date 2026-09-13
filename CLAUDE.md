@@ -4,8 +4,8 @@ Geokätköilytyylinen sovellus pienelle ryhmälle: kätköt on esiladattu
 alueittain, ne avautuvat kartalla sitä mukaa kun käyttäjä liikkuu
 lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
 
-- Etusivu listaa **alueet** karkealla vihjeellä ja live-etäisyydellä.
-  Alue avautuu tarkempaan näkymään, kun käyttäjä on **2 km** sisällä.
+- Etusivu listaa **alueet** nimellä ja live-etäisyydellä. Alue avautuu
+  tarkempaan näkymään, kun käyttäjä on **2 km** sisällä.
 - Aluesivu näyttää Leaflet/OpenStreetMap-kartan alueen kätköistä ja
   käyttäjän omasta sijainnista. Kätkön kuva ja kuvaus paljastuvat vasta
   **100 m** sisällä (ks. `app/src/features/etsi/`), jottei kartta
@@ -49,7 +49,7 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     (`X-Jaettu-Salasana`-header — karsii botteja, ei oikea autentikointi)
     ja lisää rivin `loydot`-tauluun.
   - `POST /admin/luo-katko` — validoi uuden kätkön kentät (id, alue,
-    alueVihje, kuvaus, lat/lng, kuva base64:na), tarkistaa admin-salasanan
+    kuvaus, lat/lng, kuva base64:na), tarkistaa admin-salasanan
     (`X-Admin-Salasana`-header, eri salaisuus kuin löytöjen jaettu
     salasana koska tämä kirjoittaa sisältöä eikä vain lokita löytöä),
     tallentaa kuvan R2:een ja lisää rivin `paikat`-tauluun.

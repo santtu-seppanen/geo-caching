@@ -44,7 +44,6 @@ export function Etusivu({ alueet, sijainti, onValitseAlue }: EtusivuProps) {
                   />
                 </span>
               )}
-              <span className="alue-vihje">{alue.alueVihje}</span>
             </>
           );
 

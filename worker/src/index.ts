@@ -143,7 +143,6 @@ async function kasitteleLuoKatko(
     await lisaaPaikka(env.DB, {
       id: pyynto.id,
       alue: pyynto.alue,
-      alueVihje: pyynto.alueVihje,
       kuvaus: pyynto.kuvaus,
       lat: pyynto.lat,
       lng: pyynto.lng,

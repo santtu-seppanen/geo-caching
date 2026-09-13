@@ -185,7 +185,6 @@ describe("validoiUusiKatkoPyynto", () => {
   const validipyynto = {
     id: "uusi-katko",
     alue: "Testialue",
-    alueVihje: "Testivihje",
     kuvaus: "Testkuvaus",
     lat: 60.1699,
     lng: 24.9384,
@@ -206,12 +205,11 @@ describe("validoiUusiKatkoPyynto", () => {
     }
   });
 
-  it("trimmaa whitespace:sta alue, alueVihje ja kuvaus", () => {
+  it("trimmaa whitespace:sta alue ja kuvaus", () => {
     const tulos = validoiUusiKatkoPyynto(
       {
         ...validipyynto,
         alue: "  Testialue  ",
-        alueVihje: "  Testivihje  ",
         kuvaus: "  Testkuvaus  ",
       },
       tunnetutPaikkaIdt
@@ -220,7 +218,6 @@ describe("validoiUusiKatkoPyynto", () => {
     expect(tulos.ok).toBe(true);
     if (tulos.ok) {
       expect(tulos.pyynto.alue).toBe("Testialue");
-      expect(tulos.pyynto.alueVihje).toBe("Testivihje");
       expect(tulos.pyynto.kuvaus).toBe("Testkuvaus");
     }
   });
@@ -373,55 +370,6 @@ describe("validoiUusiKatkoPyynto", () => {
       expect(tulos.ok).toBe(false);
       if (!tulos.ok) {
         expect(tulos.virhe).toContain("enintään 80");
-      }
-    });
-  });
-
-  describe("alueVihje validointi", () => {
-    it("hylkää tyhjän alueVihje:n", () => {
-      const tulos = validoiUusiKatkoPyynto(
-        { ...validipyynto, alueVihje: "" },
-        tunnetutPaikkaIdt
-      );
-
-      expect(tulos.ok).toBe(false);
-      if (!tulos.ok) {
-        expect(tulos.virhe).toBe("alueVihje on pakollinen");
-      }
-    });
-
-    it("hylkää whitespace-ainoastaan alueVihje:n", () => {
-      const tulos = validoiUusiKatkoPyynto(
-        { ...validipyynto, alueVihje: "   " },
-        tunnetutPaikkaIdt
-      );
-
-      expect(tulos.ok).toBe(false);
-      if (!tulos.ok) {
-        expect(tulos.virhe).toBe("alueVihje on pakollinen");
-      }
-    });
-
-    it("hyväksyy alueVihje:n, jonka pituus on täsmälleen 300 merkkiä", () => {
-      const maxVihje = "a".repeat(300);
-      const tulos = validoiUusiKatkoPyynto(
-        { ...validipyynto, alueVihje: maxVihje },
-        tunnetutPaikkaIdt
-      );
-
-      expect(tulos.ok).toBe(true);
-    });
-
-    it("hylkää alueVihje:n, jonka pituus ylittää 300 merkkiä", () => {
-      const yliPitkaavihje = "a".repeat(301);
-      const tulos = validoiUusiKatkoPyynto(
-        { ...validipyynto, alueVihje: yliPitkaavihje },
-        tunnetutPaikkaIdt
-      );
-
-      expect(tulos.ok).toBe(false);
-      if (!tulos.ok) {
-        expect(tulos.virhe).toContain("enintään 300");
       }
     });
   });

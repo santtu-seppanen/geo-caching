@@ -10,7 +10,6 @@
 
 export const ID_MAX_PITUUS = 60;
 export const ALUE_MAX_PITUUS = 80;
-export const ALUE_VIHJE_MAX_PITUUS = 300;
 export const KUVAUS_MAX_PITUUS = 500;
 
 /** Raakatiedoston maks. koko tavuina. Base64 kasvattaa kokoa ~1,33x, joten
@@ -25,7 +24,6 @@ const ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 export interface UusiKatkoPyynto {
   id: string;
   alue: string;
-  alueVihje: string;
   kuvaus: string;
   lat: number;
   lng: number;
@@ -49,15 +47,6 @@ export function validoiAlue(alue: string): string | null {
   const siisti = alue.trim();
   if (siisti.length === 0) return "alue on pakollinen";
   if (alue.length > ALUE_MAX_PITUUS) return `alue saa olla enintään ${ALUE_MAX_PITUUS} merkkiä`;
-  return null;
-}
-
-export function validoiAlueVihje(alueVihje: string): string | null {
-  const siisti = alueVihje.trim();
-  if (siisti.length === 0) return "alueVihje on pakollinen";
-  if (alueVihje.length > ALUE_VIHJE_MAX_PITUUS) {
-    return `alueVihje saa olla enintään ${ALUE_VIHJE_MAX_PITUUS} merkkiä`;
-  }
   return null;
 }
 
@@ -107,7 +96,6 @@ export function validoiKuvaTiedosto(tiedosto: File | null): string | null {
 export interface AdminLomakeVirheet {
   id?: string;
   alue?: string;
-  alueVihje?: string;
   kuvaus?: string;
   lat?: string;
   lng?: string;
@@ -117,7 +105,6 @@ export interface AdminLomakeVirheet {
 export interface AdminLomakeSyote {
   id: string;
   alue: string;
-  alueVihje: string;
   kuvaus: string;
   lat: number | null;
   lng: number | null;
@@ -134,9 +121,6 @@ export function validoiAdminLomake(syote: AdminLomakeSyote): AdminLomakeVirheet 
 
   const alueVirhe = validoiAlue(syote.alue);
   if (alueVirhe) virheet.alue = alueVirhe;
-
-  const alueVihjeVirhe = validoiAlueVihje(syote.alueVihje);
-  if (alueVihjeVirhe) virheet.alueVihje = alueVihjeVirhe;
 
   const kuvausVirhe = validoiKuvaus(syote.kuvaus);
   if (kuvausVirhe) virheet.kuvaus = kuvausVirhe;

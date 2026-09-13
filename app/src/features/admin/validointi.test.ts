@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   validoiId,
   validoiAlue,
-  validoiAlueVihje,
   validoiKuvaus,
   validoiLat,
   validoiLng,
@@ -11,7 +10,6 @@ import {
   validoiAdminLomake,
   ID_MAX_PITUUS,
   ALUE_MAX_PITUUS,
-  ALUE_VIHJE_MAX_PITUUS,
   KUVAUS_MAX_PITUUS,
   KUVA_MAX_TAVUA,
 } from "./validointi";
@@ -94,30 +92,6 @@ describe("validoiAlue", () => {
   it("trimaa whitespace:n", () => {
     const virhe = validoiAlue("  validialue  ");
     expect(virhe).toBeNull();
-  });
-});
-
-describe("validoiAlueVihje", () => {
-  it("hyväksyy validi alueVihje:n", () => {
-    expect(validoiAlueVihje("Tämä on vihje")).toBeNull();
-  });
-
-  it("hylkää tyhjän alueVihje:n", () => {
-    expect(validoiAlueVihje("")).not.toBeNull();
-  });
-
-  it("hylkää whitespace-ainoastaan alueVihje:n", () => {
-    expect(validoiAlueVihje("   ")).not.toBeNull();
-  });
-
-  it("hyväksyy alueVihje:n, jonka pituus on täsmälleen max", () => {
-    const maxVihje = "a".repeat(ALUE_VIHJE_MAX_PITUUS);
-    expect(validoiAlueVihje(maxVihje)).toBeNull();
-  });
-
-  it("hylkää alueVihje:n, jonka pituus ylittää max", () => {
-    const yliPitkaavihje = "a".repeat(ALUE_VIHJE_MAX_PITUUS + 1);
-    expect(validoiAlueVihje(yliPitkaavihje)).not.toBeNull();
   });
 });
 
@@ -338,7 +312,6 @@ describe("validoiAdminLomake", () => {
   const validisyote = {
     id: "uusi-katko",
     alue: "Testialue",
-    alueVihje: "Testivihje",
     kuvaus: "Testkuvaus",
     lat: 60.1699,
     lng: 24.9384,
@@ -369,14 +342,6 @@ describe("validoiAdminLomake", () => {
       alue: "",
     });
     expect(virheet.alue).toBeDefined();
-  });
-
-  it("kerraa alueVihje:n virhe", () => {
-    const virheet = validoiAdminLomake({
-      ...validisyote,
-      alueVihje: "",
-    });
-    expect(virheet.alueVihje).toBeDefined();
   });
 
   it("kerraa kuvaus:en virhe", () => {
@@ -415,7 +380,6 @@ describe("validoiAdminLomake", () => {
     const virheet = validoiAdminLomake({
       id: "Iso-Alkukirjain",
       alue: "",
-      alueVihje: "",
       kuvaus: "",
       lat: null,
       lng: null,
@@ -424,7 +388,6 @@ describe("validoiAdminLomake", () => {
 
     expect(virheet.id).toBeDefined();
     expect(virheet.alue).toBeDefined();
-    expect(virheet.alueVihje).toBeDefined();
     expect(virheet.kuvaus).toBeDefined();
     expect(virheet.lat).toBeDefined();
     expect(virheet.lng).toBeDefined();
