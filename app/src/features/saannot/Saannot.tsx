@@ -22,7 +22,7 @@ export function Saannot({ onTakaisin }: SaannotProps) {
         </li>
         <li>
           <strong>Jätä tilalle uutta viinaa.</strong> Jos otat viinan
-          kätköstä, jätä tilalle uusi pullo tai purkki, jotta kätkö pysyy
+          kätköstä, jätä tilalle uusi viina, jotta kätkö pysyy
           elossa seuraavalle löytäjälle.
         </li>
         <li>
