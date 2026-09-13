@@ -31,7 +31,7 @@ export function Saannot({ onTakaisin }: SaannotProps) {
         </li>
         <li>
           <strong>Toimi huomaamattomasti.</strong> Älä paljasta viinan
-          paikkaa ulkopuolisille ("jästeille").
+          paikkaa ulkopuolisille jästeille.
         </li>
         <li>
           <strong>Kunnioita ympäristöä.</strong> Älä tuhoa luontoa tai ilmoita
