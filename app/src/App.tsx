@@ -129,7 +129,7 @@ export function App() {
           onTakaisin={() => setValittuAlue(null)}
         />
       ) : (
-        <Etusivu alueet={alueet} sijainti={sijainti} onValitseAlue={setValittuAlue} />
+        <Etusivu alueet={alueet} onValitseAlue={setValittuAlue} />
       )}
     </main>
   );
