@@ -11,11 +11,31 @@ export function pyydaIlmoituslupa(): void {
   }
 }
 
-export function nayttaIlmoitus(otsikko: string, viesti: string): void {
+export async function nayttaIlmoitus(otsikko: string, viesti: string): Promise<void> {
   if (!("Notification" in window) || Notification.permission !== "granted") return;
 
-  new Notification(otsikko, {
+  const asetukset: NotificationOptions = {
     body: viesti,
     icon: `${import.meta.env.BASE_URL}pwa-192x192.png`,
-  });
+  };
+
+  // Android-selaimet (Chrome, Brave, Samsung Internet…) eivät tue suoraa
+  // `new Notification()`-konstruktoria vaan vaativat
+  // ServiceWorkerRegistration.showNotification()-kutsun — konstruktori
+  // heittää TypeErrorin, joka kaataisi koko Reactin ilman virherajaa.
+  const rekisterointi = "serviceWorker" in navigator
+    ? await navigator.serviceWorker.getRegistration()
+    : undefined;
+
+  if (rekisterointi) {
+    void rekisterointi.showNotification(otsikko, asetukset);
+    return;
+  }
+
+  try {
+    new Notification(otsikko, asetukset);
+  } catch {
+    // Ei tuettu ilman service workeria (esim. paikallinen kehitys) — hälytys
+    // näkyy silti sivun omassa bannerissa (App.tsx:n viimeisinHalytys).
+  }
 }
