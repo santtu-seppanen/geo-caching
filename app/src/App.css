@@ -266,6 +266,11 @@ body {
   box-shadow: 0 10px 24px rgba(120, 72, 30, 0.1);
 }
 
+.yleiskarttakontti {
+  height: 35vh;
+  margin-bottom: 1rem;
+}
+
 .oma-sijainti-merkki {
   background: transparent;
   border: none;
