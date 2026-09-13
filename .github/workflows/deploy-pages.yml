@@ -29,6 +29,9 @@ jobs:
           cache-dependency-path: app/package-lock.json
       - run: npm install
       - run: npm run build
+        env:
+          VITE_LOYTO_API_URL: ${{ secrets.VITE_LOYTO_API_URL }}
+          VITE_LOYTO_SALASANA: ${{ secrets.VITE_LOYTO_SALASANA }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: app/dist

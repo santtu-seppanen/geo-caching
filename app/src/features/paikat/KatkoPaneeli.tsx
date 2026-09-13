@@ -2,18 +2,16 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Paikka, Loyto } from "./types";
 import { ilmoitaLoyto } from "./loydotApi";
-import loydotData from "../../data/loydot.json";
-
-const loydot = loydotData as Loyto[];
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
+  loydot: Loyto[];
   omatLoydot: Loyto[];
   onLoyto: (loyto: Loyto) => void;
   onSulje: () => void;
 }
 
-export function KatkoPaneeli({ paikka, omatLoydot, onLoyto, onSulje }: KatkoPaneeliProps) {
+export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: KatkoPaneeliProps) {
   const [nimi, setNimi] = useState("");
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -49,7 +47,7 @@ export function KatkoPaneeli({ paikka, omatLoydot, onLoyto, onSulje }: KatkoPane
 
       <img
         className="katko-kuva"
-        src={`${import.meta.env.BASE_URL}kuvat/${paikka.kuva}`}
+        src={`${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`}
         alt={paikka.kuvaus}
       />
       <p className="katko-kuvaus">{paikka.kuvaus}</p>

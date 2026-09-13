@@ -362,6 +362,152 @@ body {
   font-weight: 600;
 }
 
+.otsikko-napit {
+  margin-top: 0.75rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.saannot-linkki {
+  margin-top: 0;
+  padding: 0.4rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--vari-ensisijainen-tumma);
+  background: var(--vari-pinta);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.saannot-linkki:active {
+  background: var(--vari-reuna);
+}
+
+.saannot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 24px rgba(120, 72, 30, 0.1);
+}
+
+.saannot h2 {
+  margin: 0;
+}
+
+.saannot-lista {
+  margin: 0;
+  padding-left: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.saannot-lista li {
+  line-height: 1.5;
+}
+
+.admin-lomake-kontti {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  box-shadow: 0 10px 24px rgba(120, 72, 30, 0.1);
+}
+
+.admin-lomake-kontti h2 {
+  margin: 0;
+}
+
+.admin-lomake {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.admin-lomake textarea.teksti-syote {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.kentan-vihje {
+  font-size: 0.8rem;
+  color: var(--vari-teksti-himmea);
+}
+
+.admin-sijainti-kentat {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.admin-sijainti-kentat .kentta {
+  flex: 1;
+  min-width: 0;
+}
+
+.gps-nappi {
+  align-self: flex-start;
+}
+
+.admin-kuva-esikatselu {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 0.75rem;
+  border: 1px solid var(--vari-reuna);
+}
+
+.admin-katko-lista {
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.admin-katko-rivi {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.75rem;
+  background: var(--vari-tausta);
+}
+
+.admin-katko-tiedot {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.nappi-vaara {
+  background: var(--vari-aksentti);
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.nappi-vaara:not(:disabled):active {
+  background: #96271b;
+}
+
 @media (min-width: 640px) {
   .sovellus {
     padding: 2rem 1rem;
