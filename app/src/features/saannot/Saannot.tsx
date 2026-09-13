@@ -26,7 +26,7 @@ export function Saannot({ onTakaisin }: SaannotProps) {
           elossa seuraavalle löytäjälle.
         </li>
         <li>
-          <strong>Palauta kätkö.</strong> Laita viinapurkki täsmälleen samaan
+          <strong>Palauta kätkö.</strong> Laita viina täsmälleen samaan
           paikkaan ja asentoon, mistä sen löysit.
         </li>
         <li>
