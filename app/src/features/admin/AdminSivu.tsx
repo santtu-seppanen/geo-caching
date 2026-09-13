@@ -44,6 +44,10 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [adminSalasana, setAdminSalasana] = useState(
     () => sessionStorage.getItem(ADMIN_SALASANA_AVAIN) ?? "",
   );
+  const [kirjauduttu, setKirjauduttu] = useState(
+    () => sessionStorage.getItem(ADMIN_SALASANA_AVAIN) !== null,
+  );
+  const [salasanaSyote, setSalasanaSyote] = useState("");
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [kuvaEsikatselu, setKuvaEsikatselu] = useState<string | null>(null);
@@ -59,8 +63,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [poistoOnnistui, setPoistoOnnistui] = useState<string | null>(null);
 
   useEffect(() => {
-    lataaPaikat();
-  }, []);
+    if (kirjauduttu) lataaPaikat();
+  }, [kirjauduttu]);
 
   async function lataaPaikat() {
     try {
@@ -101,6 +105,20 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   function paivitaAdminSalasana(uusi: string) {
     setAdminSalasana(uusi);
     sessionStorage.setItem(ADMIN_SALASANA_AVAIN, uusi);
+  }
+
+  function kirjaudu(e: FormEvent) {
+    e.preventDefault();
+    if (!salasanaSyote.trim()) return;
+    paivitaAdminSalasana(salasanaSyote);
+    setKirjauduttu(true);
+  }
+
+  function kirjauduUlos() {
+    sessionStorage.removeItem(ADMIN_SALASANA_AVAIN);
+    setAdminSalasana("");
+    setSalasanaSyote("");
+    setKirjauduttu(false);
   }
 
   function paivitaKentta(kentta: keyof typeof TYHJA_LOMAKE, arvo: string) {
@@ -214,26 +232,52 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     }
   }
 
+  if (!kirjauduttu) {
+    return (
+      <section className="admin-lomake-kontti">
+        <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
+          ← Takaisin
+        </button>
+
+        <h2>Admin</h2>
+
+        <form className="admin-lomake" onSubmit={kirjaudu}>
+          <label className="kentta">
+            <span className="kentan-nimi">Admin-salasana</span>
+            <input
+              className="teksti-syote"
+              type="password"
+              value={salasanaSyote}
+              onChange={(e) => setSalasanaSyote(e.target.value)}
+              autoComplete="off"
+              autoFocus
+            />
+          </label>
+
+          <button
+            className="nappi nappi-ensisijainen"
+            type="submit"
+            disabled={!salasanaSyote.trim()}
+          >
+            Jatka
+          </button>
+        </form>
+      </section>
+    );
+  }
+
   return (
     <section className="admin-lomake-kontti">
       <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
         ← Takaisin
       </button>
+      <button type="button" className="nappi nappi-toissijainen" onClick={kirjauduUlos}>
+        Vaihda salasana
+      </button>
 
       <h2>Luo uusi kätkö</h2>
 
       <form className="admin-lomake" onSubmit={lahetaLomake}>
-        <label className="kentta">
-          <span className="kentan-nimi">Admin-salasana</span>
-          <input
-            className="teksti-syote"
-            type="password"
-            value={adminSalasana}
-            onChange={(e) => paivitaAdminSalasana(e.target.value)}
-            autoComplete="off"
-          />
-        </label>
-
         <label className="kentta">
           <span className="kentan-nimi">id</span>
           <input
