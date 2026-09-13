@@ -4,8 +4,12 @@ Geokätköilytyylinen sovellus pienelle ryhmälle: kätköt on esiladattu
 alueittain, ne avautuvat kartalla sitä mukaa kun käyttäjä liikkuu
 lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
 
-- Etusivu listaa **alueet** nimellä ja live-etäisyydellä. Alue avautuu
-  tarkempaan näkymään, kun käyttäjä on **2 km** sisällä.
+- Etusivu ei listaa alueita — kätköt on piilossa, kunnes käyttäjä
+  kirjoittaa hakukenttään alueen nimen. Kätkön id on kaksiosainen, teksti +
+  numero (esim. `neittava-1`, `neittava-2`); alueen nimi on id:n
+  tekstiosa, ja kirjoittamalla sen (esim. "Neittävä") näkee kaikki sen
+  alueen kätköt kartalla — ei etäisyysrajaa tässä vaiheessa (ks.
+  `app/src/features/paikat/alueet.ts`:n `paikanTunniste`).
 - Aluesivu näyttää Leaflet/OpenStreetMap-kartan alueen kätköistä ja
   käyttäjän omasta sijainnista. Kätkön kuva ja kuvaus paljastuvat vasta
   **100 m** sisällä (ks. `app/src/features/etsi/`), jottei kartta

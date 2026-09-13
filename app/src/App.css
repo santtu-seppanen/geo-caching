@@ -152,89 +152,33 @@ body {
   background: var(--vari-reuna);
 }
 
-.aluelista h2 {
+.aluehaku h2 {
   font-size: 1.1rem;
-  margin: 0 0 0.75rem;
+  margin: 0 0 0.5rem;
+}
+
+.aluehaku-ohje {
+  color: var(--vari-teksti-himmea);
+  margin: 0 0 1rem;
+}
+
+.aluehaku-lomake {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.aluehaku-lomake .teksti-syote {
+  flex: 1;
+}
+
+.aluehaku-lomake .nappi {
+  width: auto;
+  white-space: nowrap;
 }
 
 .tyhja-tila {
   color: var(--vari-teksti-himmea);
   font-style: italic;
-}
-
-.alueet {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.alue-rivi {
-  border-radius: 1rem;
-}
-
-.alue-linkki {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.25rem;
-  background: var(--vari-pinta);
-  backdrop-filter: blur(10px);
-  border: 1px solid var(--vari-reuna);
-  border-radius: 1rem;
-  padding: 0.9rem 1rem;
-  box-shadow: 0 6px 14px rgba(120, 72, 30, 0.08);
-  font: inherit;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.alue-rivi.avoinna .alue-linkki:active {
-  background: var(--vari-reuna);
-}
-
-.alue-rivi.lukittu .alue-linkki-poissa {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-.alue-nimi {
-  font-weight: 700;
-  font-size: 1.05rem;
-}
-
-.alue-etaisyys {
-  font-weight: 600;
-  color: var(--vari-ensisijainen-tumma);
-}
-
-.alue-rivi.lukittu .alue-etaisyys {
-  color: var(--vari-teksti-himmea);
-}
-
-.alue-edistyminen {
-  display: block;
-  width: 100%;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--vari-reuna);
-  overflow: hidden;
-}
-
-.alue-edistyminen-tayte {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: linear-gradient(90deg, var(--vari-ensisijainen), var(--vari-ensisijainen-tumma));
-  transition: width 0.3s ease;
-}
-
-.alue-rivi.lukittu .alue-edistyminen-tayte {
-  background: var(--vari-aksentti);
 }
 
 .aluesivu {
@@ -264,11 +208,6 @@ body {
   overflow: hidden;
   border: 1px solid var(--vari-reuna);
   box-shadow: 0 10px 24px rgba(120, 72, 30, 0.1);
-}
-
-.yleiskarttakontti {
-  height: 35vh;
-  margin-bottom: 1rem;
 }
 
 .oma-sijainti-merkki {

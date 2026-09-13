@@ -59,10 +59,10 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
   return (
     <section className="aluesivu">
       <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
-        ← Takaisin alueisiin
+        ← Takaisin hakuun
       </button>
 
-      <h2>{alue.alue}</h2>
+      <h2>{alue.alue.charAt(0).toUpperCase() + alue.alue.slice(1)}</h2>
 
       {vihjeViesti && (
         <p className="vihje-tooltip" role="status">

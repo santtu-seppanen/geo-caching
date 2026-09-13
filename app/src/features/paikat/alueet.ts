@@ -7,9 +7,20 @@ export interface Alue {
 }
 
 /**
+ * Kätkön id on kaksiosainen, teksti + numero (esim. "neittava-1"), jotta
+ * saman alueen kätköt voi löytää kirjoittamalla vain tekstiosan etusivun
+ * hakukenttään ilman että alueiden nimiä listataan kenellekään näkyviin.
+ * Jos id:ssä ei ole numero-osaa, koko id on tunniste (yksittäinen kätkö).
+ */
+export function paikanTunniste(id: string): string {
+  const numerollinen = /^(.+)-\d+$/.exec(id);
+  return numerollinen ? numerollinen[1] : id;
+}
+
+/**
  * Alueita ei säilytetä omana JSON-tiedostonaan — jokainen kätkö kertoo jo
- * itse, mihin alueeseen se kuuluu (`alue`-kenttä), joten alueiden lista ja
- * niiden keskipiste on turvallisinta johtaa `paikat.json`:sta ajossa. Näin
+ * itse, mihin alueeseen se kuuluu (id:n tekstiosa), joten alueiden lista ja
+ * niiden keskipiste on turvallisinta johtaa paikkalistasta ajossa. Näin
  * data ei voi ajautua epäsynkkaan kahden tiedoston välillä.
  */
 export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
@@ -17,12 +28,13 @@ export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
   const ryhmat = new Map<string, Paikka[]>();
 
   for (const paikka of paikat) {
-    const ryhma = ryhmat.get(paikka.alue);
+    const tunniste = paikanTunniste(paikka.id);
+    const ryhma = ryhmat.get(tunniste);
     if (ryhma) {
       ryhma.push(paikka);
     } else {
-      ryhmat.set(paikka.alue, [paikka]);
-      jarjestys.push(paikka.alue);
+      ryhmat.set(tunniste, [paikka]);
+      jarjestys.push(tunniste);
     }
   }
 
