@@ -65,14 +65,6 @@ else
   R2_KAYTOSSA=0
 fi
 
-ESIMERKKIKUVA="../app/public/kuvat/esimerkki.svg"
-if [ "$R2_KAYTOSSA" -eq 1 ] && [ -f "$ESIMERKKIKUVA" ]; then
-  echo "Ladataan esimerkkikuva R2:een…"
-  npx wrangler r2 object put "$BUCKET_NAME/esimerkki.svg" --file="$ESIMERKKIKUVA" --content-type="image/svg+xml" >/dev/null
-elif [ "$R2_KAYTOSSA" -eq 1 ]; then
-  echo "Esimerkkikuvaa ($ESIMERKKIKUVA) ei löytynyt — ohitetaan. Esimerkkikätkön kuva ei näy ennen kuin lisäät sen R2:een tai poistat kätkön admin-sivulta."
-fi
-
 echo
 echo "== D1-migraatiot =="
 npx wrangler d1 migrations apply "$DB_NAME" --remote
