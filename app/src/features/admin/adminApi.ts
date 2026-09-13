@@ -1,6 +1,25 @@
 import type { UusiKatkoPyynto } from "./validointi";
 
 /**
+ * Tarkistaa admin-salasanan Workerista ilman sivuvaikutuksia. Käytetään
+ * admin-sivun kirjautumislomakkeessa, jotta väärästä salasanasta näkee
+ * virheen heti eikä vasta ensimmäistä kätköä luodessa.
+ */
+export async function kirjauduAdmin(adminSalasana: string): Promise<void> {
+  const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/kirjaudu`;
+
+  const vastaus = await fetch(url, {
+    method: "POST",
+    headers: { "X-Admin-Salasana": adminSalasana },
+  });
+
+  if (!vastaus.ok) {
+    const data = (await vastaus.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Väärä salasana");
+  }
+}
+
+/**
  * Postaa uuden kätkön Cloudflare Workeriin, joka validoi pyynnön uudelleen
  * (mm. id:n uniikkius) ja kirjoittaa sen D1-tietokantaan sekä kuvan
  * R2-varastoon (ks. worker/). Admin-salasana annetaan käyttäjän toimesta

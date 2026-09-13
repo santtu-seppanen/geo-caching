@@ -1,14 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
-import { luoKatko, poistaKatko } from "./adminApi";
+import { kirjauduAdmin, luoKatko, poistaKatko } from "./adminApi";
 import { paattelKuvaPaate, validoiAdminLomake } from "./validointi";
 import type { AdminLomakeSyote } from "./validointi";
 import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
 import type { Paikka } from "../paikat/types";
 import { haePaikat } from "../paikat/paikatApi";
-
-const ADMIN_SALASANA_AVAIN = "viinakatkoily-admin-salasana";
 
 interface AdminSivuProps {
   onTakaisin: () => void;
@@ -41,13 +39,11 @@ function lueTiedostoBase64na(tiedosto: File): Promise<string> {
 }
 
 export function AdminSivu({ onTakaisin }: AdminSivuProps) {
-  const [adminSalasana, setAdminSalasana] = useState(
-    () => sessionStorage.getItem(ADMIN_SALASANA_AVAIN) ?? "",
-  );
-  const [kirjauduttu, setKirjauduttu] = useState(
-    () => sessionStorage.getItem(ADMIN_SALASANA_AVAIN) !== null,
-  );
+  const [adminSalasana, setAdminSalasana] = useState("");
+  const [kirjauduttu, setKirjauduttu] = useState(false);
   const [salasanaSyote, setSalasanaSyote] = useState("");
+  const [kirjaudutaan, setKirjaudutaan] = useState(false);
+  const [kirjautumisVirhe, setKirjautumisVirhe] = useState<string | null>(null);
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [kuvaEsikatselu, setKuvaEsikatselu] = useState<string | null>(null);
@@ -102,20 +98,24 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     }
   }
 
-  function paivitaAdminSalasana(uusi: string) {
-    setAdminSalasana(uusi);
-    sessionStorage.setItem(ADMIN_SALASANA_AVAIN, uusi);
-  }
-
-  function kirjaudu(e: FormEvent) {
+  async function kirjaudu(e: FormEvent) {
     e.preventDefault();
     if (!salasanaSyote.trim()) return;
-    paivitaAdminSalasana(salasanaSyote);
-    setKirjauduttu(true);
+
+    setKirjaudutaan(true);
+    setKirjautumisVirhe(null);
+    try {
+      await kirjauduAdmin(salasanaSyote);
+      setAdminSalasana(salasanaSyote);
+      setKirjauduttu(true);
+    } catch {
+      setKirjautumisVirhe("Väärä salasana");
+    } finally {
+      setKirjaudutaan(false);
+    }
   }
 
   function kirjauduUlos() {
-    sessionStorage.removeItem(ADMIN_SALASANA_AVAIN);
     setAdminSalasana("");
     setSalasanaSyote("");
     setKirjauduttu(false);
@@ -254,12 +254,18 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             />
           </label>
 
+          {kirjautumisVirhe && (
+            <p className="lomake-virhe" role="alert">
+              {kirjautumisVirhe}
+            </p>
+          )}
+
           <button
             className="nappi nappi-ensisijainen"
             type="submit"
-            disabled={!salasanaSyote.trim()}
+            disabled={!salasanaSyote.trim() || kirjaudutaan}
           >
-            Jatka
+            {kirjaudutaan ? "Tarkistetaan…" : "Jatka"}
           </button>
         </form>
       </section>

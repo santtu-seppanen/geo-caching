@@ -49,6 +49,10 @@ export default {
       return kasitteleLoyda(request, env, corsHeaders);
     }
 
+    if (request.method === "POST" && url.pathname === "/admin/kirjaudu") {
+      return kasitteleKirjautuminen(request, env, corsHeaders);
+    }
+
     if (request.method === "POST" && url.pathname === "/admin/luo-katko") {
       return kasitteleLuoKatko(request, env, corsHeaders);
     }
@@ -111,6 +115,19 @@ async function kasitteleLoyda(
   }
 
   return jsonVastaus({ ok: true }, 201, corsHeaders);
+}
+
+/** Tarkistaa admin-salasanan ilman sivuvaikutuksia, jotta lomake voi näyttää virheen heti kirjautuessa. */
+async function kasitteleKirjautuminen(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+    return jsonVastaus({ error: "Väärä salasana" }, 401, corsHeaders);
+  }
+
+  return jsonVastaus({ ok: true }, 200, corsHeaders);
 }
 
 async function kasitteleLuoKatko(
