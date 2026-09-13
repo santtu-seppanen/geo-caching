@@ -1,7 +1,6 @@
 export interface Paikka {
   id: string;
   alue: string;
-  alueVihje: string;
   kuvaus: string;
   lat: number;
   lng: number;

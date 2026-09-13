@@ -12,7 +12,6 @@ const NIMI_MAX_PITUUS = 50;
 export interface UusiKatkoPyynto {
   id: string;
   alue: string;
-  alueVihje: string;
   kuvaus: string;
   lat: number;
   lng: number;
@@ -29,7 +28,6 @@ export type UusiKatkoValidointiTulos =
 const ID_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const ID_MAX_PITUUS = 60;
 const ALUE_MAX_PITUUS = 80;
-const ALUE_VIHJE_MAX_PITUUS = 300;
 const KUVAUS_MAX_PITUUS = 500;
 const SALLITUT_KUVAPAATTEET = new Set(["jpg", "jpeg", "png", "webp", "svg"]);
 // ~1,5 Mt dekoodattuna base64:sta, riittää valokuvalle mutta pitää
@@ -44,7 +42,7 @@ export function validoiUusiKatkoPyynto(
     return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
   }
 
-  const { id, alue, alueVihje, kuvaus, lat, lng, kuva } = data as Record<string, unknown>;
+  const { id, alue, kuvaus, lat, lng, kuva } = data as Record<string, unknown>;
 
   if (typeof id !== "string" || id.length > ID_MAX_PITUUS || !ID_PATTERN.test(id)) {
     return {
@@ -61,16 +59,6 @@ export function validoiUusiKatkoPyynto(
   }
   if (alue.length > ALUE_MAX_PITUUS) {
     return { ok: false, virhe: `alue saa olla enintään ${ALUE_MAX_PITUUS} merkkiä` };
-  }
-
-  if (typeof alueVihje !== "string" || alueVihje.trim().length === 0) {
-    return { ok: false, virhe: "alueVihje on pakollinen" };
-  }
-  if (alueVihje.length > ALUE_VIHJE_MAX_PITUUS) {
-    return {
-      ok: false,
-      virhe: `alueVihje saa olla enintään ${ALUE_VIHJE_MAX_PITUUS} merkkiä`,
-    };
   }
 
   if (typeof kuvaus !== "string" || kuvaus.trim().length === 0) {
@@ -115,7 +103,6 @@ export function validoiUusiKatkoPyynto(
     pyynto: {
       id,
       alue: alue.trim(),
-      alueVihje: alueVihje.trim(),
       kuvaus: kuvaus.trim(),
       lat,
       lng,

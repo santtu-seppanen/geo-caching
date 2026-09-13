@@ -1,7 +1,6 @@
 export interface Paikka {
   id: string;
   alue: string;
-  alueVihje: string;
   kuvaus: string;
   lat: number;
   lng: number;
@@ -17,7 +16,6 @@ export interface Loyto {
 interface PaikkaRivi {
   id: string;
   alue: string;
-  alue_vihje: string;
   kuvaus: string;
   lat: number;
   lng: number;
@@ -34,7 +32,6 @@ function paikkaRivista(rivi: PaikkaRivi): Paikka {
   return {
     id: rivi.id,
     alue: rivi.alue,
-    alueVihje: rivi.alue_vihje,
     kuvaus: rivi.kuvaus,
     lat: rivi.lat,
     lng: rivi.lng,
@@ -73,10 +70,8 @@ export async function lisaaLoyto(
 
 export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
   await db
-    .prepare(
-      "INSERT INTO paikat (id, alue, alue_vihje, kuvaus, lat, lng, kuva) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    )
-    .bind(paikka.id, paikka.alue, paikka.alueVihje, paikka.kuvaus, paikka.lat, paikka.lng, paikka.kuva)
+    .prepare("INSERT INTO paikat (id, alue, kuvaus, lat, lng, kuva) VALUES (?, ?, ?, ?, ?, ?)")
+    .bind(paikka.id, paikka.alue, paikka.kuvaus, paikka.lat, paikka.lng, paikka.kuva)
     .run();
 }
 

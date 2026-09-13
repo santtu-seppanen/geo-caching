@@ -63,7 +63,6 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
       </button>
 
       <h2>{alue.alue}</h2>
-      <p className="alue-vihje-teksti">{alue.alueVihje}</p>
 
       {vihjeViesti && (
         <p className="vihje-tooltip" role="status">

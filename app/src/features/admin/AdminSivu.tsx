@@ -17,7 +17,6 @@ interface AdminSivuProps {
 const TYHJA_LOMAKE = {
   id: "",
   alue: "",
-  alueVihje: "",
   kuvaus: "",
   lat: "",
   lng: "",
@@ -151,7 +150,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const syote: AdminLomakeSyote = {
     id: lomake.id,
     alue: lomake.alue,
-    alueVihje: lomake.alueVihje,
     kuvaus: lomake.kuvaus,
     lat: latNumero,
     lng: lngNumero,
@@ -161,7 +159,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const pakollisetPuuttuvat =
     !lomake.id.trim() ||
     !lomake.alue.trim() ||
-    !lomake.alueVihje.trim() ||
     !lomake.kuvaus.trim() ||
     latNumero === null ||
     lngNumero === null ||
@@ -198,7 +195,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         {
           id: lomake.id.trim(),
           alue: lomake.alue.trim(),
-          alueVihje: lomake.alueVihje.trim(),
           kuvaus: lomake.kuvaus.trim(),
           lat: latNumero!,
           lng: lngNumero!,
@@ -263,16 +259,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
               <option key={alue} value={alue} />
             ))}
           </datalist>
-        </label>
-
-        <label className="kentta">
-          <span className="kentan-nimi">alueVihje</span>
-          <textarea
-            className="teksti-syote"
-            value={lomake.alueVihje}
-            onChange={(e) => paivitaKentta("alueVihje", e.target.value)}
-            rows={2}
-          />
         </label>
 
         <label className="kentta">

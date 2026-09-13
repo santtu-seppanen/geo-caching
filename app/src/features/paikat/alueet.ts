@@ -2,7 +2,6 @@ import type { Paikka } from "./types";
 
 export interface Alue {
   alue: string;
-  alueVihje: string;
   keskipiste: { lat: number; lng: number };
   paikat: Paikka[];
 }
@@ -31,7 +30,6 @@ export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
     const alueenPaikat = ryhmat.get(alue)!;
     return {
       alue,
-      alueVihje: alueenPaikat[0].alueVihje,
       keskipiste: laskeKeskipiste(alueenPaikat),
       paikat: alueenPaikat,
     };
