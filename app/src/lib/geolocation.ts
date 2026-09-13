@@ -48,6 +48,41 @@ export function seuraaSijaintia(
   return () => navigator.geolocation.clearWatch(watchId);
 }
 
+/**
+ * Kertahaku selaimen getCurrentPosition-rajapinnalla (ei jatkuvaa watchia).
+ * Käytetään esim. admin-lomakkeen "Käytä nykyistä sijaintia" -napissa, jossa
+ * riittää yksi tuore sijaintilukema eikä tarvita seurantaa ajan yli.
+ */
+export function haeNykyinenSijaintiKerran(): Promise<Sijainti> {
+  return new Promise((resolve, reject) => {
+    if (!("geolocation" in navigator)) {
+      reject({ koodi: "EI_TUETTU", viesti: "Selain ei tue sijaintirajapintaa" } satisfies SijaintiVirhe);
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          tarkkuusMetreina: position.coords.accuracy,
+          aikaleima: position.timestamp,
+        });
+      },
+      (error) => {
+        const koodi =
+          error.code === error.PERMISSION_DENIED
+            ? "LUPA_EVATTY"
+            : error.code === error.TIMEOUT
+              ? "AIKAKATKAISU"
+              : "MUU";
+        reject({ koodi, viesti: error.message } satisfies SijaintiVirhe);
+      },
+      { enableHighAccuracy: true, maximumAge: 5000, timeout: 10000 },
+    );
+  });
+}
+
 export function virheTeksti(virhe: SijaintiVirhe): string {
   switch (virhe.koodi) {
     case "EI_TUETTU":

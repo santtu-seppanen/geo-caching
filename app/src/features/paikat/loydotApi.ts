@@ -1,7 +1,7 @@
 /**
- * Postaa löydön Cloudflare Workeriin, joka kirjoittaa sen loydot.json:iin
- * gitissä (ks. worker/). Käyttäjä näkee oman löytönsä heti optimistisesti
- * lisättynä — muut näkevät sen vasta seuraavan Pages-deployn jälkeen.
+ * Postaa löydön Cloudflare Workeriin, joka kirjoittaa sen D1-tietokantaan
+ * (ks. worker/). Käyttäjä näkee oman löytönsä heti optimistisesti
+ * lisättynä — muut näkevät sen seuraavalla `/loydot`-haulla.
  */
 export async function ilmoitaLoyto(paikkaId: string, nimi: string): Promise<void> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/loyda`;

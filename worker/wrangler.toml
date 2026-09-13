@@ -1,13 +1,23 @@
 name = "paikka-halytin-loyda"
 main = "src/index.ts"
 compatibility_date = "2024-09-01"
+workers_dev = true
 
 [vars]
-GITHUB_OWNER = "santtu-seppanen"
-GITHUB_REPO = "geo-caching"
-GITHUB_BRANCH = "main"
 CORS_ORIGIN = "https://santtu-seppanen.github.io"
 
+[[d1_databases]]
+binding = "DB"
+database_name = "paikka-halytin-db"
+database_id = "ee6dba3c-d153-4c89-b174-e6593fee1f7e"
+
+# R2 ei vielä käytössä tilillä — sidonta väliaikaisesti pois, jotta deploy
+# onnistuu. Kuvareitit (/kuvat/*, admin-kuvan lataus) eivät toimi ennen kuin
+# R2 otetaan käyttöön ja tämä palautetaan:
+# [[r2_buckets]]
+# binding = "KUVAT"
+# bucket_name = "paikka-halytin-kuvat"
+
 # Salaisuudet (eivät tässä tiedostossa, eivät koskaan gitissä):
-#   wrangler secret put GITHUB_TOKEN
 #   wrangler secret put JAETTU_SALASANA
+#   wrangler secret put ADMIN_SALASANA

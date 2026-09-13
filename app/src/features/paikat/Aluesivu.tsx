@@ -8,13 +8,13 @@ import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
 import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
-import loydotData from "../../data/loydot.json";
-
-const loydot = loydotData as Loyto[];
 
 interface AluesivuProps {
   alue: Alue;
   sijainti: Sijainti | null;
+  loydot: Loyto[];
+  omatLoydot: Loyto[];
+  onLoyto: (loyto: Loyto) => void;
   onTakaisin: () => void;
 }
 
@@ -30,19 +30,14 @@ function SovitaKarttaAlueeseen({ paikat }: { paikat: Paikka[] }) {
   return null;
 }
 
-export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
+export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakaisin }: AluesivuProps) {
   const [valittuPaikka, setValittuPaikka] = useState<Paikka | null>(null);
   const [vihjeViesti, setVihjeViesti] = useState<string | null>(null);
-  const [omatLoydot, setOmatLoydot] = useState<Loyto[]>([]);
 
   const loydetytIdt = useMemo(
     () => new Set([...loydot, ...omatLoydot].map((loyto) => loyto.paikkaId)),
-    [omatLoydot],
+    [loydot, omatLoydot],
   );
-
-  function lisaaLoyto(loyto: Loyto) {
-    setOmatLoydot((edelliset) => [...edelliset, loyto]);
-  }
 
   function valitsePaikka(paikka: Paikka) {
     if (!sijainti) {
@@ -104,8 +99,9 @@ export function Aluesivu({ alue, sijainti, onTakaisin }: AluesivuProps) {
       {valittuPaikka && (
         <KatkoPaneeli
           paikka={valittuPaikka}
+          loydot={loydot}
           omatLoydot={omatLoydot}
-          onLoyto={lisaaLoyto}
+          onLoyto={onLoyto}
           onSulje={() => setValittuPaikka(null)}
         />
       )}
