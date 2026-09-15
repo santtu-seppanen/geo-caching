@@ -2,11 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Alue } from "./alueet";
+import { alueenLoydettyjenMaara } from "./alueet";
 import type { Paikka, Loyto } from "./types";
 import type { Sijainti } from "../../lib/geolocation";
 import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
+import { Edistymispalkki } from "./Edistymispalkki";
 import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
 
 interface AluesivuProps {
@@ -63,6 +65,12 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
       </button>
 
       <h2>{alue.alue.charAt(0).toUpperCase() + alue.alue.slice(1)}</h2>
+
+      <Edistymispalkki
+        loydetty={alueenLoydettyjenMaara(alue, loydetytIdt)}
+        yhteensa={alue.paikat.length}
+        teksti="kätköä löydetty tällä alueella"
+      />
 
       {vihjeViesti && (
         <p className="vihje-tooltip" role="status">

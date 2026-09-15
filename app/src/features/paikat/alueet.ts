@@ -48,6 +48,16 @@ export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
   });
 }
 
+/** Montako alueen kätköistä on löydetty. */
+export function alueenLoydettyjenMaara(alue: Alue, loydetytIdt: ReadonlySet<string>): number {
+  return alue.paikat.filter((paikka) => loydetytIdt.has(paikka.id)).length;
+}
+
+/** Onko alueen jokainen kätkö löydetty. */
+export function alueLoydettyKokonaan(alue: Alue, loydetytIdt: ReadonlySet<string>): boolean {
+  return alue.paikat.every((paikka) => loydetytIdt.has(paikka.id));
+}
+
 export function laskeKeskipiste(paikat: Paikka[]): { lat: number; lng: number } {
   const summa = paikat.reduce(
     (acc, paikka) => ({ lat: acc.lat + paikka.lat, lng: acc.lng + paikka.lng }),
