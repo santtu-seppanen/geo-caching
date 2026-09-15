@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
+import { etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
 import { ryhmitteleAlueiksi } from "./features/paikat/alueet";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
@@ -67,6 +68,11 @@ export function App() {
   const alueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
   const aktiivinenAlue = alueet.find((alue) => alue.alue === valittuAlue) ?? null;
 
+  const lahellaOlevaAlue = useMemo(
+    () => etsiLaheisinAlue(paikat, sijainti),
+    [sijainti, paikat],
+  );
+
   return (
     <main className="sovellus">
       <header className="otsikko">
@@ -129,7 +135,11 @@ export function App() {
           onTakaisin={() => setValittuAlue(null)}
         />
       ) : (
-        <Etusivu alueet={alueet} onValitseAlue={setValittuAlue} />
+        <Etusivu
+          alueet={alueet}
+          lahellaOlevaAlue={lahellaOlevaAlue}
+          onValitseAlue={setValittuAlue}
+        />
       )}
     </main>
   );

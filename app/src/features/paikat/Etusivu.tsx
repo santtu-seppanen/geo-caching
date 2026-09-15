@@ -1,9 +1,19 @@
 import { useState, type FormEvent } from "react";
 import type { Alue } from "./alueet";
+import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 
 interface EtusivuProps {
   alueet: Alue[];
+  lahellaOlevaAlue: LahellaOlevaAlue | null;
   onValitseAlue: (alue: string) => void;
+}
+
+/** Muotoilee etäisyyden ihmisluettavaksi: metrit alle kilometrin, muuten kilometrit yhden desimaalin tarkkuudella. */
+function muotoileEtaisyys(etaisyysMetreina: number): string {
+  if (etaisyysMetreina < 1000) {
+    return `${Math.round(etaisyysMetreina / 10) * 10} m`;
+  }
+  return `${(etaisyysMetreina / 1000).toFixed(1)} km`;
 }
 
 /**
@@ -19,7 +29,7 @@ function normalisoiHaku(teksti: string): string {
     .replace(/å/g, "a");
 }
 
-export function Etusivu({ alueet, onValitseAlue }: EtusivuProps) {
+export function Etusivu({ alueet, lahellaOlevaAlue, onValitseAlue }: EtusivuProps) {
   const [haku, setHaku] = useState("");
   const [virhe, setVirhe] = useState<string | null>(null);
 
@@ -39,6 +49,22 @@ export function Etusivu({ alueet, onValitseAlue }: EtusivuProps) {
 
   return (
     <section className="aluehaku">
+      {lahellaOlevaAlue && (
+        <p className="lahella-huomautus" role="status">
+          Kätkö lähellä! Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)} alueesta{" "}
+          <strong>
+            {lahellaOlevaAlue.alue.charAt(0).toUpperCase() + lahellaOlevaAlue.alue.slice(1)}
+          </strong>
+          .
+          <button
+            type="button"
+            className="nappi nappi-ensisijainen"
+            onClick={() => onValitseAlue(lahellaOlevaAlue.alue)}
+          >
+            Näytä kartalla
+          </button>
+        </p>
+      )}
       <h2>Etsi kätköjä</h2>
       <p className="aluehaku-ohje">Kirjoita alueen nimi, niin näet sen kätköt kartalla.</p>
       <form className="aluehaku-lomake" onSubmit={hae}>
