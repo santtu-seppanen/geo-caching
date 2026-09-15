@@ -1,10 +1,12 @@
 import { useState, type FormEvent } from "react";
 import type { Alue } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
+import { Edistymispalkki } from "./Edistymispalkki";
 
 interface EtusivuProps {
   alueet: Alue[];
   lahellaOlevaAlue: LahellaOlevaAlue | null;
+  loydettyjaAlueitaKokonaan: number;
   onValitseAlue: (alue: string) => void;
 }
 
@@ -29,7 +31,12 @@ function normalisoiHaku(teksti: string): string {
     .replace(/å/g, "a");
 }
 
-export function Etusivu({ alueet, lahellaOlevaAlue, onValitseAlue }: EtusivuProps) {
+export function Etusivu({
+  alueet,
+  lahellaOlevaAlue,
+  loydettyjaAlueitaKokonaan,
+  onValitseAlue,
+}: EtusivuProps) {
   const [haku, setHaku] = useState("");
   const [virhe, setVirhe] = useState<string | null>(null);
 
@@ -66,6 +73,11 @@ export function Etusivu({ alueet, lahellaOlevaAlue, onValitseAlue }: EtusivuProp
         </p>
       )}
       <h2>Etsi kätköjä</h2>
+      <Edistymispalkki
+        loydetty={loydettyjaAlueitaKokonaan}
+        yhteensa={alueet.length}
+        teksti="aluetta löydetty kokonaan"
+      />
       <p className="aluehaku-ohje">Kirjoita alueen nimi, niin näet sen kätköt kartalla.</p>
       <form className="aluehaku-lomake" onSubmit={hae}>
         <input

@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
 import { etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
-import { ryhmitteleAlueiksi } from "./features/paikat/alueet";
+import { ryhmitteleAlueiksi, alueLoydettyKokonaan } from "./features/paikat/alueet";
+import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import { Saannot } from "./features/saannot/Saannot";
@@ -14,6 +15,9 @@ import heroKuva from "./assets/hero-illustration.svg";
 import "./App.css";
 
 type Lataustila = "lataa" | "valmis" | "virhe";
+
+/** Kuinka usein muiden pelaajien löytöjä tarkistetaan taustalla. */
+const LOYTO_POLLAUS_MS = 20_000;
 
 export function App() {
   const [valittuAlue, setValittuAlue] = useState<string | null>(null);
@@ -57,6 +61,41 @@ export function App() {
     setOmatLoydot((edelliset) => [...edelliset, loyto]);
   }, []);
 
+  const paikatRef = useRef<Paikka[]>([]);
+  const omatLoydotRef = useRef<Loyto[]>([]);
+  useEffect(() => {
+    paikatRef.current = paikat;
+  }, [paikat]);
+  useEffect(() => {
+    omatLoydotRef.current = omatLoydot;
+  }, [omatLoydot]);
+
+  useEffect(() => {
+    const ajastin = setInterval(async () => {
+      try {
+        const tuoreetLoydot = await haeLoydot();
+        setLoydot((edelliset) => {
+          const muidenLoydot = uudetLoydot(edelliset, tuoreetLoydot).filter(
+            (loyto) =>
+              !omatLoydotRef.current.some(
+                (oma) => oma.paikkaId === loyto.paikkaId && oma.nimi === loyto.nimi,
+              ),
+          );
+          for (const loyto of muidenLoydot) {
+            const paikka = paikatRef.current.find((p) => p.id === loyto.paikkaId);
+            const { otsikko, viesti } = muodostaLoytoIlmoitus(loyto, paikka);
+            nayttaIlmoitus(otsikko, viesti);
+          }
+          return tuoreetLoydot;
+        });
+      } catch {
+        // Hiljainen epäonnistuminen — yritetään uudelleen seuraavalla pollauksella.
+      }
+    }, LOYTO_POLLAUS_MS);
+
+    return () => clearInterval(ajastin);
+  }, []);
+
   const onHalytys = useCallback((lahella: LahellaOlevaPaikka) => {
     const viesti = `Olet ${Math.round(lahella.etaisyysMetreina)} m paikasta "${lahella.paikka.kuvaus}"`;
     setViimeisinHalytys(viesti);
@@ -71,6 +110,16 @@ export function App() {
   const lahellaOlevaAlue = useMemo(
     () => etsiLaheisinAlue(paikat, sijainti),
     [sijainti, paikat],
+  );
+
+  const loydetytIdt = useMemo(
+    () => new Set([...loydot, ...omatLoydot].map((loyto) => loyto.paikkaId)),
+    [loydot, omatLoydot],
+  );
+
+  const loydettyjaAlueitaKokonaan = useMemo(
+    () => alueet.filter((alue) => alueLoydettyKokonaan(alue, loydetytIdt)).length,
+    [alueet, loydetytIdt],
   );
 
   return (
@@ -138,6 +187,7 @@ export function App() {
         <Etusivu
           alueet={alueet}
           lahellaOlevaAlue={lahellaOlevaAlue}
+          loydettyjaAlueitaKokonaan={loydettyjaAlueitaKokonaan}
           onValitseAlue={setValittuAlue}
         />
       )}

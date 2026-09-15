@@ -1,5 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { ryhmitteleAlueiksi, laskeKeskipiste, paikanTunniste } from "./alueet";
+import {
+  ryhmitteleAlueiksi,
+  laskeKeskipiste,
+  paikanTunniste,
+  alueenLoydettyjenMaara,
+  alueLoydettyKokonaan,
+} from "./alueet";
 import type { Paikka } from "./types";
 
 describe("laskeKeskipiste", () => {
@@ -219,5 +225,35 @@ describe("ryhmitteleAlueiksi", () => {
     expect(alueet[0].alue).toBe("alue-c");
     expect(alueet[1].alue).toBe("alue-a");
     expect(alueet[2].alue).toBe("alue-b");
+  });
+});
+
+describe("alueenLoydettyjenMaara ja alueLoydettyKokonaan", () => {
+  const alue = {
+    alue: "alue-a",
+    keskipiste: { lat: 60.0, lng: 24.0 },
+    paikat: [
+      { id: "alue-a-1", alue: "Alue A", kuvaus: "Paikka 1", lat: 60.0, lng: 24.0, kuva: "kuva1.jpg" },
+      { id: "alue-a-2", alue: "Alue A", kuvaus: "Paikka 2", lat: 60.1, lng: 24.1, kuva: "kuva2.jpg" },
+    ],
+  };
+
+  it("laskee nollan löydön kun mitään ei ole löydetty", () => {
+    expect(alueenLoydettyjenMaara(alue, new Set())).toBe(0);
+    expect(alueLoydettyKokonaan(alue, new Set())).toBe(false);
+  });
+
+  it("laskee osittaisen löytymisen oikein", () => {
+    const loydetytIdt = new Set(["alue-a-1"]);
+
+    expect(alueenLoydettyjenMaara(alue, loydetytIdt)).toBe(1);
+    expect(alueLoydettyKokonaan(alue, loydetytIdt)).toBe(false);
+  });
+
+  it("tunnistaa alueen kokonaan löydetyksi kun kaikki kätköt on löydetty", () => {
+    const loydetytIdt = new Set(["alue-a-1", "alue-a-2"]);
+
+    expect(alueenLoydettyjenMaara(alue, loydetytIdt)).toBe(2);
+    expect(alueLoydettyKokonaan(alue, loydetytIdt)).toBe(true);
   });
 });

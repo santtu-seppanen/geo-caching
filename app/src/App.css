@@ -200,6 +200,34 @@ body {
   font-style: italic;
 }
 
+.edistymispalkki {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin: 0 0 1rem;
+}
+
+.edistymispalkki-tausta {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--vari-reuna);
+  overflow: hidden;
+}
+
+.edistymispalkki-tayte {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(120deg, var(--vari-ensisijainen), var(--vari-ensisijainen-tumma));
+  transition: width 0.3s ease;
+}
+
+.edistymispalkki-teksti {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vari-teksti-himmea);
+}
+
 .aluesivu {
   display: flex;
   flex-direction: column;
