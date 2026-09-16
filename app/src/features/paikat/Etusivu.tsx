@@ -66,11 +66,14 @@ export function Etusivu({
           >
             ↑
           </span>
-          Kätkö lähellä! Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)} alueesta{" "}
-          <strong>
-            {lahellaOlevaAlue.alue.charAt(0).toUpperCase() + lahellaOlevaAlue.alue.slice(1)}
-          </strong>
-          . Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.
+          <span className="lahella-teksti">
+            Kätkö lähellä! Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)}{" "}
+            alueesta{" "}
+            <strong>
+              {lahellaOlevaAlue.alue.charAt(0).toUpperCase() + lahellaOlevaAlue.alue.slice(1)}
+            </strong>
+            . Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.
+          </span>
           <button
             type="button"
             className="nappi nappi-ensisijainen"
