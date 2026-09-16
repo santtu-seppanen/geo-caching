@@ -1,11 +1,13 @@
 import type { Paikka } from "../paikat/types";
 import { paikanTunniste } from "../paikat/alueet";
-import { etaisyysMetreina } from "./distance";
+import { etaisyysMetreina, suuntimaAsteina } from "./distance";
 import { ALUE_AVAUTUU_METREINA } from "./kynnykset";
 
 export interface LahellaOlevaAlue {
   alue: string;
   etaisyysMetreina: number;
+  /** Suuntima käyttäjän sijainnista kohti lähintä kätköä, asteina (0-360, 0 = pohjoinen). */
+  suuntimaAsteina: number;
 }
 
 /**
@@ -23,7 +25,11 @@ export function etsiLaheisinAlue(
   for (const paikka of paikat) {
     const etaisyys = etaisyysMetreina(sijainti, paikka);
     if (etaisyys <= ALUE_AVAUTUU_METREINA && (!lahin || etaisyys < lahin.etaisyysMetreina)) {
-      lahin = { alue: paikanTunniste(paikka.id), etaisyysMetreina: etaisyys };
+      lahin = {
+        alue: paikanTunniste(paikka.id),
+        etaisyysMetreina: etaisyys,
+        suuntimaAsteina: suuntimaAsteina(sijainti, paikka),
+      };
     }
   }
   return lahin;

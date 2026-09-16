@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { kirjauduAdmin, luoKatko, poistaKatko } from "./adminApi";
-import { paattelKuvaPaate, validoiAdminLomake } from "./validointi";
+import { paattelKuvaPaate, validoiAdminLomake, KUVA_MAX_TAVUA_PAKATTUNA } from "./validointi";
 import type { AdminLomakeSyote } from "./validointi";
+import { pakkaaKuva } from "./kuvaPakkaus";
 import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
 import type { Paikka } from "../paikat/types";
@@ -208,7 +209,13 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
     setLahetetaan(true);
     try {
-      const kuvaData = await lueTiedostoBase64na(kuvaTiedosto!);
+      // SVG on jo vektorimuotoinen eikä canvasilla pakkaaminen sovi siihen
+      // (rasteroisi sen) — muut kuvatyypit pakataan aina pienemmäksi.
+      const kuva =
+        tiedostopaate === "svg"
+          ? { tiedostopaate, data: await lueTiedostoBase64na(kuvaTiedosto!) }
+          : await pakkaaKuva(kuvaTiedosto!, KUVA_MAX_TAVUA_PAKATTUNA);
+
       const tulos = await luoKatko(
         {
           id: lomake.id.trim(),
@@ -216,7 +223,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           kuvaus: lomake.kuvaus.trim(),
           lat: latNumero!,
           lng: lngNumero!,
-          kuva: { tiedostopaate, data: kuvaData },
+          kuva,
         },
         adminSalasana,
       );
@@ -355,7 +362,16 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
         <label className="kentta">
           <span className="kentan-nimi">kuva</span>
-          <input className="teksti-syote" type="file" accept="image/*" onChange={valitseKuva} />
+          <input
+            className="teksti-syote"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={valitseKuva}
+          />
+          <span className="kentan-vihje">
+            Voit ottaa kuvan suoraan kameralla — se pakataan automaattisesti lähetettäessä.
+          </span>
         </label>
 
         {kuvaEsikatselu && (

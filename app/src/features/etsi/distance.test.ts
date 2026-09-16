@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { etaisyysMetreina } from "./distance";
+import { etaisyysMetreina, suuntimaAsteina } from "./distance";
 
 describe("etaisyysMetreina", () => {
   it("palauttaa 0 kun pisteet ovat samat", () => {
@@ -43,5 +43,35 @@ describe("etaisyysMetreina", () => {
     // Noin 3333 km
     expect(etaisyys).toBeGreaterThan(3300000);
     expect(etaisyys).toBeLessThan(3400000);
+  });
+});
+
+describe("suuntimaAsteina", () => {
+  const piste = { lat: 60.0, lng: 25.0 };
+
+  it("palauttaa 0 kun kohde on suoraan pohjoisessa", () => {
+    const pohjoisessa = { lat: 61.0, lng: 25.0 };
+    expect(suuntimaAsteina(piste, pohjoisessa)).toBeCloseTo(0, 0);
+  });
+
+  it("palauttaa 90 kun kohde on suoraan idässä", () => {
+    const idassa = { lat: 60.0, lng: 26.0 };
+    expect(suuntimaAsteina(piste, idassa)).toBeCloseTo(90, 0);
+  });
+
+  it("palauttaa 180 kun kohde on suoraan etelässä", () => {
+    const etelassa = { lat: 59.0, lng: 25.0 };
+    expect(suuntimaAsteina(piste, etelassa)).toBeCloseTo(180, 0);
+  });
+
+  it("palauttaa 270 kun kohde on suoraan lännessä", () => {
+    const lannessa = { lat: 60.0, lng: 24.0 };
+    expect(suuntimaAsteina(piste, lannessa)).toBeCloseTo(270, 0);
+  });
+
+  it("palauttaa arvon välillä 0-360", () => {
+    const tulos = suuntimaAsteina(piste, { lat: 59.5, lng: 25.5 });
+    expect(tulos).toBeGreaterThanOrEqual(0);
+    expect(tulos).toBeLessThan(360);
   });
 });

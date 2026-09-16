@@ -37,6 +37,8 @@ describe("etsiLaheisinAlue", () => {
     expect(tulos?.alue).toBe("neittava");
     expect(tulos?.etaisyysMetreina).toBeGreaterThan(400);
     expect(tulos?.etaisyysMetreina).toBeLessThan(700);
+    // Kätkö on suoraan pohjoisessa (suurempi lat, sama lng)
+    expect(tulos?.suuntimaAsteina).toBeCloseTo(0, 0);
   });
 
   it("valitsee useista kynnyksen sisällä olevista alueista lähimmän", () => {

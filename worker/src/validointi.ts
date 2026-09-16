@@ -30,9 +30,11 @@ const ID_MAX_PITUUS = 60;
 const ALUE_MAX_PITUUS = 80;
 const KUVAUS_MAX_PITUUS = 500;
 const SALLITUT_KUVAPAATTEET = new Set(["jpg", "jpeg", "png", "webp", "svg"]);
-// ~1,5 Mt dekoodattuna base64:sta, riittää valokuvalle mutta pitää
-// GitHubiin tehtävän commitin kohtuullisen kokoisena.
-const KUVA_MAX_BASE64_PITUUS = 2_000_000;
+// ~3 Mt dekoodattuna base64:sta. Frontend pakkaa kamerakuvat tätä
+// pienemmiksi ennen lähetystä (ks. app/src/features/admin/kuvaPakkaus.ts),
+// tämä on vain viimeinen turvaraja R2-tallennuksen ja Workerin
+// pyyntökoon varalle.
+const KUVA_MAX_BASE64_PITUUS = 4_000_000;
 
 export function validoiUusiKatkoPyynto(
   data: unknown,

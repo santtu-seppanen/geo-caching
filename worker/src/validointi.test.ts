@@ -621,7 +621,7 @@ describe("validoiUusiKatkoPyynto", () => {
     });
 
     it("hylkää kuvan, jonka data ylittää max-koko", () => {
-      const liianSuuriData = "a".repeat(2_000_001);
+      const liianSuuriData = "a".repeat(4_000_001);
       const tulos = validoiUusiKatkoPyynto(
         {
           ...validipyynto,
@@ -637,7 +637,7 @@ describe("validoiUusiKatkoPyynto", () => {
     });
 
     it("hyväksyy kuvan, jonka data on täsmälleen max-koko", () => {
-      const maxData = "a".repeat(2_000_000);
+      const maxData = "a".repeat(4_000_000);
       const tulos = validoiUusiKatkoPyynto(
         {
           ...validipyynto,
