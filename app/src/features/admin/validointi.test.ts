@@ -1,6 +1,9 @@
 import { describe, it, expect } from "vitest";
 import {
   validoiId,
+  validoiIdNimi,
+  validoiIdNumero,
+  rakennaId,
   validoiAlue,
   validoiKuvaus,
   validoiLat,
@@ -310,7 +313,8 @@ describe("validoiKuvaTiedosto", () => {
 
 describe("validoiAdminLomake", () => {
   const validisyote = {
-    id: "uusi-katko",
+    idNimi: "uusi-katko",
+    idNumero: "1",
     alue: "Testialue",
     kuvaus: "Testkuvaus",
     lat: 60.1699,
@@ -328,12 +332,20 @@ describe("validoiAdminLomake", () => {
     expect(Object.keys(virheet)).toHaveLength(0);
   });
 
-  it("kerraa id:n virhe", () => {
+  it("kerraa idNimi:n virhe", () => {
     const virheet = validoiAdminLomake({
       ...validisyote,
-      id: "Iso-Alkukirjain",
+      idNimi: "Iso-Alkukirjain",
     });
-    expect(virheet.id).toBeDefined();
+    expect(virheet.idNimi).toBeDefined();
+  });
+
+  it("kerraa idNumero:n virhe", () => {
+    const virheet = validoiAdminLomake({
+      ...validisyote,
+      idNumero: "ei-numero",
+    });
+    expect(virheet.idNumero).toBeDefined();
   });
 
   it("kerraa alue:n virhe", () => {
@@ -378,7 +390,8 @@ describe("validoiAdminLomake", () => {
 
   it("kerraa useammat virheet samanaikaisesti", () => {
     const virheet = validoiAdminLomake({
-      id: "Iso-Alkukirjain",
+      idNimi: "Iso-Alkukirjain",
+      idNumero: "ei-numero",
       alue: "",
       kuvaus: "",
       lat: null,
@@ -386,7 +399,8 @@ describe("validoiAdminLomake", () => {
       kuvaTiedosto: null,
     });
 
-    expect(virheet.id).toBeDefined();
+    expect(virheet.idNimi).toBeDefined();
+    expect(virheet.idNumero).toBeDefined();
     expect(virheet.alue).toBeDefined();
     expect(virheet.kuvaus).toBeDefined();
     expect(virheet.lat).toBeDefined();
@@ -397,11 +411,58 @@ describe("validoiAdminLomake", () => {
   it("ei kerraa virhettä, kun kenttä on validi", () => {
     const virheet = validoiAdminLomake({
       ...validisyote,
-      id: "validi-katko",
+      idNimi: "validi-katko",
       alue: "Validi alue",
     });
 
-    expect(virheet.id).toBeUndefined();
+    expect(virheet.idNimi).toBeUndefined();
+    expect(virheet.idNumero).toBeUndefined();
     expect(virheet.alue).toBeUndefined();
+  });
+});
+
+describe("validoiIdNimi", () => {
+  it("hyväksyy validin nimen", () => {
+    expect(validoiIdNimi("neittava")).toBeNull();
+    expect(validoiIdNimi("lammin-honka")).toBeNull();
+  });
+
+  it("hylkää tyhjän nimen", () => {
+    expect(validoiIdNimi("")).not.toBeNull();
+    expect(validoiIdNimi("   ")).not.toBeNull();
+  });
+
+  it("hylkää ison alkukirjaimen", () => {
+    expect(validoiIdNimi("Neittava")).not.toBeNull();
+  });
+
+  it("hylkää välilyönnin", () => {
+    expect(validoiIdNimi("neittava metsä")).not.toBeNull();
+  });
+});
+
+describe("validoiIdNumero", () => {
+  it("hyväksyy numeron", () => {
+    expect(validoiIdNumero("1")).toBeNull();
+    expect(validoiIdNumero("42")).toBeNull();
+  });
+
+  it("hylkää tyhjän numeron", () => {
+    expect(validoiIdNumero("")).not.toBeNull();
+  });
+
+  it("hylkää ei-numeerisen arvon", () => {
+    expect(validoiIdNumero("1a")).not.toBeNull();
+    expect(validoiIdNumero("yksi")).not.toBeNull();
+  });
+});
+
+describe("rakennaId", () => {
+  it("yhdistää nimen ja numeron väliviivalla", () => {
+    expect(rakennaId("neittava", "1")).toBe("neittava-1");
+  });
+
+  it("trimmaa whitespace:n", () => {
+    expect(rakennaId(" neittava ", " 1 ")).toBe("neittava-1");
   });
 });

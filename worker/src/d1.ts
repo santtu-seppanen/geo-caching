@@ -75,6 +75,19 @@ export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void>
     .run();
 }
 
+/** Hakee kätkön nykyisen kuvatiedoston nimen, tai null jos id:tä ei löydy. */
+export async function haePaikkaKuva(db: D1Database, id: string): Promise<string | null> {
+  const rivi = await db.prepare("SELECT kuva FROM paikat WHERE id = ?").bind(id).first<{ kuva: string }>();
+  return rivi?.kuva ?? null;
+}
+
+export async function paivitaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
+  await db
+    .prepare("UPDATE paikat SET alue = ?, kuvaus = ?, lat = ?, lng = ?, kuva = ? WHERE id = ?")
+    .bind(paikka.alue, paikka.kuvaus, paikka.lat, paikka.lng, paikka.kuva, paikka.id)
+    .run();
+}
+
 /**
  * Poistaa kätkön ja sen löydöt. Palauttaa poistetun kätkön kuvatiedoston
  * nimen (jotta kutsuja voi poistaa myös R2-objektin), tai null jos id:tä ei

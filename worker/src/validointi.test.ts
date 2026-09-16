@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validoiLoytoPyynto, validoiUusiKatkoPyynto } from "./validointi";
+import { validoiLoytoPyynto, validoiMuokkausKatkoPyynto, validoiUusiKatkoPyynto } from "./validointi";
 
 describe("validoiLoytoPyynto", () => {
   const tunnetutPaikkaIdt = new Set(["paikka-1", "paikka-2", "paikka-3"]);
@@ -686,5 +686,112 @@ describe("validoiUusiKatkoPyynto", () => {
         expect(tulos.virhe).toBe("Pyyntö täytyy olla JSON-objekti");
       }
     });
+  });
+});
+
+describe("validoiMuokkausKatkoPyynto", () => {
+  const tunnetutPaikkaIdt = new Set(["katko-1", "katko-2"]);
+
+  const validipyynto = {
+    id: "katko-1",
+    alue: "Testialue",
+    kuvaus: "Testkuvaus",
+    lat: 60.1699,
+    lng: 24.9384,
+    kuva: null,
+  };
+
+  it("hyväksyy validin pyynnön ilman uutta kuvaa", () => {
+    const tulos = validoiMuokkausKatkoPyynto(validipyynto, tunnetutPaikkaIdt);
+
+    expect(tulos.ok).toBe(true);
+    if (tulos.ok) {
+      expect(tulos.pyynto.id).toBe("katko-1");
+      expect(tulos.pyynto.alue).toBe("Testialue");
+      expect(tulos.pyynto.kuva).toBeNull();
+    }
+  });
+
+  it("hyväksyy validin pyynnön uudella kuvalla", () => {
+    const tulos = validoiMuokkausKatkoPyynto(
+      {
+        ...validipyynto,
+        kuva: {
+          tiedostopaate: "jpg",
+          data: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+        },
+      },
+      tunnetutPaikkaIdt,
+    );
+
+    expect(tulos.ok).toBe(true);
+    if (tulos.ok) {
+      expect(tulos.pyynto.kuva).not.toBeNull();
+      expect(tulos.pyynto.kuva?.tiedostopaate).toBe("jpg");
+    }
+  });
+
+  it("trimmaa whitespace:sta alue ja kuvaus", () => {
+    const tulos = validoiMuokkausKatkoPyynto(
+      { ...validipyynto, alue: "  Testialue  ", kuvaus: "  Testkuvaus  " },
+      tunnetutPaikkaIdt,
+    );
+
+    expect(tulos.ok).toBe(true);
+    if (tulos.ok) {
+      expect(tulos.pyynto.alue).toBe("Testialue");
+      expect(tulos.pyynto.kuvaus).toBe("Testkuvaus");
+    }
+  });
+
+  it("hylkää tuntemattoman id:n", () => {
+    const tulos = validoiMuokkausKatkoPyynto(
+      { ...validipyynto, id: "tuntematon" },
+      tunnetutPaikkaIdt,
+    );
+
+    expect(tulos.ok).toBe(false);
+    if (!tulos.ok) {
+      expect(tulos.virhe).toBe("Tuntematon id");
+    }
+  });
+
+  it("hylkää tyhjän alue:n", () => {
+    const tulos = validoiMuokkausKatkoPyynto({ ...validipyynto, alue: "" }, tunnetutPaikkaIdt);
+
+    expect(tulos.ok).toBe(false);
+    if (!tulos.ok) {
+      expect(tulos.virhe).toBe("alue on pakollinen");
+    }
+  });
+
+  it("hylkää virheellisen lat:in", () => {
+    const tulos = validoiMuokkausKatkoPyynto({ ...validipyynto, lat: 91 }, tunnetutPaikkaIdt);
+
+    expect(tulos.ok).toBe(false);
+    if (!tulos.ok) {
+      expect(tulos.virhe).toContain("välillä -90..90");
+    }
+  });
+
+  it("hylkää kuvan, jonka tiedostopaate on tuntematon", () => {
+    const tulos = validoiMuokkausKatkoPyynto(
+      { ...validipyynto, kuva: { tiedostopaate: "gif", data: "abc" } },
+      tunnetutPaikkaIdt,
+    );
+
+    expect(tulos.ok).toBe(false);
+    if (!tulos.ok) {
+      expect(tulos.virhe).toContain("jpg, jpeg, png, webp, svg");
+    }
+  });
+
+  it("hylkää null:in", () => {
+    const tulos = validoiMuokkausKatkoPyynto(null, tunnetutPaikkaIdt);
+
+    expect(tulos.ok).toBe(false);
+    if (!tulos.ok) {
+      expect(tulos.virhe).toBe("Pyyntö täytyy olla JSON-objekti");
+    }
   });
 });

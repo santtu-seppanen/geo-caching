@@ -1,4 +1,13 @@
-import type { UusiKatkoPyynto } from "./validointi";
+import type { KuvaPaate, UusiKatkoPyynto } from "./validointi";
+
+export interface MuokkausKatkoPyynto {
+  id: string;
+  alue: string;
+  kuvaus: string;
+  lat: number;
+  lng: number;
+  kuva: { tiedostopaate: KuvaPaate; data: string } | null;
+}
 
 /**
  * Tarkistaa admin-salasanan Workerista ilman sivuvaikutuksia. Käytetään
@@ -45,6 +54,38 @@ export async function luoKatko(pyynto: UusiKatkoPyynto, adminSalasana: string): 
 
   if (!vastaus.ok || !data || !("ok" in data) || !data.ok) {
     const virhe = data && "error" in data ? data.error : "Kätkön luonti epäonnistui";
+    throw new Error(virhe);
+  }
+
+  return { id: data.id };
+}
+
+/**
+ * Postaa muokatun kätkön Cloudflare Workeriin. `kuva: null` säilyttää
+ * nykyisen kuvan — uusi kuva lähetetään vain jos admin valitsi sellaisen.
+ */
+export async function muokkaaKatko(
+  pyynto: MuokkausKatkoPyynto,
+  adminSalasana: string,
+): Promise<{ id: string }> {
+  const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/muokkaa-katko`;
+
+  const vastaus = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Admin-Salasana": adminSalasana,
+    },
+    body: JSON.stringify(pyynto),
+  });
+
+  const data = (await vastaus.json().catch(() => null)) as
+    | { ok: true; id: string }
+    | { error: string }
+    | null;
+
+  if (!vastaus.ok || !data || !("ok" in data) || !data.ok) {
+    const virhe = data && "error" in data ? data.error : "Kätkön päivitys epäonnistui";
     throw new Error(virhe);
   }
 

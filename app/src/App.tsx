@@ -7,11 +7,12 @@ import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import { Saannot } from "./features/saannot/Saannot";
 import { AdminSivu } from "./features/admin/AdminSivu";
+import { Modaali } from "./lib/Modaali";
 import type { Loyto, Paikka } from "./features/paikat/types";
 import { haeLoydot, haePaikat } from "./features/paikat/paikatApi";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
-import heroKuva from "./assets/hero-kainuu-korpi.svg";
+import heroKuva from "./assets/hero-aarrearkku.jpg";
 import "./App.css";
 
 type Lataustila = "lataa" | "valmis" | "virhe";
@@ -128,11 +129,11 @@ export function App() {
         <img
           className="hero-kuva"
           src={heroKuva}
-          alt="Sumuinen kainuulainen kuusikorpi auringonlaskussa, sammaleen keskellä lasinen viinapullo"
+          alt="Puinen aarrearkku puun juurella metsässä auringonlaskussa, sisällä viinapullo, käsissä muistikirja ja kartalla varustettu puhelin"
         />
         <h1>Viinakätköily</h1>
         <p className="alaotsikko">Etsi kätköjä lähelläsi ja merkitse löydöt.</p>
-        {!naytaSaannot && !naytaAdmin && (
+        {!naytaAdmin && (
           <div className="otsikko-napit">
             <button
               type="button"
@@ -164,10 +165,14 @@ export function App() {
         </p>
       )}
 
+      {naytaSaannot && (
+        <Modaali onSulje={() => setNaytaSaannot(false)}>
+          <Saannot onSulje={() => setNaytaSaannot(false)} />
+        </Modaali>
+      )}
+
       {naytaAdmin ? (
         <AdminSivu onTakaisin={() => setNaytaAdmin(false)} />
-      ) : naytaSaannot ? (
-        <Saannot onTakaisin={() => setNaytaSaannot(false)} />
       ) : lataustila === "lataa" ? (
         <p className="tyhja-tila">Ladataan kätkötietoja…</p>
       ) : lataustila === "virhe" ? (
