@@ -11,7 +11,7 @@ import {
   ID_MAX_PITUUS,
   ALUE_MAX_PITUUS,
   KUVAUS_MAX_PITUUS,
-  KUVA_MAX_TAVUA,
+  KUVA_MAX_TAVUA_ALKUPERAINEN,
 } from "./validointi";
 
 describe("validoiId", () => {
@@ -284,14 +284,14 @@ describe("validoiKuvaTiedosto", () => {
   });
 
   it("hylkää tiedoston, joka ylittää koon rajaa", () => {
-    const file = new File(["a".repeat(KUVA_MAX_TAVUA + 1)], "kuva.jpg", {
+    const file = new File(["a".repeat(KUVA_MAX_TAVUA_ALKUPERAINEN + 1)], "kuva.jpg", {
       type: "image/jpeg",
     });
     expect(validoiKuvaTiedosto(file)).not.toBeNull();
   });
 
   it("hyväksyy tiedoston, jonka koko on täsmälleen max", () => {
-    const file = new File(["a".repeat(KUVA_MAX_TAVUA)], "kuva.jpg", {
+    const file = new File(["a".repeat(KUVA_MAX_TAVUA_ALKUPERAINEN)], "kuva.jpg", {
       type: "image/jpeg",
     });
     expect(validoiKuvaTiedosto(file)).toBeNull();

@@ -10,6 +10,7 @@ import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
 import { Edistymispalkki } from "./Edistymispalkki";
 import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
+import { Modaali } from "../../lib/Modaali";
 
 interface AluesivuProps {
   alue: Alue;
@@ -104,13 +105,15 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
       </div>
 
       {valittuPaikka && (
-        <KatkoPaneeli
-          paikka={valittuPaikka}
-          loydot={loydot}
-          omatLoydot={omatLoydot}
-          onLoyto={onLoyto}
-          onSulje={() => setValittuPaikka(null)}
-        />
+        <Modaali onSulje={() => setValittuPaikka(null)}>
+          <KatkoPaneeli
+            paikka={valittuPaikka}
+            loydot={loydot}
+            omatLoydot={omatLoydot}
+            onLoyto={onLoyto}
+            onSulje={() => setValittuPaikka(null)}
+          />
+        </Modaali>
       )}
     </section>
   );

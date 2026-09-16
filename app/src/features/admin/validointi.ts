@@ -12,9 +12,19 @@ export const ID_MAX_PITUUS = 60;
 export const ALUE_MAX_PITUUS = 80;
 export const KUVAUS_MAX_PITUUS = 500;
 
-/** Raakatiedoston maks. koko tavuina. Base64 kasvattaa kokoa ~1,33x, joten
- * tämä pitää base64-datan varmasti workerin 2 000 000 merkin rajan alla. */
-export const KUVA_MAX_TAVUA = 1_400_000;
+/**
+ * Alkuperäisen, kamerasta suoraan otetun tai galleriasta valitun tiedoston
+ * maks. koko tavuina — vain järjenmukainen yläraja, koska kuva pakataan
+ * (ks. kuvaPakkaus.ts) pienemmäksi ennen lähetystä.
+ */
+export const KUVA_MAX_TAVUA_ALKUPERAINEN = 20_000_000;
+
+/**
+ * Pakatun kuvan maks. koko tavuina ennen base64-koodausta. Base64 kasvattaa
+ * kokoa ~1,33x, joten tämä pitää base64-datan varmasti workerin
+ * KUVA_MAX_BASE64_PITUUS-rajan alla marginaalilla.
+ */
+export const KUVA_MAX_TAVUA_PAKATTUNA = 2_800_000;
 
 export const SALLITUT_KUVAPAATTEET = ["jpg", "jpeg", "png", "webp", "svg"] as const;
 export type KuvaPaate = (typeof SALLITUT_KUVAPAATTEET)[number];
@@ -87,8 +97,8 @@ export function validoiKuvaTiedosto(tiedosto: File | null): string | null {
   if (paattelKuvaPaate(tiedosto.name) === null) {
     return `Kuvan tiedostopääte täytyy olla yksi: ${SALLITUT_KUVAPAATTEET.join(", ")}`;
   }
-  if (tiedosto.size > KUVA_MAX_TAVUA) {
-    return "Kuva on liian suuri, pienennä sitä ennen lähetystä (maks. n. 1,4 Mt).";
+  if (tiedosto.size > KUVA_MAX_TAVUA_ALKUPERAINEN) {
+    return "Kuva on liian suuri (maks. n. 20 Mt). Kuva pakataan automaattisesti lähetettäessä.";
   }
   return null;
 }

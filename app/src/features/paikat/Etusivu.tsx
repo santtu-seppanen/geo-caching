@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import type { Alue } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
+import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
 import { Edistymispalkki } from "./Edistymispalkki";
 
 interface EtusivuProps {
@@ -58,11 +59,18 @@ export function Etusivu({
     <section className="aluehaku">
       {lahellaOlevaAlue && (
         <p className="lahella-huomautus" role="status">
+          <span
+            className="suunta-nuoli"
+            style={{ transform: `rotate(${lahellaOlevaAlue.suuntimaAsteina}deg)` }}
+            aria-hidden="true"
+          >
+            ↑
+          </span>
           Kätkö lähellä! Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)} alueesta{" "}
           <strong>
             {lahellaOlevaAlue.alue.charAt(0).toUpperCase() + lahellaOlevaAlue.alue.slice(1)}
           </strong>
-          .
+          . Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.
           <button
             type="button"
             className="nappi nappi-ensisijainen"
