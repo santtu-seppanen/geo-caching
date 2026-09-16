@@ -11,7 +11,7 @@ import type { Loyto, Paikka } from "./features/paikat/types";
 import { haeLoydot, haePaikat } from "./features/paikat/paikatApi";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
-import heroKuva from "./assets/hero-illustration.svg";
+import heroKuva from "./assets/hero-kainuu-korpi.svg";
 import "./App.css";
 
 type Lataustila = "lataa" | "valmis" | "virhe";
@@ -128,7 +128,7 @@ export function App() {
         <img
           className="hero-kuva"
           src={heroKuva}
-          alt="Piirroshahmo seikkailemassa mäen pihalla ja mäntymetsässä, etsimässä kätköä"
+          alt="Sumuinen kainuulainen kuusikorpi auringonlaskussa, sammaleen keskellä lasinen viinapullo"
         />
         <h1>Viinakätköily</h1>
         <p className="alaotsikko">Etsi kätköjä lähelläsi ja merkitse löydöt.</p>
