@@ -1,9 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import type { FormEvent } from "react";
 import { kirjauduAdmin, luoKatko, poistaKatko } from "./adminApi";
-import { paattelKuvaPaate, validoiAdminLomake, KUVA_MAX_TAVUA_PAKATTUNA } from "./validointi";
+import { paattelKuvaPaate, rakennaId, validoiAdminLomake, KUVA_MAX_TAVUA_PAKATTUNA } from "./validointi";
 import type { AdminLomakeSyote } from "./validointi";
 import { pakkaaKuva } from "./kuvaPakkaus";
+import { lueTiedostoBase64na } from "./tiedosto";
+import { KuvaKentta } from "./KuvaKentta";
+import { MuokkaaKatkoLomake } from "./MuokkaaKatkoLomake";
+import { Modaali } from "../../lib/Modaali";
 import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
 import type { Paikka } from "../paikat/types";
@@ -14,30 +18,13 @@ interface AdminSivuProps {
 }
 
 const TYHJA_LOMAKE = {
-  id: "",
+  idNimi: "",
+  idNumero: "",
   alue: "",
   kuvaus: "",
   lat: "",
   lng: "",
 };
-
-/** Lukee tiedoston base64-merkkijonoksi ilman "data:...;base64,"-etuliitettä. */
-function lueTiedostoBase64na(tiedosto: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      const tulos = reader.result;
-      if (typeof tulos !== "string") {
-        reject(new Error("Kuvan luku epäonnistui"));
-        return;
-      }
-      const pilkku = tulos.indexOf(",");
-      resolve(pilkku === -1 ? tulos : tulos.slice(pilkku + 1));
-    };
-    reader.onerror = () => reject(new Error("Kuvan luku epäonnistui"));
-    reader.readAsDataURL(tiedosto);
-  });
-}
 
 export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [adminSalasana, setAdminSalasana] = useState("");
@@ -47,7 +34,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [kirjautumisVirhe, setKirjautumisVirhe] = useState<string | null>(null);
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
-  const [kuvaEsikatselu, setKuvaEsikatselu] = useState<string | null>(null);
   const [lahetetaan, setLahetetaan] = useState(false);
   const [haetaanSijaintia, setHaetaanSijaintia] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -58,6 +44,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [poistetaan, setPoistetaan] = useState<string | null>(null);
   const [poistoVirhe, setPoistoVirhe] = useState<string | null>(null);
   const [poistoOnnistui, setPoistoOnnistui] = useState<string | null>(null);
+  const [muokattavaPaikka, setMuokattavaPaikka] = useState<Paikka | null>(null);
+  const [lomakeAvain, setLomakeAvain] = useState(0);
 
   useEffect(() => {
     if (kirjauduttu) lataaPaikat();
@@ -126,26 +114,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     setLomake((edellinen) => ({ ...edellinen, [kentta]: arvo }));
   }
 
-  async function valitseKuva(e: ChangeEvent<HTMLInputElement>) {
-    const tiedosto = e.target.files?.[0] ?? null;
-    setKuvaTiedosto(tiedosto);
-    if (!tiedosto) {
-      setKuvaEsikatselu(null);
-      return;
-    }
-    try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = () => reject(new Error("Kuvan luku epäonnistui"));
-        reader.readAsDataURL(tiedosto);
-      });
-      setKuvaEsikatselu(dataUrl);
-    } catch {
-      setKuvaEsikatselu(null);
-    }
-  }
-
   async function kaytaNykyistaSijaintia() {
     setHaetaanSijaintia(true);
     setVirhe(null);
@@ -167,7 +135,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const lngNumero = lomake.lng.trim() === "" ? null : Number(lomake.lng);
 
   const syote: AdminLomakeSyote = {
-    id: lomake.id,
+    idNimi: lomake.idNimi,
+    idNumero: lomake.idNumero,
     alue: lomake.alue,
     kuvaus: lomake.kuvaus,
     lat: latNumero,
@@ -176,7 +145,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   };
 
   const pakollisetPuuttuvat =
-    !lomake.id.trim() ||
+    !lomake.idNimi.trim() ||
+    !lomake.idNumero.trim() ||
     !lomake.alue.trim() ||
     !lomake.kuvaus.trim() ||
     latNumero === null ||
@@ -218,7 +188,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
       const tulos = await luoKatko(
         {
-          id: lomake.id.trim(),
+          id: rakennaId(lomake.idNimi, lomake.idNumero),
           alue: lomake.alue.trim(),
           kuvaus: lomake.kuvaus.trim(),
           lat: latNumero!,
@@ -230,7 +200,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       setOnnistui(`Kätkö "${tulos.id}" luotu!`);
       setLomake(TYHJA_LOMAKE);
       setKuvaTiedosto(null);
-      setKuvaEsikatselu(null);
+      setLomakeAvain((edellinen) => edellinen + 1);
       lataaPaikat();
     } catch (e) {
       setVirhe(e instanceof Error ? e.message : "Kätkön luonti epäonnistui");
@@ -291,16 +261,37 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       <h2>Luo uusi kätkö</h2>
 
       <form className="admin-lomake" onSubmit={lahetaLomake}>
-        <label className="kentta">
+        <div className="kentta">
           <span className="kentan-nimi">id</span>
-          <input
-            className="teksti-syote"
-            value={lomake.id}
-            onChange={(e) => paivitaKentta("id", e.target.value)}
-            placeholder="esim. lammin-honka"
-          />
-          <span className="kentan-vihje">Pieniä kirjaimia, numeroita ja väliviivoja.</span>
-        </label>
+          <div className="id-rakennin">
+            <label className="id-osa">
+              <span className="id-osan-nimi">Etsinnässä käytettävä nimi</span>
+              <input
+                className="teksti-syote"
+                value={lomake.idNimi}
+                onChange={(e) => paivitaKentta("idNimi", e.target.value)}
+                placeholder="esim. neittava"
+              />
+            </label>
+            <span className="id-viiva" aria-hidden="true">
+              –
+            </span>
+            <label className="id-osa id-osa-numero">
+              <span className="id-osan-nimi">Yksilöivä numero</span>
+              <input
+                className="teksti-syote"
+                value={lomake.idNumero}
+                onChange={(e) => paivitaKentta("idNumero", e.target.value)}
+                placeholder="1"
+                inputMode="numeric"
+              />
+            </label>
+          </div>
+          <span className="kentan-vihje">
+            Tunniste on tämän alueen kätköjen yhteinen hakunimi, ja perässä juokseva numero erottaa
+            saman alueen kätköt toisistaan.
+          </span>
+        </div>
 
         <label className="kentta">
           <span className="kentan-nimi">alue</span>
@@ -360,23 +351,11 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           {haetaanSijaintia ? "Haetaan sijaintia…" : "Käytä nykyistä sijaintia"}
         </button>
 
-        <label className="kentta">
-          <span className="kentan-nimi">kuva</span>
-          <input
-            className="teksti-syote"
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={valitseKuva}
-          />
-          <span className="kentan-vihje">
-            Voit ottaa kuvan suoraan kameralla — se pakataan automaattisesti lähetettäessä.
-          </span>
-        </label>
-
-        {kuvaEsikatselu && (
-          <img className="admin-kuva-esikatselu" src={kuvaEsikatselu} alt="Esikatselu kätkön kuvasta" />
-        )}
+        <KuvaKentta
+          key={lomakeAvain}
+          onValitse={setKuvaTiedosto}
+          vihjeTeksti="Ota kuva kameralla tai valitse tiedosto — kuva pakataan automaattisesti lähetettäessä."
+        />
 
         {virhe && (
           <p className="lomake-virhe" role="alert">
@@ -425,9 +404,13 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         <ul className="admin-katko-lista">
           {paikat.map((paikka) => (
             <li key={paikka.id} className="admin-katko-rivi">
-              <span className="admin-katko-tiedot">
+              <button
+                type="button"
+                className="admin-katko-tiedot admin-katko-avaa"
+                onClick={() => setMuokattavaPaikka(paikka)}
+              >
                 {paikka.id} — {paikka.alue} — {paikka.kuvaus}
-              </span>
+              </button>
               <button
                 type="button"
                 className={
@@ -447,6 +430,22 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             </li>
           ))}
         </ul>
+      )}
+
+      {muokattavaPaikka && (
+        <Modaali onSulje={() => setMuokattavaPaikka(null)}>
+          <MuokkaaKatkoLomake
+            paikka={muokattavaPaikka}
+            adminSalasana={adminSalasana}
+            onTallennettu={(paivitetty) => {
+              setPaikat((edelliset) =>
+                edelliset.map((p) => (p.id === paivitetty.id ? paivitetty : p)),
+              );
+              setMuokattavaPaikka(null);
+            }}
+            onSulje={() => setMuokattavaPaikka(null)}
+          />
+        </Modaali>
       )}
     </section>
   );

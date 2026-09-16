@@ -36,25 +36,20 @@ const SALLITUT_KUVAPAATTEET = new Set(["jpg", "jpeg", "png", "webp", "svg"]);
 // pyyntökoon varalle.
 const KUVA_MAX_BASE64_PITUUS = 4_000_000;
 
-export function validoiUusiKatkoPyynto(
-  data: unknown,
-  tunnetutPaikkaIdt: ReadonlySet<string>,
-): UusiKatkoValidointiTulos {
-  if (typeof data !== "object" || data === null || Array.isArray(data)) {
-    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
-  }
+interface PerusKentat {
+  alue: string;
+  kuvaus: string;
+  lat: number;
+  lng: number;
+}
 
-  const { id, alue, kuvaus, lat, lng, kuva } = data as Record<string, unknown>;
+type PerusKenttienValidointiTulos =
+  | { ok: true; kentat: PerusKentat }
+  | { ok: false; virhe: string };
 
-  if (typeof id !== "string" || id.length > ID_MAX_PITUUS || !ID_PATTERN.test(id)) {
-    return {
-      ok: false,
-      virhe: "id täytyy olla pieniä kirjaimia, numeroita ja väliviivoja",
-    };
-  }
-  if (tunnetutPaikkaIdt.has(id)) {
-    return { ok: false, virhe: "id on jo käytössä" };
-  }
+/** Yhteinen alue/kuvaus/lat/lng-validointi uuden ja muokatun kätkön pyynnöille. */
+function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidointiTulos {
+  const { alue, kuvaus, lat, lng } = data;
 
   if (typeof alue !== "string" || alue.trim().length === 0) {
     return { ok: false, virhe: "alue on pakollinen" };
@@ -78,6 +73,23 @@ export function validoiUusiKatkoPyynto(
     return { ok: false, virhe: "lng täytyy olla luku välillä -180..180" };
   }
 
+  return {
+    ok: true,
+    kentat: { alue: alue.trim(), kuvaus: kuvaus.trim(), lat, lng },
+  };
+}
+
+interface KuvaKentta {
+  tiedostopaate: string;
+  data: string;
+}
+
+type KuvaValidointiTulos =
+  | { ok: true; kuva: KuvaKentta }
+  | { ok: false; virhe: string };
+
+/** Validoi kuva-kentän ({tiedostopaate, data}-muotoinen). */
+function validoiKuvaKentta(kuva: unknown): KuvaValidointiTulos {
   if (typeof kuva !== "object" || kuva === null || Array.isArray(kuva)) {
     return { ok: false, virhe: "kuva on pakollinen" };
   }
@@ -102,14 +114,88 @@ export function validoiUusiKatkoPyynto(
 
   return {
     ok: true,
-    pyynto: {
-      id,
-      alue: alue.trim(),
-      kuvaus: kuvaus.trim(),
-      lat,
-      lng,
-      kuva: { tiedostopaate: tiedostopaate.toLowerCase(), data: kuvaData },
-    },
+    kuva: { tiedostopaate: tiedostopaate.toLowerCase(), data: kuvaData },
+  };
+}
+
+export function validoiUusiKatkoPyynto(
+  data: unknown,
+  tunnetutPaikkaIdt: ReadonlySet<string>,
+): UusiKatkoValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+
+  const kentta = data as Record<string, unknown>;
+  const { id, kuva } = kentta;
+
+  if (typeof id !== "string" || id.length > ID_MAX_PITUUS || !ID_PATTERN.test(id)) {
+    return {
+      ok: false,
+      virhe: "id täytyy olla pieniä kirjaimia, numeroita ja väliviivoja",
+    };
+  }
+  if (tunnetutPaikkaIdt.has(id)) {
+    return { ok: false, virhe: "id on jo käytössä" };
+  }
+
+  const perusTulos = validoiPerusKentat(kentta);
+  if (!perusTulos.ok) return perusTulos;
+
+  const kuvaTulos = validoiKuvaKentta(kuva);
+  if (!kuvaTulos.ok) return kuvaTulos;
+
+  return {
+    ok: true,
+    pyynto: { id, ...perusTulos.kentat, kuva: kuvaTulos.kuva },
+  };
+}
+
+export interface MuokkausKatkoPyynto {
+  id: string;
+  alue: string;
+  kuvaus: string;
+  lat: number;
+  lng: number;
+  kuva: { tiedostopaate: string; data: string } | null;
+}
+
+export type MuokkausKatkoValidointiTulos =
+  | { ok: true; pyynto: MuokkausKatkoPyynto }
+  | { ok: false; virhe: string };
+
+/**
+ * Validoi olemassa olevan kätkön muokkauspyynnön. Kuva on valinnainen —
+ * `null`/puuttuva tarkoittaa, että nykyinen kuva säilytetään.
+ */
+export function validoiMuokkausKatkoPyynto(
+  data: unknown,
+  tunnetutPaikkaIdt: ReadonlySet<string>,
+): MuokkausKatkoValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+
+  const kentta = data as Record<string, unknown>;
+  const { id, kuva } = kentta;
+
+  if (typeof id !== "string" || !tunnetutPaikkaIdt.has(id)) {
+    return { ok: false, virhe: "Tuntematon id" };
+  }
+
+  const perusTulos = validoiPerusKentat(kentta);
+  if (!perusTulos.ok) return perusTulos;
+
+  if (kuva === null || kuva === undefined) {
+    return { ok: true, pyynto: { id, ...perusTulos.kentat, kuva: null } };
+  }
+
+  const kuvaTulos = validoiKuvaKentta(kuva);
+  if (!kuvaTulos.ok) return kuvaTulos;
+
+  return {
+    ok: true,
+    pyynto: { id, ...perusTulos.kentat, kuva: kuvaTulos.kuva },
   };
 }
 

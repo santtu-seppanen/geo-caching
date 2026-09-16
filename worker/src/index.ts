@@ -1,7 +1,17 @@
-import { haeLoydot, haePaikat, haePaikkaIdt, lisaaLoyto, lisaaPaikka, poistaPaikka } from "./d1.js";
+import {
+  haeLoydot,
+  haePaikat,
+  haePaikkaIdt,
+  haePaikkaKuva,
+  lisaaLoyto,
+  lisaaPaikka,
+  paivitaPaikka,
+  poistaPaikka,
+} from "./d1.js";
 import { haeKuva, poistaKuva, tallennaKuva } from "./r2.js";
 import {
   validoiLoytoPyynto,
+  validoiMuokkausKatkoPyynto,
   validoiPoistoPyynto,
   validoiUusiKatkoPyynto,
 } from "./validointi.js";
@@ -55,6 +65,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/admin/luo-katko") {
       return kasitteleLuoKatko(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/admin/muokkaa-katko") {
+      return kasitteleMuokkausKatko(request, env, corsHeaders);
     }
 
     if (request.method === "POST" && url.pathname === "/admin/poista-katko") {
@@ -171,6 +185,58 @@ async function kasitteleLuoKatko(
   }
 
   return jsonVastaus({ ok: true, id: pyynto.id }, 201, corsHeaders);
+}
+
+async function kasitteleMuokkausKatko(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+    return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
+  }
+
+  let data: unknown;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  const tunnetutPaikkaIdt = await haePaikkaIdt(env.DB);
+  const tulos = validoiMuokkausKatkoPyynto(data, tunnetutPaikkaIdt);
+  if (!tulos.ok) {
+    return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  const { pyynto } = tulos;
+  const nykyinenKuva = await haePaikkaKuva(env.DB, pyynto.id);
+  const kuvaTiedosto = pyynto.kuva
+    ? `${pyynto.id}.${pyynto.kuva.tiedostopaate}`
+    : (nykyinenKuva ?? "");
+
+  try {
+    if (pyynto.kuva) {
+      await tallennaKuva(env.KUVAT, kuvaTiedosto, pyynto.kuva.data);
+      if (nykyinenKuva && nykyinenKuva !== kuvaTiedosto) {
+        await poistaKuva(env.KUVAT, nykyinenKuva);
+      }
+    }
+
+    await paivitaPaikka(env.DB, {
+      id: pyynto.id,
+      alue: pyynto.alue,
+      kuvaus: pyynto.kuvaus,
+      lat: pyynto.lat,
+      lng: pyynto.lng,
+      kuva: kuvaTiedosto,
+    });
+  } catch (virhe) {
+    console.error(virhe);
+    return jsonVastaus({ error: "Kätkön päivitys epäonnistui" }, 502, corsHeaders);
+  }
+
+  return jsonVastaus({ ok: true, id: pyynto.id }, 200, corsHeaders);
 }
 
 async function kasittelePoistoKatko(
