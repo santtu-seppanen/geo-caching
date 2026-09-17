@@ -46,6 +46,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [poistoOnnistui, setPoistoOnnistui] = useState<string | null>(null);
   const [muokattavaPaikka, setMuokattavaPaikka] = useState<Paikka | null>(null);
   const [lomakeAvain, setLomakeAvain] = useState(0);
+  const [alueKosketettu, setAlueKosketettu] = useState(false);
 
   useEffect(() => {
     if (kirjauduttu) lataaPaikat();
@@ -110,8 +111,21 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     setKirjauduttu(false);
   }
 
+  /**
+   * Esitäyttää alue-kentän id:n tekstiosasta (iso alkukirjain), koska
+   * id sallii vain ascii-merkkejä eikä siis voi koskaan olla lopullinen
+   * näytettävä nimi (ks. paikanTunniste). Lakkaa esitäyttämästä heti kun
+   * käyttäjä koskee alue-kenttään itse — silloin hän korjaa ääkköset.
+   */
   function paivitaKentta(kentta: keyof typeof TYHJA_LOMAKE, arvo: string) {
-    setLomake((edellinen) => ({ ...edellinen, [kentta]: arvo }));
+    if (kentta === "alue") setAlueKosketettu(true);
+    setLomake((edellinen) => {
+      const seuraava = { ...edellinen, [kentta]: arvo };
+      if (kentta === "idNimi" && !alueKosketettu) {
+        seuraava.alue = arvo.charAt(0).toUpperCase() + arvo.slice(1);
+      }
+      return seuraava;
+    });
   }
 
   async function kaytaNykyistaSijaintia() {
@@ -200,6 +214,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       setOnnistui(`Kätkö "${tulos.id}" luotu!`);
       setLomake(TYHJA_LOMAKE);
       setKuvaTiedosto(null);
+      setAlueKosketettu(false);
       setLomakeAvain((edellinen) => edellinen + 1);
       lataaPaikat();
     } catch (e) {
@@ -307,6 +322,10 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
               <option key={alue} value={alue} />
             ))}
           </datalist>
+          <span className="kentan-vihje">
+            Esitäytetty tunnisteesta — tämä on käyttäjälle näytettävä nimi, joten korjaa ääkköset
+            tarvittaessa (esim. Apatti → Äpätti). Tunniste itse ei voi sisältää ääkkösiä.
+          </span>
         </label>
 
         <label className="kentta">
