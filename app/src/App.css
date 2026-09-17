@@ -486,13 +486,15 @@ body {
 
 .saannot-kuva-kehys {
   width: 100%;
+  aspect-ratio: 760 / 618;
   margin: 0;
 }
 
 .saannot-kuva-kehys img {
   display: block;
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   border-radius: 0.9rem;
   border: 1px solid var(--vari-reuna);
   box-shadow: 0 10px 22px rgba(120, 72, 30, 0.16);
