@@ -89,10 +89,6 @@ export function MuokkaaKatkoLomake({
 
   return (
     <section className="admin-lomake-kontti">
-      <button type="button" className="nappi nappi-toissijainen sulje-nappi" onClick={onSulje}>
-        Sulje
-      </button>
-
       <h2>Muokkaa kätköä</h2>
 
       <form className="admin-lomake" onSubmit={tallenna}>
@@ -145,9 +141,14 @@ export function MuokkaaKatkoLomake({
           </p>
         )}
 
-        <button className="nappi nappi-ensisijainen" type="submit" disabled={lahetetaan}>
-          {lahetetaan ? "Tallennetaan…" : "Tallenna muutokset"}
-        </button>
+        <div className="lomake-ohjaimet">
+          <button type="button" className="nappi nappi-toissijainen" onClick={onSulje}>
+            Sulje
+          </button>
+          <button className="nappi nappi-ensisijainen" type="submit" disabled={lahetetaan}>
+            {lahetetaan ? "Tallennetaan…" : "Tallenna muutokset"}
+          </button>
+        </div>
         <div className="lomake-ala-tila" aria-hidden="true" />
       </form>
     </section>
