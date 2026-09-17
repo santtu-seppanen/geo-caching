@@ -290,7 +290,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             value={lomake.alue}
             onChange={(e) => paivitaKentta("alue", e.target.value)}
             onBlur={tasaaAlueOlemassaOlevaan}
-            placeholder="esim. Lammin metsä"
+            placeholder="esim. Neittävä"
           />
         </label>
 
