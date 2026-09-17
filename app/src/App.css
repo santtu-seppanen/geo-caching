@@ -595,37 +595,6 @@ body {
   color: var(--vari-teksti-himmea);
 }
 
-.id-rakennin {
-  display: flex;
-  align-items: flex-end;
-  gap: 0.5rem;
-}
-
-.id-osa {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-}
-
-.id-osa-numero {
-  flex: 0 0 5.5rem;
-}
-
-.id-osan-nimi {
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--vari-teksti-himmea);
-}
-
-.id-viiva {
-  padding-bottom: 0.7rem;
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--vari-teksti-himmea);
-}
-
 .kuva-valinta-napit {
   display: flex;
   gap: 0.5rem;

@@ -45,6 +45,23 @@ export interface UusiKatkoPyynto {
   };
 }
 
+/**
+ * Johtaa id:n tekstiosan (tunniste) automaattisesti alueen nimestä, koska
+ * id sallii vain ascii-merkkejä (a-z0-9-) eikä siis voi koskaan olla sama
+ * kuin käyttäjälle näytettävä alue-nimi (joka saa sisältää ääkköset). Admin
+ * ei siis enää kirjoita tunnistetta itse — ks. AdminSivu.tsx.
+ */
+export function alueTunnisteeksi(alue: string): string {
+  return alue
+    .trim()
+    .toLowerCase()
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/å/g, "a")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+}
+
 export function validoiId(id: string): string | null {
   const siisti = id.trim();
   if (siisti.length === 0) return "id on pakollinen";

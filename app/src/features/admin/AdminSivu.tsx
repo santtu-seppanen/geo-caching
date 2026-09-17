@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
 import { kirjauduAdmin, luoKatko, poistaKatko } from "./adminApi";
-import { paattelKuvaPaate, rakennaId, validoiAdminLomake, KUVA_MAX_TAVUA_PAKATTUNA } from "./validointi";
+import {
+  paattelKuvaPaate,
+  rakennaId,
+  validoiAdminLomake,
+  alueTunnisteeksi,
+  KUVA_MAX_TAVUA_PAKATTUNA,
+} from "./validointi";
 import type { AdminLomakeSyote } from "./validointi";
 import { pakkaaKuva } from "./kuvaPakkaus";
 import { lueTiedostoBase64na } from "./tiedosto";
@@ -12,14 +18,13 @@ import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
 import type { Paikka } from "../paikat/types";
 import { haePaikat } from "../paikat/paikatApi";
+import { ryhmitteleAlueiksi, seuraavaVapaaNumero } from "../paikat/alueet";
 
 interface AdminSivuProps {
   onTakaisin: () => void;
 }
 
 const TYHJA_LOMAKE = {
-  idNimi: "",
-  idNumero: "",
   alue: "",
   kuvaus: "",
   lat: "",
@@ -46,7 +51,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [poistoOnnistui, setPoistoOnnistui] = useState<string | null>(null);
   const [muokattavaPaikka, setMuokattavaPaikka] = useState<Paikka | null>(null);
   const [lomakeAvain, setLomakeAvain] = useState(0);
-  const [alueKosketettu, setAlueKosketettu] = useState(false);
 
   useEffect(() => {
     if (kirjauduttu) lataaPaikat();
@@ -66,6 +70,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     () => [...new Set(paikat.map((paikka) => paikka.alue))],
     [paikat],
   );
+
+  const olemassaOlevatAlueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
 
   async function kasittelePoisto(id: string) {
     if (poistoVahvistus !== id) {
@@ -111,21 +117,23 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     setKirjauduttu(false);
   }
 
-  /**
-   * Esitäyttää alue-kentän id:n tekstiosasta (iso alkukirjain), koska
-   * id sallii vain ascii-merkkejä eikä siis voi koskaan olla lopullinen
-   * näytettävä nimi (ks. paikanTunniste). Lakkaa esitäyttämästä heti kun
-   * käyttäjä koskee alue-kenttään itse — silloin hän korjaa ääkköset.
-   */
   function paivitaKentta(kentta: keyof typeof TYHJA_LOMAKE, arvo: string) {
-    if (kentta === "alue") setAlueKosketettu(true);
-    setLomake((edellinen) => {
-      const seuraava = { ...edellinen, [kentta]: arvo };
-      if (kentta === "idNimi" && !alueKosketettu) {
-        seuraava.alue = arvo.charAt(0).toUpperCase() + arvo.slice(1);
-      }
-      return seuraava;
-    });
+    setLomake((edellinen) => ({ ...edellinen, [kentta]: arvo }));
+  }
+
+  /**
+   * Jos kirjoitettu alue-nimi johtaa tunnisteeseen, joka on jo käytössä
+   * muilla kätköillä (esim. "apatti"), tasataan kenttä niiden käyttämään
+   * kirjoitusasuun (esim. "Äpätti") heti kun kenttä menettää fokuksen —
+   * ettei sama alue päädy näkymään kahdella eri nimellä.
+   */
+  function tasaaAlueOlemassaOlevaan() {
+    const tunniste = alueTunnisteeksi(lomake.alue);
+    if (!tunniste) return;
+    const olemassaOleva = olemassaOlevatAlueet.find((alue) => alue.alue === tunniste);
+    if (olemassaOleva && olemassaOleva.nimi !== lomake.alue) {
+      setLomake((edellinen) => ({ ...edellinen, alue: olemassaOleva.nimi }));
+    }
   }
 
   async function kaytaNykyistaSijaintia() {
@@ -148,9 +156,14 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const latNumero = lomake.lat.trim() === "" ? null : Number(lomake.lat);
   const lngNumero = lomake.lng.trim() === "" ? null : Number(lomake.lng);
 
+  // Tunniste ja juokseva numero johdetaan alue-nimestä — admin ei kirjoita
+  // niitä enää itse (ks. alueTunnisteeksi ja seuraavaVapaaNumero).
+  const idNimi = alueTunnisteeksi(lomake.alue);
+  const idNumero = idNimi ? String(seuraavaVapaaNumero(paikat, idNimi)) : "";
+
   const syote: AdminLomakeSyote = {
-    idNimi: lomake.idNimi,
-    idNumero: lomake.idNumero,
+    idNimi,
+    idNumero,
     alue: lomake.alue,
     kuvaus: lomake.kuvaus,
     lat: latNumero,
@@ -159,8 +172,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   };
 
   const pakollisetPuuttuvat =
-    !lomake.idNimi.trim() ||
-    !lomake.idNumero.trim() ||
+    !idNimi ||
+    !idNumero ||
     !lomake.alue.trim() ||
     !lomake.kuvaus.trim() ||
     latNumero === null ||
@@ -202,7 +215,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
       const tulos = await luoKatko(
         {
-          id: rakennaId(lomake.idNimi, lomake.idNumero),
+          id: rakennaId(idNimi, idNumero),
           alue: lomake.alue.trim(),
           kuvaus: lomake.kuvaus.trim(),
           lat: latNumero!,
@@ -214,7 +227,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       setOnnistui(`Kätkö "${tulos.id}" luotu!`);
       setLomake(TYHJA_LOMAKE);
       setKuvaTiedosto(null);
-      setAlueKosketettu(false);
       setLomakeAvain((edellinen) => edellinen + 1);
       lataaPaikat();
     } catch (e) {
@@ -276,38 +288,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       <h2>Luo uusi kätkö</h2>
 
       <form className="admin-lomake" onSubmit={lahetaLomake}>
-        <div className="kentta">
-          <span className="kentan-nimi">id</span>
-          <div className="id-rakennin">
-            <label className="id-osa">
-              <span className="id-osan-nimi">Etsinnässä käytettävä nimi</span>
-              <input
-                className="teksti-syote"
-                value={lomake.idNimi}
-                onChange={(e) => paivitaKentta("idNimi", e.target.value)}
-                placeholder="esim. neittava"
-              />
-            </label>
-            <span className="id-viiva" aria-hidden="true">
-              –
-            </span>
-            <label className="id-osa id-osa-numero">
-              <span className="id-osan-nimi">Yksilöivä numero</span>
-              <input
-                className="teksti-syote"
-                value={lomake.idNumero}
-                onChange={(e) => paivitaKentta("idNumero", e.target.value)}
-                placeholder="1"
-                inputMode="numeric"
-              />
-            </label>
-          </div>
-          <span className="kentan-vihje">
-            Tunniste on tämän alueen kätköjen yhteinen hakunimi, ja perässä juokseva numero erottaa
-            saman alueen kätköt toisistaan.
-          </span>
-        </div>
-
         <label className="kentta">
           <span className="kentan-nimi">alue</span>
           <input
@@ -315,6 +295,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             list="admin-alue-ehdotukset"
             value={lomake.alue}
             onChange={(e) => paivitaKentta("alue", e.target.value)}
+            onBlur={tasaaAlueOlemassaOlevaan}
             placeholder="esim. Lammin metsä"
           />
           <datalist id="admin-alue-ehdotukset">
@@ -323,8 +304,10 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             ))}
           </datalist>
           <span className="kentan-vihje">
-            Esitäytetty tunnisteesta — tämä on käyttäjälle näytettävä nimi, joten korjaa ääkköset
-            tarvittaessa (esim. Apatti → Äpätti). Tunniste itse ei voi sisältää ääkkösiä.
+            Käyttäjälle näytettävä nimi (saa sisältää ääkköset). Tunniste{" "}
+            <strong>{idNimi ? `${idNimi}-${idNumero}` : "—"}</strong> muodostuu tästä automaattisesti
+            eikä ole erikseen muokattavissa. Jos tällä alueella on jo muita kätköjä, nimi tasataan
+            niiden kirjoitusasuun kun siirryt pois kentästä.
           </span>
         </label>
 
