@@ -150,6 +150,7 @@ export function MuokkaaKatkoLomake({
         <button className="nappi nappi-ensisijainen" type="submit" disabled={lahetetaan}>
           {lahetetaan ? "Tallennetaan…" : "Tallenna muutokset"}
         </button>
+        <div className="lomake-ala-tila" aria-hidden="true" />
       </form>
     </section>
   );

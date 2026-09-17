@@ -315,6 +315,16 @@ body {
 .modaali-tausta {
   position: fixed;
   inset: 0;
+  /*
+   * inset:0 kokoaa fixed-elementin oletuksena "suurta" viewporttia vasten
+   * (ikään kuin osoiterivi/navigointinapit eivät veisi tilaa), ei sitä mitä
+   * ruudulla oikeasti näkyy. Jos sivu ei ole vierittynyt (osoiterivi
+   * näkyvissä), tausta ylimitoittuu eikä pohjaan ankkuroitu sisältö mahdu
+   * enää oikeasti näkyvälle alueelle. height: 100dvh seuraa sen sijaan
+   * dynaamisesti sitä, mikä on todella näkyvissä juuri nyt.
+   */
+  height: 100vh;
+  height: 100dvh;
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
@@ -590,6 +600,19 @@ body {
 .admin-lomake textarea.teksti-syote {
   resize: vertical;
   font-family: inherit;
+}
+
+/*
+ * Tyhjä tila Tallenna-napin jälkeen: joissain Android-puhelimissa (mm.
+ * Samsung) järjestelmän omat navigointinapit peittävät lomakkeen alareunan
+ * antamatta tilaa vierittää enempää, koska vieritettävä säilö (ks.
+ * .modaali-sisalto) loppuu juuri napin kohdalla. Tämä lisää ylimääräistä
+ * vieritettävää tilaa, jotta nappi saa vieritettyä kokonaan navigointinappien
+ * yläpuolelle.
+ */
+.lomake-ala-tila {
+  flex-shrink: 0;
+  height: calc(3rem + env(safe-area-inset-bottom, 0px));
 }
 
 .kentan-vihje {
