@@ -564,6 +564,7 @@ body {
 
 .nappi-nuoli {
   display: inline-block;
+  vertical-align: middle;
   width: 0;
   height: 0;
   border-top: 5px solid transparent;
@@ -576,6 +577,12 @@ body {
 
 .nappi-nuoli-oikea {
   border-left: 7px solid currentColor;
+}
+
+.nappi-takaisin {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
 
 .admin-lomake-kontti {
