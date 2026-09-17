@@ -106,14 +106,22 @@ export function Saannot({ onSulje }: SaannotProps) {
           onClick={() => setAskel((a) => Math.max(0, a - 1))}
           disabled={askel === 0}
         >
-          ← Edellinen
+          <span className="nappi-nuoli nappi-nuoli-vasen" aria-hidden="true" />
+          Edellinen
         </button>
         <button
           type="button"
           className="nappi nappi-ensisijainen"
           onClick={() => setAskel((a) => (a === ASKELEET.length - 1 ? 0 : a + 1))}
         >
-          {viimeinen ? "Aloita alusta ↺" : "Seuraava →"}
+          {viimeinen ? (
+            "Alusta ↺"
+          ) : (
+            <>
+              Seuraava
+              <span className="nappi-nuoli nappi-nuoli-oikea" aria-hidden="true" />
+            </>
+          )}
         </button>
       </div>
     </section>
