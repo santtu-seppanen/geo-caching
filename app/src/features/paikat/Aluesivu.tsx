@@ -61,8 +61,13 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
 
   return (
     <section className="aluesivu">
-      <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
-        ← Takaisin hakuun
+      <button
+        type="button"
+        className="nappi nappi-toissijainen nappi-takaisin"
+        onClick={onTakaisin}
+      >
+        <span className="nappi-nuoli nappi-nuoli-vasen" aria-hidden="true" />
+        Takaisin hakuun
       </button>
 
       <h2>{alue.nimi}</h2>

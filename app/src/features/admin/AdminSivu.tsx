@@ -234,8 +234,13 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   if (!kirjauduttu) {
     return (
       <section className="admin-lomake-kontti">
-        <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
-          ← Takaisin
+        <button
+          type="button"
+          className="nappi nappi-toissijainen nappi-takaisin"
+          onClick={onTakaisin}
+        >
+          <span className="nappi-nuoli nappi-nuoli-vasen" aria-hidden="true" />
+          Takaisin
         </button>
 
         <h2>Admin</h2>
@@ -273,8 +278,13 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
   return (
     <section className="admin-lomake-kontti">
-      <button type="button" className="nappi nappi-toissijainen" onClick={onTakaisin}>
-        ← Takaisin
+      <button
+        type="button"
+        className="nappi nappi-toissijainen nappi-takaisin"
+        onClick={onTakaisin}
+      >
+        <span className="nappi-nuoli nappi-nuoli-vasen" aria-hidden="true" />
+        Takaisin
       </button>
       <button type="button" className="nappi nappi-toissijainen" onClick={kirjauduUlos}>
         Vaihda salasana
