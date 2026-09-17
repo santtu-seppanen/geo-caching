@@ -19,15 +19,18 @@ describe("etsiLaheisinAlue", () => {
     expect(etsiLaheisinAlue([paikka({})], null)).toBeNull();
   });
 
-  it("palauttaa null kun mikään kätkö ei ole kynnyksen sisällä", () => {
-    // Noin 3.3 km päässä (0.03 astetta ~ 3300 m)
+  it("löytää lähimmän alueen myös kynnyksen ulkopuolelta, mutta ei merkitse sitä avattavaksi", () => {
+    // Noin 3.3 km päässä (0.03 astetta ~ 3300 m) — ALUE_AVAUTUU_METREINA on 2000 m
     const kaukainen = paikka({ id: "neittava-1", lat: 60.1699 + 0.03 });
     const sijainti = { lat: 60.1699, lng: 24.9384 };
 
-    expect(etsiLaheisinAlue([kaukainen], sijainti)).toBeNull();
+    const tulos = etsiLaheisinAlue([kaukainen], sijainti);
+
+    expect(tulos?.alue).toBe("neittava");
+    expect(tulos?.avautuuKartalle).toBe(false);
   });
 
-  it("löytää lähellä olevan kätkön alueen sen id:n tekstiosasta", () => {
+  it("löytää lähellä olevan kätkön alueen sen id:n tekstiosasta ja merkitsee sen avattavaksi", () => {
     // Noin 550 m päässä (0.005 astetta ~ 550 m)
     const lahella = paikka({ id: "neittava-2", lat: 60.1699 + 0.005 });
     const sijainti = { lat: 60.1699, lng: 24.9384 };
@@ -39,15 +42,17 @@ describe("etsiLaheisinAlue", () => {
     expect(tulos?.etaisyysMetreina).toBeLessThan(700);
     // Kätkö on suoraan pohjoisessa (suurempi lat, sama lng)
     expect(tulos?.suuntimaAsteina).toBeCloseTo(0, 0);
+    expect(tulos?.avautuuKartalle).toBe(true);
   });
 
-  it("valitsee useista kynnyksen sisällä olevista alueista lähimmän", () => {
+  it("valitsee useista alueista lähimmän, vaikka kaikki olisivat kynnyksen ulkopuolella", () => {
     const sijainti = { lat: 60.1699, lng: 24.9384 };
-    const kauempana = paikka({ id: "toppila-1", alue: "toppila", lat: 60.1699 + 0.015 });
-    const lahempana = paikka({ id: "neittava-1", alue: "neittava", lat: 60.1699 + 0.005 });
+    const kauempana = paikka({ id: "toppila-1", alue: "toppila", lat: 60.1699 + 0.05 });
+    const lahempana = paikka({ id: "neittava-1", alue: "neittava", lat: 60.1699 + 0.03 });
 
     const tulos = etsiLaheisinAlue([kauempana, lahempana], sijainti);
 
     expect(tulos?.alue).toBe("neittava");
+    expect(tulos?.avautuuKartalle).toBe(false);
   });
 });

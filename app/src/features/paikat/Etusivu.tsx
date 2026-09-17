@@ -58,7 +58,12 @@ export function Etusivu({
   return (
     <section className="aluehaku">
       {lahellaOlevaAlue && (
-        <p className="lahella-huomautus" role="status">
+        <p
+          className={
+            "lahella-huomautus" + (lahellaOlevaAlue.avautuuKartalle ? "" : " lahella-huomautus-kaukana")
+          }
+          role="status"
+        >
           <span
             className="suunta-nuoli"
             style={{ transform: `rotate(${lahellaOlevaAlue.suuntimaAsteina}deg)` }}
@@ -66,7 +71,9 @@ export function Etusivu({
           >
             ↑
           </span>
-          <span className="lahella-rivi">Kätkö lähellä!</span>
+          <span className="lahella-rivi">
+            {lahellaOlevaAlue.avautuuKartalle ? "Kätkö lähellä!" : "Lähin alue"}
+          </span>
           <span className="lahella-rivi">
             Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)} alueesta{" "}
             <strong>
@@ -77,13 +84,17 @@ export function Etusivu({
           <span className="lahella-rivi">
             Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.
           </span>
-          <button
-            type="button"
-            className="nappi nappi-ensisijainen"
-            onClick={() => onValitseAlue(lahellaOlevaAlue.alue)}
-          >
-            Näytä kartalla
-          </button>
+          {lahellaOlevaAlue.avautuuKartalle ? (
+            <button
+              type="button"
+              className="nappi nappi-ensisijainen"
+              onClick={() => onValitseAlue(lahellaOlevaAlue.alue)}
+            >
+              Näytä kartalla
+            </button>
+          ) : (
+            <span className="lahella-rivi lahella-vihje">Tule lähemmäs, niin näet alueen kartalla.</span>
+          )}
         </p>
       )}
       <h2>Etsi kätköjä</h2>

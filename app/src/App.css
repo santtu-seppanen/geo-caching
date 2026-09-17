@@ -103,6 +103,20 @@ body {
   width: auto;
 }
 
+.lahella-huomautus-kaukana {
+  background: var(--vari-tausta-ylhaalta);
+  border-color: var(--vari-reuna);
+}
+
+.lahella-huomautus-kaukana .suunta-nuoli {
+  color: var(--vari-teksti-himmea);
+}
+
+.lahella-vihje {
+  font-weight: 400;
+  color: var(--vari-teksti-himmea);
+}
+
 .suunta-nuoli {
   display: block;
   font-size: 1.8rem;
@@ -525,6 +539,26 @@ body {
 .saannot-ohjaimet .nappi {
   width: auto;
   flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.nappi-nuoli {
+  display: inline-block;
+  width: 0;
+  height: 0;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+}
+
+.nappi-nuoli-vasen {
+  border-right: 7px solid currentColor;
+}
+
+.nappi-nuoli-oikea {
+  border-left: 7px solid currentColor;
 }
 
 .admin-lomake-kontti {
