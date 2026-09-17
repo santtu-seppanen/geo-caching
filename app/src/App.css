@@ -315,23 +315,12 @@ body {
 .modaali-tausta {
   position: fixed;
   inset: 0;
-  /*
-   * inset:0 kokoaa fixed-elementin oletuksena "suurta" viewporttia vasten
-   * (ikään kuin osoiterivi/navigointinapit eivät veisi tilaa), ei sitä mitä
-   * ruudulla oikeasti näkyy. Jos sivu ei ole vierittynyt (osoiterivi
-   * näkyvissä), tausta ylimitoittuu eikä pohjaan ankkuroitu sisältö mahdu
-   * enää oikeasti näkyvälle alueelle. height: 100dvh seuraa sen sijaan
-   * dynaamisesti sitä, mikä on todella näkyvissä juuri nyt.
-   */
-  height: 100vh;
-  height: 100dvh;
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
-  align-items: safe flex-end;
+  align-items: center;
   justify-content: center;
   padding: 1rem;
-  overflow-y: auto;
   z-index: 1000;
 }
 
@@ -339,14 +328,7 @@ body {
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
-  max-height: 88dvh;
   overflow-y: auto;
-}
-
-@media (min-width: 640px) {
-  .modaali-tausta {
-    align-items: safe center;
-  }
 }
 
 .katko-paneeli {

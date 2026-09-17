@@ -13,25 +13,8 @@ interface ModaaliProps {
  */
 export function Modaali({ onSulje, children }: ModaaliProps) {
   useEffect(() => {
-    // Pelkkä overflow:hidden body:ssä nollaa vierityksen monissa
-    // mobiiliselaimissa (selain laskee vieritettävän alueen uusiksi kun
-    // overflow muuttuu), jolloin taustasivu — ja sen mukana kiinnitetty
-    // modaali — hyppää sivun ylälaitaan riippumatta siitä mihin kohtaan oli
-    // vieritetty. Jäädytetään body sen sijaan nykyiseen vierityskohtaan
-    // position:fixed-tempulla, ja palautetaan vieritys suljettaessa.
-    const vieritysY = window.scrollY;
-    const body = document.body;
-    const alkuperainen = {
-      position: body.style.position,
-      top: body.style.top,
-      width: body.style.width,
-      overflow: body.style.overflow,
-    };
-
-    body.style.position = "fixed";
-    body.style.top = `-${vieritysY}px`;
-    body.style.width = "100%";
-    body.style.overflow = "hidden";
+    const alkuperainenYlivuoto = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
 
     function kasitteleNappain(e: KeyboardEvent) {
       if (e.key === "Escape") onSulje();
@@ -39,11 +22,7 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
     window.addEventListener("keydown", kasitteleNappain);
 
     return () => {
-      body.style.position = alkuperainen.position;
-      body.style.top = alkuperainen.top;
-      body.style.width = alkuperainen.width;
-      body.style.overflow = alkuperainen.overflow;
-      window.scrollTo(0, vieritysY);
+      document.body.style.overflow = alkuperainenYlivuoto;
       window.removeEventListener("keydown", kasitteleNappain);
     };
   }, [onSulje]);
