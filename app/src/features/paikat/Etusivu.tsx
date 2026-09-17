@@ -76,10 +76,7 @@ export function Etusivu({
           </span>
           <span className="lahella-rivi">
             Olet noin {muotoileEtaisyys(lahellaOlevaAlue.etaisyysMetreina)} alueesta{" "}
-            <strong>
-              {lahellaOlevaAlue.alue.charAt(0).toUpperCase() + lahellaOlevaAlue.alue.slice(1)}
-            </strong>
-            .
+            <strong>{lahellaOlevaAlue.nimi}</strong>.
           </span>
           <span className="lahella-rivi">
             Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.

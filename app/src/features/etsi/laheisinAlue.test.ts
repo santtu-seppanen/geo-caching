@@ -45,6 +45,16 @@ describe("etsiLaheisinAlue", () => {
     expect(tulos?.avautuuKartalle).toBe(true);
   });
 
+  it("palauttaa kätkön oman alue-kentän ihmisluettavaksi nimeksi, ääkköset säilyttäen", () => {
+    const lahella = paikka({ id: "apatti-1", alue: "Äpätti", lat: 60.1699 + 0.005 });
+    const sijainti = { lat: 60.1699, lng: 24.9384 };
+
+    const tulos = etsiLaheisinAlue([lahella], sijainti);
+
+    expect(tulos?.alue).toBe("apatti");
+    expect(tulos?.nimi).toBe("Äpätti");
+  });
+
   it("valitsee useista alueista lähimmän, vaikka kaikki olisivat kynnyksen ulkopuolella", () => {
     const sijainti = { lat: 60.1699, lng: 24.9384 };
     const kauempana = paikka({ id: "toppila-1", alue: "toppila", lat: 60.1699 + 0.05 });

@@ -120,9 +120,28 @@ describe("ryhmitteleAlueiksi", () => {
 
     expect(alueet).toHaveLength(1);
     expect(alueet[0].alue).toBe("alue-a");
+    expect(alueet[0].nimi).toBe("Alue A");
     expect(alueet[0].paikat).toHaveLength(1);
     expect(alueet[0].keskipiste.lat).toBe(60.1699);
     expect(alueet[0].keskipiste.lng).toBe(24.9384);
+  });
+
+  it("säilyttää alueen nimen ääkköset ja ison alkukirjaimen, vaikka id-tunniste on ascii-normalisoitu", () => {
+    const paikat: Paikka[] = [
+      {
+        id: "apatti-1",
+        alue: "Äpätti",
+        kuvaus: "Kuvaus",
+        lat: 60.1699,
+        lng: 24.9384,
+        kuva: "kuva.jpg",
+      },
+    ];
+
+    const alueet = ryhmitteleAlueiksi(paikat);
+
+    expect(alueet[0].alue).toBe("apatti");
+    expect(alueet[0].nimi).toBe("Äpätti");
   });
 
   it("ryhmittelee useat paikat samaan alueeseen id:n tekstiosan perusteella", () => {
@@ -231,6 +250,7 @@ describe("ryhmitteleAlueiksi", () => {
 describe("alueenLoydettyjenMaara ja alueLoydettyKokonaan", () => {
   const alue = {
     alue: "alue-a",
+    nimi: "Alue A",
     keskipiste: { lat: 60.0, lng: 24.0 },
     paikat: [
       { id: "alue-a-1", alue: "Alue A", kuvaus: "Paikka 1", lat: 60.0, lng: 24.0, kuva: "kuva1.jpg" },

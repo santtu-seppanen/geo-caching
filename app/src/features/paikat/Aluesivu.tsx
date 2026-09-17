@@ -65,7 +65,7 @@ export function Aluesivu({ alue, sijainti, loydot, omatLoydot, onLoyto, onTakais
         ← Takaisin hakuun
       </button>
 
-      <h2>{alue.alue.charAt(0).toUpperCase() + alue.alue.slice(1)}</h2>
+      <h2>{alue.nimi}</h2>
 
       <Edistymispalkki
         loydetty={alueenLoydettyjenMaara(alue, loydetytIdt)}
