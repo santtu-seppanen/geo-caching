@@ -1,5 +1,5 @@
-import { useEffect } from "react";
-import type { ReactNode } from "react";
+import { useEffect, useRef } from "react";
+import type { MouseEvent, ReactNode } from "react";
 
 interface ModaaliProps {
   onSulje: () => void;
@@ -7,36 +7,46 @@ interface ModaaliProps {
 }
 
 /**
- * Täyden ruudun modaali-ikkuna omana kerroksenaan sisällön päällä.
- * Sulkeutuu taustaa napauttamalla tai Esc-näppäimellä, ja lukitsee taustan
- * vierityksen niin kauan kuin se on auki.
+ * Täyden ruudun modaali-ikkuna natiivilla <dialog>-elementillä.
+ *
+ * Aiempi versio pyöri itse rakennetulla position:fixed-kerroksella ja
+ * body { overflow: hidden } -vierityslukolla — se aiheutti toistuvia,
+ * selainkohtaisia bugeja (mm. taustan vierityksen nollautuminen, sisällön
+ * piiloutuminen näppäimistön/navigointipalkin taakse) sekä Androidilla että
+ * Firefoxissa. <dialog>.showModal() renderöityy selaimen "top layerissa",
+ * jonka selainvalmistajat ovat nimenomaan suunnitelleet väistämään
+ * näytön näppäimistön/työkalurivin — sinne ei tarvitse itse rakentaa
+ * vierityslukkoa tai kohdistuslogiikkaa.
  */
 export function Modaali({ onSulje, children }: ModaaliProps) {
-  useEffect(() => {
-    const alkuperainenYlivuoto = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
-    function kasitteleNappain(e: KeyboardEvent) {
-      if (e.key === "Escape") onSulje();
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    dialog.showModal();
+
+    function kasitteleSulkeutuminen() {
+      onSulje();
     }
-    window.addEventListener("keydown", kasitteleNappain);
+    dialog.addEventListener("close", kasitteleSulkeutuminen);
 
     return () => {
-      document.body.style.overflow = alkuperainenYlivuoto;
-      window.removeEventListener("keydown", kasitteleNappain);
+      dialog.removeEventListener("close", kasitteleSulkeutuminen);
+      dialog.close();
     };
   }, [onSulje]);
 
+  function kasitteleTaustaKlikkaus(e: MouseEvent<HTMLDialogElement>) {
+    if (e.target === dialogRef.current) onSulje();
+  }
+
   return (
-    <div className="modaali-tausta" onClick={onSulje}>
-      <div
-        className="modaali-sisalto"
-        role="dialog"
-        aria-modal="true"
-        onClick={(e) => e.stopPropagation()}
-      >
+    <dialog ref={dialogRef} className="modaali-tausta" onClick={kasitteleTaustaKlikkaus}>
+      <div className="modaali-sisalto" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
-    </div>
+    </dialog>
   );
 }
