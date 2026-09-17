@@ -149,7 +149,6 @@ export function MuokkaaKatkoLomake({
             {lahetetaan ? "Tallennetaan…" : "Tallenna"}
           </button>
         </div>
-        <div className="lomake-ala-tila" aria-hidden="true" />
       </form>
     </section>
   );

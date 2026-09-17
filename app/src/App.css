@@ -617,19 +617,6 @@ body {
   width: auto;
 }
 
-/*
- * Tyhjä tila Tallenna-napin jälkeen: joissain Android-puhelimissa (mm.
- * Samsung) järjestelmän omat navigointinapit peittävät lomakkeen alareunan
- * antamatta tilaa vierittää enempää, koska vieritettävä säilö (ks.
- * .modaali-sisalto) loppuu juuri napin kohdalla. Tämä lisää ylimääräistä
- * vieritettävää tilaa, jotta nappi saa vieritettyä kokonaan navigointinappien
- * yläpuolelle.
- */
-.lomake-ala-tila {
-  flex-shrink: 0;
-  height: calc(3rem + env(safe-area-inset-bottom, 0px));
-}
-
 .kentan-vihje {
   font-size: 0.8rem;
   color: var(--vari-teksti-himmea);
