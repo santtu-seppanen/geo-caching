@@ -331,7 +331,6 @@ body {
   max-height: 88vh;
   max-height: 88dvh;
   overflow-y: auto;
-  margin: auto 0;
 }
 
 @media (min-width: 640px) {
