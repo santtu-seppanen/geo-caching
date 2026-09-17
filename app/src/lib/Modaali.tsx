@@ -38,6 +38,11 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
     if (!dialog) return;
 
     dialog.showModal();
+    // tabIndex=-1 pitäisi jo yksin riittää ohjaamaan showModal():n
+    // automaattisen fokusoinnin dialogiin ensimmäisen kentän sijaan, mutta
+    // varmistetaan se vielä eksplisiittisesti — eri selaimet tulkitsevat
+    // fokusointialgoritmin hieman eri tavoin.
+    dialog.focus();
 
     function kasitteleSulkeutuminen() {
       onSuljeRef.current();
