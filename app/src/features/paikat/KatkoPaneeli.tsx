@@ -3,6 +3,7 @@ import type { FormEvent } from "react";
 import type { Paikka, Loyto } from "./types";
 import { ilmoitaLoyto } from "./loydotApi";
 import { haePelaajanNimi, tallennaPelaajanNimi } from "../../lib/pelaajanNimi";
+import { mitalitYhdelleKatkolle, MITALI_EMOJI } from "../tilastot/tilastoLaskenta";
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
@@ -21,11 +22,17 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
     ...loydot.filter((loyto) => loyto.paikkaId === paikka.id),
     ...omatLoydot.filter((loyto) => loyto.paikkaId === paikka.id),
   ];
+  const mitalit = mitalitYhdelleKatkolle(naytettavatLoydot);
+
+  const siistiNimi = nimi.trim();
+  const joLoytanytTallaNimella = naytettavatLoydot.some(
+    (loyto) => loyto.nimi.trim().toLowerCase() === siistiNimi.toLowerCase(),
+  );
 
   async function lahetaLoyto(e: FormEvent) {
     e.preventDefault();
     const siistittyNimi = nimi.trim();
-    if (!siistittyNimi) return;
+    if (!siistittyNimi || joLoytanytTallaNimella) return;
 
     setLahetetaan(true);
     setVirhe(null);
@@ -59,11 +66,15 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
           <p className="tyhja-tila">Ei vielä löytäjiä — ole ensimmäinen!</p>
         ) : (
           <ul className="loytaja-lista">
-            {naytettavatLoydot.map((loyto, indeksi) => (
-              <li key={`${loyto.nimi}-${loyto.aika}-${indeksi}`}>
-                {loyto.nimi} — {new Date(loyto.aika).toLocaleDateString("fi-FI")}
-              </li>
-            ))}
+            {naytettavatLoydot.map((loyto, indeksi) => {
+              const mitali = mitalit.get(loyto.nimi);
+              return (
+                <li key={`${loyto.nimi}-${loyto.aika}-${indeksi}`}>
+                  {mitali && <span aria-hidden="true">{MITALI_EMOJI[mitali]} </span>}
+                  {loyto.nimi} — {new Date(loyto.aika).toLocaleDateString("fi-FI")}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -78,6 +89,11 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
             placeholder="Esim. Matti M."
           />
         </label>
+        {joLoytanytTallaNimella && (
+          <p className="lomake-virhe" role="alert">
+            Olet jo merkinnyt tämän kätkön löydetyksi nimellä “{siistiNimi}”.
+          </p>
+        )}
         {virhe && (
           <p className="lomake-virhe" role="alert">
             {virhe}
@@ -86,7 +102,7 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
         <button
           className="nappi nappi-ensisijainen"
           type="submit"
-          disabled={!nimi.trim() || lahetetaan}
+          disabled={!siistiNimi || lahetetaan || joLoytanytTallaNimella}
         >
           {lahetetaan ? "Lähetetään…" : "Merkitse löydetyksi"}
         </button>

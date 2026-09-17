@@ -747,14 +747,28 @@ body {
   gap: 0.4rem;
 }
 
-.pistetaulu-rivi {
+.pistetaulu-rivi-nappi {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  width: 100%;
   padding: 0.5rem 0.7rem;
   border: 1px solid var(--vari-reuna);
   border-radius: 0.75rem;
   background: var(--vari-tausta);
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pistetaulu-mitalit {
+  display: flex;
+  gap: 0.9rem;
+  margin: 0.35rem 0 0;
+  padding-left: 0.7rem;
+  font-size: 0.85rem;
+  color: var(--vari-teksti-himmea);
 }
 
 .pistetaulu-sija {

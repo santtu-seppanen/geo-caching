@@ -5,6 +5,7 @@ import {
   haePaikkaKuva,
   lisaaLoyto,
   lisaaPaikka,
+  onkoJoLoytanyt,
   paivitaPaikka,
   poistaPaikka,
 } from "./d1.js";
@@ -119,6 +120,14 @@ async function kasitteleLoyda(
   const tulos = validoiLoytoPyynto(data, tunnetutPaikkaIdt);
   if (!tulos.ok) {
     return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  if (await onkoJoLoytanyt(env.DB, tulos.pyynto.paikkaId, tulos.pyynto.nimi)) {
+    return jsonVastaus(
+      { error: "Olet jo merkinnyt tämän kätkön löydetyksi" },
+      409,
+      corsHeaders,
+    );
   }
 
   try {

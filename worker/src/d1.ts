@@ -56,6 +56,19 @@ export async function haeLoydot(db: D1Database): Promise<Loyto[]> {
   return results.map((rivi) => ({ paikkaId: rivi.paikka_id, nimi: rivi.nimi, aika: rivi.aika }));
 }
 
+/** Onko nimimerkki jo merkinnyt tämän kätkön löydetyksi (kirjainkoosta riippumatta). */
+export async function onkoJoLoytanyt(
+  db: D1Database,
+  paikkaId: string,
+  nimi: string,
+): Promise<boolean> {
+  const rivi = await db
+    .prepare("SELECT 1 FROM loydot WHERE paikka_id = ? AND LOWER(nimi) = LOWER(?) LIMIT 1")
+    .bind(paikkaId, nimi)
+    .first();
+  return rivi !== null;
+}
+
 export async function lisaaLoyto(
   db: D1Database,
   pyynto: { paikkaId: string; nimi: string },

@@ -32,6 +32,56 @@ export function laskePistetaulu(loydot: Loyto[]): LoytajaRivi[] {
     .sort((a, b) => b.maara - a.maara || a.nimi.localeCompare(b.nimi, "fi"));
 }
 
+export type Mitali = "kulta" | "hopea" | "pronssi";
+
+export const MITALI_EMOJI: Record<Mitali, string> = {
+  kulta: "🥇",
+  hopea: "🥈",
+  pronssi: "🥉",
+};
+
+const MITALIJARJESTYS: readonly Mitali[] = ["kulta", "hopea", "pronssi"];
+
+/**
+ * Yhden kätkön löytäjien mitalit (kolme ensimmäistä löytöjärjestyksessä,
+ * pääteltynä aika-kentästä) nimimerkin mukaan haettavaksi. Kutsujan täytyy
+ * antaa jo valmiiksi vain tätä yhtä kätköä koskevat löydöt.
+ */
+export function mitalitYhdelleKatkolle(katkonLoydot: Loyto[]): Map<string, Mitali> {
+  const jarjestyksessa = [...katkonLoydot].sort((a, b) => a.aika.localeCompare(b.aika));
+  const kartta = new Map<string, Mitali>();
+  jarjestyksessa.slice(0, MITALIJARJESTYS.length).forEach((loyto, indeksi) => {
+    kartta.set(loyto.nimi, MITALIJARJESTYS[indeksi]);
+  });
+  return kartta;
+}
+
+export interface MitaliMaarat {
+  kulta: number;
+  hopea: number;
+  pronssi: number;
+}
+
+/** Mitalien määrä nimimerkkiä kohden, laskettuna yli kaikkien kätköjen. */
+export function laskeMitaliMaaratNimittain(loydot: Loyto[]): Map<string, MitaliMaarat> {
+  const ryhmatPaikanMukaan = new Map<string, Loyto[]>();
+  for (const loyto of loydot) {
+    const lista = ryhmatPaikanMukaan.get(loyto.paikkaId);
+    if (lista) lista.push(loyto);
+    else ryhmatPaikanMukaan.set(loyto.paikkaId, [loyto]);
+  }
+
+  const maarat = new Map<string, MitaliMaarat>();
+  for (const katkonLoydot of ryhmatPaikanMukaan.values()) {
+    for (const [nimi, mitali] of mitalitYhdelleKatkolle(katkonLoydot)) {
+      const nykyinen = maarat.get(nimi) ?? { kulta: 0, hopea: 0, pronssi: 0 };
+      nykyinen[mitali] += 1;
+      maarat.set(nimi, nykyinen);
+    }
+  }
+  return maarat;
+}
+
 export interface OmaLoytoRivi {
   paikkaId: string;
   alue: string;
