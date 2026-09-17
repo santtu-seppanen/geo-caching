@@ -28,7 +28,13 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   **100 m** sisällä (ks. `app/src/features/etsi/`), jottei kartta
   itsessään spoilaa kätköä.
 - Löytö (nimi + ajankohta) kirjataan `worker/`-Cloudflare Workerin kautta
-  Cloudflare D1 -tietokantaan — ks. Arkkitehtuuri alla.
+  Cloudflare D1 -tietokantaan — ks. Arkkitehtuuri alla. Sama nimimerkki ei
+  voi merkitä samaa kätköä löydetyksi kahdesti. Kätkön kolme ensimmäistä
+  löytäjää saavat kulta/hopea/pronssi-mitalin (pääteltynä `aika`-kentän
+  järjestyksestä, ei omaa saraketta) — ks.
+  `app/src/features/tilastot/tilastoLaskenta.ts`. Tilastot-näkymä (header)
+  näyttää pistetaulun (löytöjen määrä nimimerkkiä kohden, klikkaamalla
+  laajenee mitalimäärät) ja oman löytöhistorian.
 
 ## Arkkitehtuuri lyhyesti
 
@@ -63,8 +69,11 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     `Content-Type`-headerilla.
   - `POST /loyda` — validoi pyynnön (tunnettu `paikkaId`, nimi ei
     tyhjä/liian pitkä), tarkistaa jaetun salasanan
-    (`X-Jaettu-Salasana`-header — karsii botteja, ei oikea autentikointi)
-    ja lisää rivin `loydot`-tauluun.
+    (`X-Jaettu-Salasana`-header — karsii botteja, ei oikea autentikointi),
+    hylkää (409) jos sama nimimerkki (kirjainkoosta riippumatta) on jo
+    merkinnyt saman kätkön löydetyksi, ja lisää rivin `loydot`-tauluun.
+    Sama tuplan esto tehdään ensin myös clientillä (`KatkoPaneeli.tsx`)
+    UX:n vuoksi, mutta worker on aina lopullinen totuus.
   - `POST /admin/luo-katko` — validoi uuden kätkön kentät (id, alue,
     kuvaus, lat/lng, kuva base64:na), tarkistaa admin-salasanan
     (`X-Admin-Salasana`-header, eri salaisuus kuin löytöjen jaettu
