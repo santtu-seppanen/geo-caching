@@ -55,7 +55,15 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
   }
 
   return (
-    <dialog ref={dialogRef} className="modaali-tausta" onClick={kasitteleTaustaKlikkaus}>
+    // tabIndex="-1" tekee dialogista fokusoitavan, jolloin showModal():n
+    // automaattinen fokusointi kohdistuu itse dialogiin eikä ensimmäiseen
+    // sisällä olevaan tekstikenttään (mikä avaisi näppäimistön heti).
+    <dialog
+      ref={dialogRef}
+      className="modaali-tausta"
+      tabIndex={-1}
+      onClick={kasitteleTaustaKlikkaus}
+    >
       <div className="modaali-sisalto" onClick={(e) => e.stopPropagation()}>
         {children}
       </div>
