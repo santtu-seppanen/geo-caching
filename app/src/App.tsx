@@ -6,6 +6,7 @@ import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVerta
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import { Saannot } from "./features/saannot/Saannot";
+import { Tilastot } from "./features/tilastot/Tilastot";
 import { AdminSivu } from "./features/admin/AdminSivu";
 import { Modaali } from "./lib/Modaali";
 import type { Loyto, Paikka } from "./features/paikat/types";
@@ -24,6 +25,7 @@ export function App() {
   const [valittuAlue, setValittuAlue] = useState<string | null>(null);
   const [viimeisinHalytys, setViimeisinHalytys] = useState<string | null>(null);
   const [naytaSaannot, setNaytaSaannot] = useState(false);
+  const [naytaTilastot, setNaytaTilastot] = useState(false);
   const [naytaAdmin, setNaytaAdmin] = useState(false);
   const [paikat, setPaikat] = useState<Paikka[]>([]);
   const [loydot, setLoydot] = useState<Loyto[]>([]);
@@ -145,6 +147,13 @@ export function App() {
             <button
               type="button"
               className="saannot-linkki"
+              onClick={() => setNaytaTilastot(true)}
+            >
+              Tilastot
+            </button>
+            <button
+              type="button"
+              className="saannot-linkki"
               onClick={() => setNaytaAdmin(true)}
             >
               Admin
@@ -168,6 +177,17 @@ export function App() {
       {naytaSaannot && (
         <Modaali onSulje={() => setNaytaSaannot(false)}>
           <Saannot onSulje={() => setNaytaSaannot(false)} />
+        </Modaali>
+      )}
+
+      {naytaTilastot && (
+        <Modaali onSulje={() => setNaytaTilastot(false)}>
+          <Tilastot
+            paikat={paikat}
+            loydot={loydot}
+            omatLoydot={omatLoydot}
+            onSulje={() => setNaytaTilastot(false)}
+          />
         </Modaali>
       )}
 

@@ -94,8 +94,14 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   - `features/paikat/` — kätködata (tyypit, aluejaottelu/keskipisteet).
   - `features/etsi/` — etäisyyslaskenta ja avautumiskynnykset
     (`KATKO_AVAUTUU_METREINA`, `ALUE_AVAUTUU_METREINA`).
+  - `features/tilastot/` — pistetaulu (löytöjen määrä nimimerkkiä
+    kohden) ja omat löydöt -aikajana, molemmat pääteltynä pelkästä
+    `loydot`+`paikat`-datasta clientillä, ei omaa backend-tilaa.
 - Jaettu, ominaisuuksista riippumaton koodi menee `src/lib/`:iin
-  (esim. `lib/geolocation.ts`).
+  (esim. `lib/geolocation.ts`, `lib/pelaajanNimi.ts` — muistaa löytäjän
+  nimimerkin laitteella `localStorage`:ssa; sovelluksella ei ole
+  käyttäjätilejä/rekisteröitymistä eikä sellaista ole tarkoitus lisätä
+  tätä varten).
 - Älä lisää abstraktioita tai konfiguraatiota, joita ei tarvita nyt (esim.
   taustapaikannus-native-koodia ei kirjoiteta ennen kuin vaihe 2 alkaa
   oikeasti).

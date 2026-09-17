@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Paikka, Loyto } from "./types";
 import { ilmoitaLoyto } from "./loydotApi";
+import { haePelaajanNimi, tallennaPelaajanNimi } from "../../lib/pelaajanNimi";
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
@@ -12,7 +13,7 @@ interface KatkoPaneeliProps {
 }
 
 export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: KatkoPaneeliProps) {
-  const [nimi, setNimi] = useState("");
+  const [nimi, setNimi] = useState(() => haePelaajanNimi());
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
 
@@ -30,8 +31,8 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
     setVirhe(null);
     try {
       await ilmoitaLoyto(paikka.id, siistittyNimi);
+      tallennaPelaajanNimi(siistittyNimi);
       onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date().toISOString() });
-      setNimi("");
     } catch (virhe) {
       setVirhe(virhe instanceof Error ? virhe.message : "Löydön tallennus epäonnistui");
     } finally {

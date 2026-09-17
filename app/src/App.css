@@ -409,6 +409,7 @@ body {
 .otsikko-napit {
   margin-top: 0.75rem;
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 0.5rem;
 }
@@ -725,6 +726,92 @@ body {
 
 .nappi-vaara:not(:disabled):active {
   background: #96271b;
+}
+
+.tilastot-osio {
+  width: 100%;
+}
+
+.tilastot-osio h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.pistetaulu {
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pistetaulu-rivi {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.75rem;
+  background: var(--vari-tausta);
+}
+
+.pistetaulu-sija {
+  flex-shrink: 0;
+  width: 1.6rem;
+  font-weight: 700;
+  color: var(--vari-teksti-himmea);
+}
+
+.pistetaulu-nimi {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+.pistetaulu-maara {
+  flex-shrink: 0;
+  font-weight: 700;
+  color: var(--vari-ensisijainen-tumma);
+}
+
+.omat-loydot-lista {
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.omat-loydot-rivi {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.75rem;
+  background: var(--vari-tausta);
+}
+
+.omat-loydot-alue {
+  font-weight: 700;
+}
+
+.omat-loydot-kuvaus {
+  flex: 1;
+  min-width: 0;
+  color: var(--vari-teksti-himmea);
+  overflow-wrap: break-word;
+}
+
+.omat-loydot-aika {
+  flex-shrink: 0;
+  font-size: 0.85rem;
+  color: var(--vari-teksti-himmea);
 }
 
 @media (min-width: 640px) {
