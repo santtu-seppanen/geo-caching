@@ -318,9 +318,10 @@ body {
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
-  align-items: flex-end;
+  align-items: safe flex-end;
   justify-content: center;
   padding: 1rem;
+  overflow-y: auto;
   z-index: 1000;
 }
 
@@ -328,12 +329,14 @@ body {
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
+  margin: auto 0;
 }
 
 @media (min-width: 640px) {
   .modaali-tausta {
-    align-items: center;
+    align-items: safe center;
   }
 }
 

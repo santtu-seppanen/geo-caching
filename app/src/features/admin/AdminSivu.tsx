@@ -66,11 +66,6 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     }
   }
 
-  const alueEhdotukset = useMemo(
-    () => [...new Set(paikat.map((paikka) => paikka.alue))],
-    [paikat],
-  );
-
   const olemassaOlevatAlueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
 
   async function kasittelePoisto(id: string) {
@@ -292,23 +287,11 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           <span className="kentan-nimi">alue</span>
           <input
             className="teksti-syote"
-            list="admin-alue-ehdotukset"
             value={lomake.alue}
             onChange={(e) => paivitaKentta("alue", e.target.value)}
             onBlur={tasaaAlueOlemassaOlevaan}
             placeholder="esim. Lammin metsä"
           />
-          <datalist id="admin-alue-ehdotukset">
-            {alueEhdotukset.map((alue) => (
-              <option key={alue} value={alue} />
-            ))}
-          </datalist>
-          <span className="kentan-vihje">
-            Käyttäjälle näytettävä nimi (saa sisältää ääkköset). Tunniste{" "}
-            <strong>{idNimi ? `${idNimi}-${idNumero}` : "—"}</strong> muodostuu tästä automaattisesti
-            eikä ole erikseen muokattavissa. Jos tällä alueella on jo muita kätköjä, nimi tasataan
-            niiden kirjoitusasuun kun siirryt pois kentästä.
-          </span>
         </label>
 
         <label className="kentta">
