@@ -318,7 +318,7 @@ body {
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
@@ -328,8 +328,13 @@ body {
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
-  max-height: 88dvh;
   overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .modaali-tausta {
+    align-items: center;
+  }
 }
 
 .katko-paneeli {
