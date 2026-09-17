@@ -4,6 +4,7 @@ import {
   validoiIdNimi,
   validoiIdNumero,
   rakennaId,
+  alueTunnisteeksi,
   validoiAlue,
   validoiKuvaus,
   validoiLat,
@@ -464,5 +465,37 @@ describe("rakennaId", () => {
 
   it("trimmaa whitespace:n", () => {
     expect(rakennaId(" neittava ", " 1 ")).toBe("neittava-1");
+  });
+});
+
+describe("alueTunnisteeksi", () => {
+  it("muuttaa ison alkukirjaimen pieneksi", () => {
+    expect(alueTunnisteeksi("Neittävä")).toBe("neittava");
+  });
+
+  it("poistaa ääkköset", () => {
+    expect(alueTunnisteeksi("Äpätti")).toBe("apatti");
+    expect(alueTunnisteeksi("Ölmävä")).toBe("olmava");
+    expect(alueTunnisteeksi("Åkerby")).toBe("akerby");
+  });
+
+  it("korvaa välilyönnit ja muut erikoismerkit yhdellä väliviivalla", () => {
+    expect(alueTunnisteeksi("Lammin metsä")).toBe("lammin-metsa");
+    expect(alueTunnisteeksi("Ylä-Kitka")).toBe("yla-kitka");
+    expect(alueTunnisteeksi("Metsä & Järvi!")).toBe("metsa-jarvi");
+  });
+
+  it("trimmaa reunat ja tuplaväliviivat", () => {
+    expect(alueTunnisteeksi("  Neittävä  ")).toBe("neittava");
+    expect(alueTunnisteeksi("-Neittävä-")).toBe("neittava");
+  });
+
+  it("palauttaa tyhjän merkkijonon, jos mitään käyttökelpoista ei jää jäljelle", () => {
+    expect(alueTunnisteeksi("!!!")).toBe("");
+    expect(alueTunnisteeksi("")).toBe("");
+  });
+
+  it("säilyttää numerot", () => {
+    expect(alueTunnisteeksi("3 Veljestä")).toBe("3-veljesta");
   });
 });

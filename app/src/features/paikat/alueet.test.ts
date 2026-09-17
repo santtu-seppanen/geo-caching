@@ -5,6 +5,7 @@ import {
   paikanTunniste,
   alueenLoydettyjenMaara,
   alueLoydettyKokonaan,
+  seuraavaVapaaNumero,
 } from "./alueet";
 import type { Paikka } from "./types";
 
@@ -275,5 +276,39 @@ describe("alueenLoydettyjenMaara ja alueLoydettyKokonaan", () => {
 
     expect(alueenLoydettyjenMaara(alue, loydetytIdt)).toBe(2);
     expect(alueLoydettyKokonaan(alue, loydetytIdt)).toBe(true);
+  });
+});
+
+describe("seuraavaVapaaNumero", () => {
+  it("palauttaa 1:n kun tunnisteella ei ole vielä yhtään kätköä", () => {
+    expect(seuraavaVapaaNumero([], "apatti")).toBe(1);
+  });
+
+  it("palauttaa suurimman olemassa olevan numeron plus yksi", () => {
+    const paikat: Paikka[] = [
+      { id: "apatti-1", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+      { id: "apatti-2", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+    ];
+
+    expect(seuraavaVapaaNumero(paikat, "apatti")).toBe(3);
+  });
+
+  it("ei välitä muiden alueiden kätköistä", () => {
+    const paikat: Paikka[] = [
+      { id: "apatti-1", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+      { id: "neittava-1", alue: "Neittävä", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+      { id: "neittava-2", alue: "Neittävä", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+    ];
+
+    expect(seuraavaVapaaNumero(paikat, "apatti")).toBe(2);
+  });
+
+  it("ottaa huomioon epäjärjestyksessä olevat numerot", () => {
+    const paikat: Paikka[] = [
+      { id: "apatti-3", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+      { id: "apatti-1", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+    ];
+
+    expect(seuraavaVapaaNumero(paikat, "apatti")).toBe(4);
   });
 });

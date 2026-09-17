@@ -13,10 +13,13 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   ääkkösettä) näkee kaikki sen alueen kätköt kartalla — ei etäisyysrajaa
   hakukentän kautta (ks. `app/src/features/paikat/alueet.ts`:n
   `paikanTunniste`). Käyttäjälle **näytettävä** alueen nimi (voi sisältää
-  ääkköset, esim. "Äpätti") tulee kätkön omasta `alue`-kentästä (admin
-  kirjoittaa sen `/admin`-lomakkeeseen erikseen id:n tekstiosasta, ks.
+  ääkköset, esim. "Äpätti") tulee kätkön omasta `alue`-kentästä (ks.
   `Alue.nimi` / `LahellaOlevaAlue.nimi`) — älä koskaan johda näytettävää
-  nimeä id:stä. Lisäksi etusivu näyttää aina lähimmän alueen nimen,
+  nimeä id:stä. `/admin`-lomakkeella admin kirjoittaa vain tämän
+  `alue`-nimen; id (tunniste + juokseva numero) johdetaan siitä
+  automaattisesti eikä ole admin-lomakkeella muokattavissa suoraan (ks.
+  `alueTunnisteeksi` ja `seuraavaVapaaNumero`). Lisäksi etusivu näyttää
+  aina lähimmän alueen nimen,
   etäisyyden ja suunnan (ks. `app/src/features/etsi/laheisinAlue.ts`),
   mutta sen kartan voi avata vasta **`ALUE_AVAUTUU_METREINA`** (2000 m)
   sisällä — kauempaa näkyy vain vihje, ei kätkön sisältöä.

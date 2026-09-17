@@ -52,6 +52,21 @@ export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
   });
 }
 
+/**
+ * Seuraava vapaa juokseva numero annetulla tunnisteella — admin-lomake
+ * päättelee sen automaattisesti alueen olemassa olevista kätköistä, ettei
+ * admin voi vahingossa antaa jo käytössä olevaa id:tä.
+ */
+export function seuraavaVapaaNumero(paikat: Paikka[], tunniste: string): number {
+  let suurin = 0;
+  for (const paikka of paikat) {
+    if (paikanTunniste(paikka.id) !== tunniste) continue;
+    const numero = /-(\d+)$/.exec(paikka.id);
+    if (numero) suurin = Math.max(suurin, Number(numero[1]));
+  }
+  return suurin + 1;
+}
+
 /** Montako alueen kätköistä on löydetty. */
 export function alueenLoydettyjenMaara(alue: Alue, loydetytIdt: ReadonlySet<string>): number {
   return alue.paikat.filter((paikka) => loydetytIdt.has(paikka.id)).length;
