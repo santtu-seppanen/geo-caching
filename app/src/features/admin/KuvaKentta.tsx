@@ -5,7 +5,46 @@ interface KuvaKenttaProps {
   /** Näytettävä esikatselukuva ennen kuin käyttäjä on valinnut uutta (esim. muokattavan kätkön nykyinen kuva). */
   alkuperainenEsikatseluUrl?: string | null;
   onValitse: (tiedosto: File | null) => void;
-  vihjeTeksti: string;
+  vihjeTeksti?: string;
+}
+
+function KameraKuvake() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width="22"
+      height="22"
+      aria-hidden="true"
+    >
+      <path d="M4 8a2 2 0 0 1 2-2h1.17a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 11.317 3h1.366a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 16.83 6H18a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" />
+      <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+function GalleriaKuvake() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      width="22"
+      height="22"
+      aria-hidden="true"
+    >
+      <rect x="3" y="4" width="18" height="16" rx="2.5" />
+      <circle cx="8.5" cy="9.5" r="1.5" />
+      <path d="m21 15-5-5L5 20" />
+    </svg>
+  );
 }
 
 /** Kuvan valintakenttä: oma nappi kameralla ottamiseen (oletus) ja toinen tiedoston/galleriasta valintaan. */
@@ -47,17 +86,21 @@ export function KuvaKentta({
       <div className="kuva-valinta-napit">
         <button
           type="button"
-          className="nappi nappi-toissijainen"
+          className="nappi nappi-toissijainen kuva-valinta-nappi"
           onClick={() => kameraInputRef.current?.click()}
+          aria-label="Ota kuva kameralla"
+          title="Ota kuva kameralla"
         >
-          📷 Ota kuva
+          <KameraKuvake />
         </button>
         <button
           type="button"
-          className="nappi nappi-toissijainen"
+          className="nappi nappi-toissijainen kuva-valinta-nappi"
           onClick={() => tiedostoInputRef.current?.click()}
+          aria-label="Valitse kuva tiedostosta"
+          title="Valitse kuva tiedostosta"
         >
-          🖼️ Valitse tiedostosta
+          <GalleriaKuvake />
         </button>
       </div>
 
@@ -77,7 +120,7 @@ export function KuvaKentta({
         onChange={kasitteleValinta}
       />
 
-      <span className="kentan-vihje">{vihjeTeksti}</span>
+      {vihjeTeksti && <span className="kentan-vihje">{vihjeTeksti}</span>}
 
       {esikatselu && (
         <img className="admin-kuva-esikatselu" src={esikatselu} alt="Esikatselu kätkön kuvasta" />

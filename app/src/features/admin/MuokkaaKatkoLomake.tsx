@@ -94,7 +94,6 @@ export function MuokkaaKatkoLomake({
       </button>
 
       <h2>Muokkaa kätköä</h2>
-      <p className="kentan-vihje">id: {paikka.id} (ei muokattavissa)</p>
 
       <form className="admin-lomake" onSubmit={tallenna}>
         <label className="kentta">
@@ -138,7 +137,6 @@ export function MuokkaaKatkoLomake({
         <KuvaKentta
           alkuperainenEsikatseluUrl={`${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`}
           onValitse={setKuvaTiedosto}
-          vihjeTeksti="Valitse uusi kuva vain jos haluat vaihtaa sen — muuten nykyinen kuva säilyy."
         />
 
         {virhe && (
