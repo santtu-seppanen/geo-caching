@@ -318,7 +318,7 @@ body {
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
   padding: 1rem;
   z-index: 1000;
@@ -328,6 +328,7 @@ body {
   width: 100%;
   max-width: 480px;
   max-height: 88vh;
+  max-height: 88dvh;
   overflow-y: auto;
 }
 
@@ -582,6 +583,16 @@ body {
 .admin-lomake textarea.teksti-syote {
   resize: vertical;
   font-family: inherit;
+}
+
+.lomake-ohjaimet {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.lomake-ohjaimet .nappi {
+  flex: 1;
+  width: auto;
 }
 
 /*
