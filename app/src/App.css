@@ -328,13 +328,7 @@ body {
   background: rgba(20, 15, 8, 0.55);
   backdrop-filter: blur(2px);
   display: flex;
-  /*
-   * Aina ylälaitaan ankkuroituna riippumatta siitä, mihin kohtaan
-   * taustalla oleva sivu on vieritetty — näin modaalin otsikko näkyy heti
-   * eikä avautumiskohta vaihtele sen mukaan mistä kohtaa listaa modaali
-   * avattiin.
-   */
-  align-items: safe flex-start;
+  align-items: safe flex-end;
   justify-content: center;
   padding: 1rem;
   overflow-y: auto;
@@ -347,6 +341,12 @@ body {
   max-height: 88vh;
   max-height: 88dvh;
   overflow-y: auto;
+}
+
+@media (min-width: 640px) {
+  .modaali-tausta {
+    align-items: safe center;
+  }
 }
 
 .katko-paneeli {
@@ -626,8 +626,8 @@ body {
 }
 
 .kuva-valinta-nappi {
-  flex: 0 0 auto;
-  width: 3rem;
+  flex: 1;
+  width: auto;
   height: 3rem;
   padding: 0;
   display: inline-flex;
