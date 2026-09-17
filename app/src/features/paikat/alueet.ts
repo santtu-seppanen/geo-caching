@@ -1,7 +1,10 @@
 import type { Paikka } from "./types";
 
 export interface Alue {
+  /** Id:n tekstiosasta johdettu tunniste — ryhmittelyn ja hakukentän avain, vain a-z0-9-. */
   alue: string;
+  /** Kätkön oman `alue`-kentän ihmisluettava nimi (voi sisältää ääkkösiä), näytetään käyttäjälle. */
+  nimi: string;
   keskipiste: { lat: number; lng: number };
   paikat: Paikka[];
 }
@@ -42,6 +45,7 @@ export function ryhmitteleAlueiksi(paikat: Paikka[]): Alue[] {
     const alueenPaikat = ryhmat.get(alue)!;
     return {
       alue,
+      nimi: alueenPaikat[0].alue,
       keskipiste: laskeKeskipiste(alueenPaikat),
       paikat: alueenPaikat,
     };

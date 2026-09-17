@@ -6,14 +6,20 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
 
 - Etusivu ei listaa kaikkia alueita — kätköt on piilossa, kunnes käyttäjä
   kirjoittaa hakukenttään alueen nimen. Kätkön id on kaksiosainen, teksti +
-  numero (esim. `neittava-1`, `neittava-2`); alueen nimi on id:n
-  tekstiosa, ja kirjoittamalla sen (esim. "Neittävä") näkee kaikki sen
-  alueen kätköt kartalla — ei etäisyysrajaa hakukentän kautta (ks.
-  `app/src/features/paikat/alueet.ts`:n `paikanTunniste`). Lisäksi etusivu
-  näyttää aina lähimmän alueen nimen, etäisyyden ja suunnan (ks.
-  `app/src/features/etsi/laheisinAlue.ts`), mutta sen kartan voi avata
-  vasta **`ALUE_AVAUTUU_METREINA`** (2000 m) sisällä — kauempaa näkyy vain
-  vihje, ei kätkön sisältöä.
+  numero (esim. `neittava-1`, `neittava-2`), ja id sallii vain
+  `a-z0-9-`-merkkejä (R2-tiedostonimenä ja D1-avaimena, ks. alla) — id:n
+  tekstiosa on siis pelkkä hakuun/ryhmittelyyn käytetty ascii-tunniste, ei
+  näytettävä nimi. Kirjoittamalla sen (esim. "Neittävä", normalisoituna
+  ääkkösettä) näkee kaikki sen alueen kätköt kartalla — ei etäisyysrajaa
+  hakukentän kautta (ks. `app/src/features/paikat/alueet.ts`:n
+  `paikanTunniste`). Käyttäjälle **näytettävä** alueen nimi (voi sisältää
+  ääkköset, esim. "Äpätti") tulee kätkön omasta `alue`-kentästä (admin
+  kirjoittaa sen `/admin`-lomakkeeseen erikseen id:n tekstiosasta, ks.
+  `Alue.nimi` / `LahellaOlevaAlue.nimi`) — älä koskaan johda näytettävää
+  nimeä id:stä. Lisäksi etusivu näyttää aina lähimmän alueen nimen,
+  etäisyyden ja suunnan (ks. `app/src/features/etsi/laheisinAlue.ts`),
+  mutta sen kartan voi avata vasta **`ALUE_AVAUTUU_METREINA`** (2000 m)
+  sisällä — kauempaa näkyy vain vihje, ei kätkön sisältöä.
 - Aluesivu näyttää Leaflet/OpenStreetMap-kartan alueen kätköistä ja
   käyttäjän omasta sijainnista. Kätkön kuva ja kuvaus paljastuvat vasta
   **100 m** sisällä (ks. `app/src/features/etsi/`), jottei kartta

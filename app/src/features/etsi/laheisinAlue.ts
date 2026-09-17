@@ -4,7 +4,10 @@ import { etaisyysMetreina, suuntimaAsteina } from "./distance";
 import { ALUE_AVAUTUU_METREINA } from "./kynnykset";
 
 export interface LahellaOlevaAlue {
+  /** Id:n tekstiosasta johdettu tunniste — käytetään navigointiin (ks. onValitseAlue), vain a-z0-9-. */
   alue: string;
+  /** Kätkön oman `alue`-kentän ihmisluettava nimi (voi sisältää ääkkösiä), näytetään käyttäjälle. */
+  nimi: string;
   etaisyysMetreina: number;
   /** Suuntima käyttäjän sijainnista kohti lähintä kätköä, asteina (0-360, 0 = pohjoinen). */
   suuntimaAsteina: number;
@@ -31,6 +34,7 @@ export function etsiLaheisinAlue(
     if (!lahin || etaisyys < lahin.etaisyysMetreina) {
       lahin = {
         alue: paikanTunniste(paikka.id),
+        nimi: paikka.alue,
         etaisyysMetreina: etaisyys,
         suuntimaAsteina: suuntimaAsteina(sijainti, paikka),
         avautuuKartalle: etaisyys <= ALUE_AVAUTUU_METREINA,
