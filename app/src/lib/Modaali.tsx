@@ -21,6 +21,18 @@ interface ModaaliProps {
 export function Modaali({ onSulje, children }: ModaaliProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
+  // onSulje on tyypillisesti kutsujassa inline-nuolifunktio eli uusi
+  // referenssi joka renderillä. Jos se olisi alla olevan efektin
+  // riippuvuuksissa, efekti ajaisi cleanupin (dialog.close()) aina kun
+  // kutsuja renderöityy uudelleen (esim. sijainnin päivittyessä) — close()
+  // laukaisee natiivin "close"-tapahtuman heti, joka sulkisi modaalin
+  // käytännössä välittömästi avaamisen jälkeen. Pidetään siksi tuorein
+  // onSulje refissä ja ajetaan avaus/sulkeutumis-efekti vain kerran.
+  const onSuljeRef = useRef(onSulje);
+  useEffect(() => {
+    onSuljeRef.current = onSulje;
+  });
+
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -28,7 +40,7 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
     dialog.showModal();
 
     function kasitteleSulkeutuminen() {
-      onSulje();
+      onSuljeRef.current();
     }
     dialog.addEventListener("close", kasitteleSulkeutuminen);
 
@@ -36,7 +48,7 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
       dialog.removeEventListener("close", kasitteleSulkeutuminen);
       dialog.close();
     };
-  }, [onSulje]);
+  }, []);
 
   function kasitteleTaustaKlikkaus(e: MouseEvent<HTMLDialogElement>) {
     if (e.target === dialogRef.current) onSulje();
