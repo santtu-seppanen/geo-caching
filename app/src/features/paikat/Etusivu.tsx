@@ -94,39 +94,41 @@ export function Etusivu({
           )}
         </p>
       )}
-      <h2>Etsi kätköjä</h2>
-      <Edistymispalkki
-        loydetty={loydettyjaAlueitaKokonaan}
-        yhteensa={alueet.length}
-        teksti="aluetta löydetty kokonaan"
-      />
-      <p className="aluehaku-ohje">
-        <strong>Sinun täytyy tietää kätköalueen nimi tai olla sitä lähellä.</strong>
-      </p>
-      <form className="aluehaku-lomake" onSubmit={hae}>
-        <input
-          type="text"
-          className="teksti-syote"
-          value={haku}
-          onChange={(e) => {
-            setHaku(e.target.value);
-            setVirhe(null);
-          }}
-          placeholder="esim. Neittävä"
-          aria-label="Alueen nimi"
+      <div className="aluehaku-kortti">
+        <h2>Etsi kätköjä</h2>
+        <Edistymispalkki
+          loydetty={loydettyjaAlueitaKokonaan}
+          yhteensa={alueet.length}
+          teksti="aluetta löydetty kokonaan"
         />
-        <button type="submit" className="nappi nappi-ensisijainen">
-          Näytä kartalla
-        </button>
-      </form>
-      <p className="aluehaku-lisatieto">
-        Kätköalue on vapaasti valittava nimi, se voi olla myös paikannimi.
-      </p>
-      {virhe && (
-        <p className="vihje-tooltip" role="alert">
-          {virhe}
+        <p className="aluehaku-ohje">
+          <strong>Sinun täytyy tietää kätköalueen nimi tai olla sitä lähellä.</strong>
         </p>
-      )}
+        <form className="aluehaku-lomake" onSubmit={hae}>
+          <input
+            type="text"
+            className="teksti-syote"
+            value={haku}
+            onChange={(e) => {
+              setHaku(e.target.value);
+              setVirhe(null);
+            }}
+            placeholder="esim. Neittävä"
+            aria-label="Alueen nimi"
+          />
+          <button type="submit" className="nappi nappi-ensisijainen">
+            Näytä kartalla
+          </button>
+        </form>
+        <p className="aluehaku-lisatieto">
+          Kätköalue on vapaasti valittava nimi, se voi olla myös paikannimi.
+        </p>
+        {virhe && (
+          <p className="vihje-tooltip" role="alert">
+            {virhe}
+          </p>
+        )}
+      </div>
     </section>
   );
 }
