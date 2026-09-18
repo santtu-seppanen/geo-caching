@@ -93,7 +93,8 @@ body {
 .lahella-huomautus {
   margin: 0;
   padding: 0.9rem 1rem;
-  background: rgba(47, 107, 79, 0.1);
+  background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
   border: 1px solid var(--vari-ensisijainen);
   color: var(--vari-teksti);
   border-radius: 0.75rem;
@@ -110,7 +111,6 @@ body {
 }
 
 .lahella-huomautus-kaukana {
-  background: var(--vari-tausta-ylhaalta);
   border-color: var(--vari-reuna);
 }
 
