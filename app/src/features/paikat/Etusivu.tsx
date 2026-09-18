@@ -101,8 +101,7 @@ export function Etusivu({
         teksti="aluetta löydetty kokonaan"
       />
       <p className="aluehaku-ohje">
-        Sinun täytyy tietää kätköalueen nimi tai olla sitä lähellä. Kätköalue on vapaasti
-        valittava nimi, se voi olla myös paikannimi.
+        <strong>Sinun täytyy tietää kätköalueen nimi tai olla sitä lähellä.</strong>
       </p>
       <form className="aluehaku-lomake" onSubmit={hae}>
         <input
@@ -120,6 +119,9 @@ export function Etusivu({
           Näytä kartalla
         </button>
       </form>
+      <p className="aluehaku-lisatieto">
+        Kätköalue on vapaasti valittava nimi, se voi olla myös paikannimi.
+      </p>
       {virhe && (
         <p className="vihje-tooltip" role="alert">
           {virhe}
