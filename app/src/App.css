@@ -202,10 +202,6 @@ body {
   margin: 0 0 1rem;
 }
 
-.aluehaku-ohje strong {
-  color: var(--vari-teksti);
-}
-
 .aluehaku-lomake {
   display: flex;
   gap: 0.5rem;

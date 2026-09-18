@@ -88,7 +88,7 @@ export function virheTeksti(virhe: SijaintiVirhe): string {
     case "EI_TUETTU":
       return "Selaimesi ei tue sijainninhakua.";
     case "LUPA_EVATTY":
-      return "Sijaintilupa on evätty. Salli sijainti selaimen asetuksista nähdäksesi lähellä olevat alueet.";
+      return "Sijaintilupa on evätty. Salli sijainti selaimen asetuksista nähdäksesi lähellä olevat kätköt.";
     case "AIKAKATKAISU":
       return "Sijainnin haku aikakatkaistiin. Tarkista verkkoyhteys ja yritä uudelleen.";
     case "MUU":
