@@ -51,7 +51,7 @@ export function Etusivu({
       setVirhe(null);
       onValitseAlue(loytyi.alue);
     } else {
-      setVirhe("Aluetta ei löytynyt. Tarkista kirjoitusasu.");
+      setVirhe("Kätköjä ei löytynyt annetulta alueelta.");
     }
   }
 
@@ -100,7 +100,11 @@ export function Etusivu({
         yhteensa={alueet.length}
         teksti="aluetta löydetty kokonaan"
       />
-      <p className="aluehaku-ohje">Kirjoita alueen nimi, niin näet sen kätköt kartalla.</p>
+      <p className="aluehaku-ohje">
+        Kirjoita alueen nimi, niin näet sen kätköt kartalla.
+        <br />
+        <strong>Sinun täytyy tietää alueen nimi tai olla sitä lähellä.</strong>
+      </p>
       <form className="aluehaku-lomake" onSubmit={hae}>
         <input
           type="text"
