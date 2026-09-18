@@ -198,13 +198,20 @@ body {
 }
 
 .aluehaku-ohje {
-  color: var(--vari-teksti-himmea);
+  color: var(--vari-teksti);
   margin: 0 0 1rem;
 }
 
 .aluehaku-lomake {
   display: flex;
   gap: 0.5rem;
+}
+
+.aluehaku-lisatieto {
+  margin: 0.5rem 0 0;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--vari-teksti-himmea);
 }
 
 .aluehaku-lomake .teksti-syote {
