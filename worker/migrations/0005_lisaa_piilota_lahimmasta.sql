@@ -1,0 +1,1 @@
+ALTER TABLE paikat ADD COLUMN piilota_lahimmasta INTEGER NOT NULL DEFAULT 0;

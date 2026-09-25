@@ -39,6 +39,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [kirjautumisVirhe, setKirjautumisVirhe] = useState<string | null>(null);
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
+  const [piilotaLahimmasta, setPiilotaLahimmasta] = useState(false);
   const [lahetetaan, setLahetetaan] = useState(false);
   const [haetaanSijaintia, setHaetaanSijaintia] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -216,12 +217,14 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           lat: latNumero!,
           lng: lngNumero!,
           kuva,
+          piilotaLahimmasta,
         },
         adminSalasana,
       );
       setOnnistui(`Kätkö "${tulos.id}" luotu!`);
       setLomake(TYHJA_LOMAKE);
       setKuvaTiedosto(null);
+      setPiilotaLahimmasta(false);
       setLomakeAvain((edellinen) => edellinen + 1);
       lataaPaikat();
     } catch (e) {
@@ -351,6 +354,15 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           onValitse={setKuvaTiedosto}
           vihjeTeksti="Ota kuva kameralla tai valitse tiedosto — kuva pakataan automaattisesti lähetettäessä."
         />
+
+        <label className="kentta kentta-valintaruutu">
+          <input
+            type="checkbox"
+            checked={piilotaLahimmasta}
+            onChange={(e) => setPiilotaLahimmasta(e.target.checked)}
+          />
+          <span className="kentan-nimi">Piilota "Lähin alue" -huomautuksesta etusivulla</span>
+        </label>
 
         {virhe && (
           <p className="lomake-virhe" role="alert">

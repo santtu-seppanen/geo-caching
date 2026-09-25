@@ -7,6 +7,7 @@ export interface MuokkausKatkoPyynto {
   lat: number;
   lng: number;
   kuva: { tiedostopaate: KuvaPaate; data: string } | null;
+  piilotaLahimmasta: boolean;
 }
 
 /**

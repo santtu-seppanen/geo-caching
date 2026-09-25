@@ -5,6 +5,7 @@ export interface Paikka {
   lat: number;
   lng: number;
   kuva: string;
+  piilotaLahimmasta: boolean;
 }
 
 export interface Loyto {
@@ -20,6 +21,7 @@ interface PaikkaRivi {
   lat: number;
   lng: number;
   kuva: string;
+  piilota_lahimmasta: number;
 }
 
 interface LoytoRivi {
@@ -36,6 +38,7 @@ function paikkaRivista(rivi: PaikkaRivi): Paikka {
     lat: rivi.lat,
     lng: rivi.lng,
     kuva: rivi.kuva,
+    piilotaLahimmasta: rivi.piilota_lahimmasta === 1,
   };
 }
 
@@ -83,8 +86,18 @@ export async function lisaaLoyto(
 
 export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
   await db
-    .prepare("INSERT INTO paikat (id, alue, kuvaus, lat, lng, kuva) VALUES (?, ?, ?, ?, ?, ?)")
-    .bind(paikka.id, paikka.alue, paikka.kuvaus, paikka.lat, paikka.lng, paikka.kuva)
+    .prepare(
+      "INSERT INTO paikat (id, alue, kuvaus, lat, lng, kuva, piilota_lahimmasta) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    )
+    .bind(
+      paikka.id,
+      paikka.alue,
+      paikka.kuvaus,
+      paikka.lat,
+      paikka.lng,
+      paikka.kuva,
+      paikka.piilotaLahimmasta ? 1 : 0,
+    )
     .run();
 }
 
@@ -96,8 +109,18 @@ export async function haePaikkaKuva(db: D1Database, id: string): Promise<string 
 
 export async function paivitaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
   await db
-    .prepare("UPDATE paikat SET alue = ?, kuvaus = ?, lat = ?, lng = ?, kuva = ? WHERE id = ?")
-    .bind(paikka.alue, paikka.kuvaus, paikka.lat, paikka.lng, paikka.kuva, paikka.id)
+    .prepare(
+      "UPDATE paikat SET alue = ?, kuvaus = ?, lat = ?, lng = ?, kuva = ?, piilota_lahimmasta = ? WHERE id = ?",
+    )
+    .bind(
+      paikka.alue,
+      paikka.kuvaus,
+      paikka.lat,
+      paikka.lng,
+      paikka.kuva,
+      paikka.piilotaLahimmasta ? 1 : 0,
+      paikka.id,
+    )
     .run();
 }
 
