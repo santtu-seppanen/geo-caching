@@ -19,6 +19,7 @@ export interface UusiKatkoPyynto {
     tiedostopaate: string;
     data: string;
   };
+  piilotaLahimmasta: boolean;
 }
 
 export type UusiKatkoValidointiTulos =
@@ -41,6 +42,7 @@ interface PerusKentat {
   kuvaus: string;
   lat: number;
   lng: number;
+  piilotaLahimmasta: boolean;
 }
 
 type PerusKenttienValidointiTulos =
@@ -49,7 +51,7 @@ type PerusKenttienValidointiTulos =
 
 /** Yhteinen alue/kuvaus/lat/lng-validointi uuden ja muokatun kätkön pyynnöille. */
 function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidointiTulos {
-  const { alue, kuvaus, lat, lng } = data;
+  const { alue, kuvaus, lat, lng, piilotaLahimmasta } = data;
 
   if (typeof alue !== "string" || alue.trim().length === 0) {
     return { ok: false, virhe: "alue on pakollinen" };
@@ -73,9 +75,19 @@ function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidoi
     return { ok: false, virhe: "lng täytyy olla luku välillä -180..180" };
   }
 
+  if (piilotaLahimmasta !== undefined && typeof piilotaLahimmasta !== "boolean") {
+    return { ok: false, virhe: "piilotaLahimmasta täytyy olla totuusarvo" };
+  }
+
   return {
     ok: true,
-    kentat: { alue: alue.trim(), kuvaus: kuvaus.trim(), lat, lng },
+    kentat: {
+      alue: alue.trim(),
+      kuvaus: kuvaus.trim(),
+      lat,
+      lng,
+      piilotaLahimmasta: piilotaLahimmasta === true,
+    },
   };
 }
 
@@ -158,6 +170,7 @@ export interface MuokkausKatkoPyynto {
   lat: number;
   lng: number;
   kuva: { tiedostopaate: string; data: string } | null;
+  piilotaLahimmasta: boolean;
 }
 
 export type MuokkausKatkoValidointiTulos =

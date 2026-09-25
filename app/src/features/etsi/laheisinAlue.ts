@@ -30,6 +30,8 @@ export function etsiLaheisinAlue(
 
   let lahin: LahellaOlevaAlue | null = null;
   for (const paikka of paikat) {
+    if (paikka.piilotaLahimmasta) continue;
+
     const etaisyys = etaisyysMetreina(sijainti, paikka);
     if (!lahin || etaisyys < lahin.etaisyysMetreina) {
       lahin = {

@@ -43,6 +43,7 @@ export interface UusiKatkoPyynto {
     tiedostopaate: KuvaPaate;
     data: string;
   };
+  piilotaLahimmasta: boolean;
 }
 
 /**

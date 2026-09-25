@@ -55,6 +55,28 @@ describe("etsiLaheisinAlue", () => {
     expect(tulos?.nimi).toBe("Äpätti");
   });
 
+  it("ohittaa piilotaLahimmasta-kätkön ja valitsee seuraavaksi lähimmän", () => {
+    const sijainti = { lat: 60.1699, lng: 24.9384 };
+    const piilotettu = paikka({
+      id: "neittava-1",
+      alue: "neittava",
+      lat: 60.1699 + 0.005,
+      piilotaLahimmasta: true,
+    });
+    const kauempana = paikka({ id: "toppila-1", alue: "toppila", lat: 60.1699 + 0.03 });
+
+    const tulos = etsiLaheisinAlue([piilotettu, kauempana], sijainti);
+
+    expect(tulos?.alue).toBe("toppila");
+  });
+
+  it("palauttaa null jos ainoa kätkö on piilotaLahimmasta", () => {
+    const sijainti = { lat: 60.1699, lng: 24.9384 };
+    const piilotettu = paikka({ piilotaLahimmasta: true });
+
+    expect(etsiLaheisinAlue([piilotettu], sijainti)).toBeNull();
+  });
+
   it("valitsee useista alueista lähimmän, vaikka kaikki olisivat kynnyksen ulkopuolella", () => {
     const sijainti = { lat: 60.1699, lng: 24.9384 };
     const kauempana = paikka({ id: "toppila-1", alue: "toppila", lat: 60.1699 + 0.05 });

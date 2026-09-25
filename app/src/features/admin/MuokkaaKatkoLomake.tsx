@@ -25,6 +25,7 @@ export function MuokkaaKatkoLomake({
   const [kuvaus, setKuvaus] = useState(paikka.kuvaus);
   const [lat, setLat] = useState(String(paikka.lat));
   const [lng, setLng] = useState(String(paikka.lng));
+  const [piilotaLahimmasta, setPiilotaLahimmasta] = useState(paikka.piilotaLahimmasta ?? false);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -68,6 +69,7 @@ export function MuokkaaKatkoLomake({
           lat: latNumero!,
           lng: lngNumero!,
           kuva,
+          piilotaLahimmasta,
         },
         adminSalasana,
       );
@@ -79,6 +81,7 @@ export function MuokkaaKatkoLomake({
         lat: latNumero!,
         lng: lngNumero!,
         kuva: kuva ? `${paikka.id}.${kuva.tiedostopaate}` : paikka.kuva,
+        piilotaLahimmasta,
       });
     } catch (e) {
       setVirhe(e instanceof Error ? e.message : "Kätkön päivitys epäonnistui");
@@ -134,6 +137,15 @@ export function MuokkaaKatkoLomake({
           alkuperainenEsikatseluUrl={`${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`}
           onValitse={setKuvaTiedosto}
         />
+
+        <label className="kentta kentta-valintaruutu">
+          <input
+            type="checkbox"
+            checked={piilotaLahimmasta}
+            onChange={(e) => setPiilotaLahimmasta(e.target.checked)}
+          />
+          <span className="kentan-nimi">Piilota "Lähin alue" -huomautuksesta etusivulla</span>
+        </label>
 
         {virhe && (
           <p className="lomake-virhe" role="alert">
