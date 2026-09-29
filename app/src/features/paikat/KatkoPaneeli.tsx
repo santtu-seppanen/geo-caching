@@ -4,6 +4,8 @@ import type { Paikka, Loyto } from "./types";
 import { ilmoitaLoyto } from "./loydotApi";
 import { haePelaajanNimi, tallennaPelaajanNimi } from "../../lib/pelaajanNimi";
 import { mitalitYhdelleKatkolle, MITALI_EMOJI } from "../tilastot/tilastoLaskenta";
+import { pullonKokoNimi } from "./pullonKoko";
+import { PullonKokoIkoni } from "./PullonKokoIkoni";
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
@@ -59,6 +61,13 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
         alt={paikka.kuvaus}
       />
       <p className="katko-kuvaus">{paikka.kuvaus}</p>
+
+      {paikka.pullonKokoMl != null && (
+        <p className="katko-pullon-koko">
+          <PullonKokoIkoni ml={paikka.pullonKokoMl} />
+          {pullonKokoNimi(paikka.pullonKokoMl)} ({paikka.pullonKokoMl} ml)
+        </p>
+      )}
 
       <div className="loytajat">
         <h3>Löytäjät</h3>

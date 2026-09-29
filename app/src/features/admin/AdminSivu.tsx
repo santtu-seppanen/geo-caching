@@ -12,6 +12,7 @@ import type { AdminLomakeSyote } from "./validointi";
 import { pakkaaKuva } from "./kuvaPakkaus";
 import { lueTiedostoBase64na } from "./tiedosto";
 import { KuvaKentta } from "./KuvaKentta";
+import { PullonKokoValitsin } from "./PullonKokoValitsin";
 import { MuokkaaKatkoLomake } from "./MuokkaaKatkoLomake";
 import { Modaali } from "../../lib/Modaali";
 import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
@@ -40,6 +41,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [piilotaLahimmasta, setPiilotaLahimmasta] = useState(false);
+  const [pullonKokoMl, setPullonKokoMl] = useState<number | null>(null);
   const [lahetetaan, setLahetetaan] = useState(false);
   const [haetaanSijaintia, setHaetaanSijaintia] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -165,6 +167,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     lat: latNumero,
     lng: lngNumero,
     kuvaTiedosto,
+    pullonKokoMl,
   };
 
   const pakollisetPuuttuvat =
@@ -218,6 +221,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           lng: lngNumero!,
           kuva,
           piilotaLahimmasta,
+          pullonKokoMl,
         },
         adminSalasana,
       );
@@ -225,6 +229,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       setLomake(TYHJA_LOMAKE);
       setKuvaTiedosto(null);
       setPiilotaLahimmasta(false);
+      setPullonKokoMl(null);
       setLomakeAvain((edellinen) => edellinen + 1);
       lataaPaikat();
     } catch (e) {
@@ -362,6 +367,11 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             onChange={(e) => setPiilotaLahimmasta(e.target.checked)}
           />
           <span className="kentan-nimi">Piilota "Lähin alue" -huomautuksesta etusivulla</span>
+        </label>
+
+        <label className="kentta">
+          <span className="kentan-nimi">Pullon koko (valinnainen)</span>
+          <PullonKokoValitsin arvo={pullonKokoMl} onValitse={setPullonKokoMl} />
         </label>
 
         {virhe && (

@@ -44,6 +44,7 @@ export interface UusiKatkoPyynto {
     data: string;
   };
   piilotaLahimmasta: boolean;
+  pullonKokoMl: number | null;
 }
 
 /**
@@ -168,6 +169,7 @@ export interface AdminLomakeSyote {
   lat: number | null;
   lng: number | null;
   kuvaTiedosto: File | null;
+  pullonKokoMl: number | null;
 }
 
 /** Validoi koko lomakkeen ja palauttaa kenttäkohtaiset virheet, jos joku
@@ -218,6 +220,7 @@ export interface MuokkausLomakeSyote {
   lat: number | null;
   lng: number | null;
   kuvaTiedosto: File | null;
+  pullonKokoMl: number | null;
 }
 
 /** Validoi olemassa olevan kätkön muokkauslomakkeen. Kuva on valinnainen — nykyinen kuva säilyy, jos uutta ei valita. */

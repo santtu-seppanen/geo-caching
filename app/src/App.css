@@ -421,6 +421,16 @@ body {
   margin: 0;
 }
 
+.katko-pullon-koko {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--vari-teksti-himmea);
+}
+
 .loytajat h3 {
   margin: 0 0 0.5rem;
   font-size: 1rem;
@@ -666,6 +676,93 @@ body {
 .kentan-vihje {
   font-size: 0.8rem;
   color: var(--vari-teksti-himmea);
+}
+
+.pullon-koko-valitsin {
+  position: relative;
+}
+
+.pullon-koko-nappi {
+  width: 100%;
+  min-height: 44px;
+  padding: 0.6rem 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 1rem;
+  color: var(--vari-teksti);
+  background: var(--vari-pinta);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.6rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pullon-koko-nappi:focus-visible {
+  outline: 2px solid var(--vari-ensisijainen);
+  outline-offset: 1px;
+}
+
+.pullon-koko-nappi span:nth-child(2) {
+  flex: 1;
+}
+
+.pullon-koko-nuoli {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-right: 2px solid var(--vari-teksti-himmea);
+  border-bottom: 2px solid var(--vari-teksti-himmea);
+  transform: rotate(45deg);
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.pullon-koko-nuoli-auki {
+  transform: rotate(225deg);
+}
+
+.pullon-koko-lista {
+  position: absolute;
+  z-index: 10;
+  top: calc(100% + 0.3rem);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.35rem;
+  list-style: none;
+  background: var(--vari-pinta);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 24px rgba(120, 72, 30, 0.18);
+}
+
+.pullon-koko-lista button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.6rem;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--vari-teksti);
+  background: none;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.pullon-koko-lista button:hover,
+.pullon-koko-lista button:focus-visible {
+  background: var(--vari-reuna);
+}
+
+.pullon-koko-lista li[aria-selected="true"] button {
+  font-weight: 700;
+  color: var(--vari-ensisijainen-tumma);
 }
 
 .kuva-valinta-napit {

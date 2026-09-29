@@ -7,6 +7,7 @@ import {
   alueLoydettyKokonaan,
   seuraavaVapaaNumero,
   yhdistaSamannimiset,
+  yhdistaKaikkiSamannimiset,
 } from "./alueet";
 import type { Paikka } from "./types";
 
@@ -317,6 +318,48 @@ describe("yhdistaSamannimiset", () => {
     const yhdistetty = yhdistaSamannimiset(ryhmitteleAlueiksi(paikat), "apatti");
 
     expect(yhdistetty?.nimi).toBe("Äpätti");
+  });
+});
+
+describe("yhdistaKaikkiSamannimiset", () => {
+  it("ei muuta mitään kun kaikilla alueilla on eri nimi", () => {
+    const paikat: Paikka[] = [
+      { id: "alue-a-1", alue: "Alue A", kuvaus: "", lat: 60, lng: 24, kuva: "" },
+      { id: "alue-b-1", alue: "Alue B", kuvaus: "", lat: 61, lng: 25, kuva: "" },
+    ];
+
+    const yhdistetyt = yhdistaKaikkiSamannimiset(ryhmitteleAlueiksi(paikat));
+
+    expect(yhdistetyt).toHaveLength(2);
+  });
+
+  it("yhdistää id-tunnisteiden alle jääneet ryhmät yhdeksi, jos näytettävä nimi täsmää", () => {
+    // Sama tilanne kuin yhdistaSamannimiset-testissä: id:hen jäänyt
+    // kirjoitusvirhe ("paspeli") on korjattu vain alue-kenttään.
+    const paikat: Paikka[] = [
+      { id: "paapeli-1", alue: "Paapeli", kuvaus: "", lat: 60.0, lng: 24.0, kuva: "" },
+      { id: "paapeli-2", alue: "Paapeli", kuvaus: "", lat: 60.2, lng: 24.2, kuva: "" },
+      { id: "paspeli-1", alue: "Paapeli", kuvaus: "", lat: 60.4, lng: 24.4, kuva: "" },
+      { id: "muu-alue-1", alue: "Muu alue", kuvaus: "", lat: 61, lng: 25, kuva: "" },
+    ];
+
+    const yhdistetyt = yhdistaKaikkiSamannimiset(ryhmitteleAlueiksi(paikat));
+
+    expect(yhdistetyt).toHaveLength(2);
+    const paapeli = yhdistetyt.find((alue) => alue.nimi === "Paapeli");
+    expect(paapeli?.paikat).toHaveLength(3);
+  });
+
+  it("laskee 'kokonaan löydetty' -tilan yhdistetyn ryhmän kaikista kätköistä", () => {
+    const paikat: Paikka[] = [
+      { id: "paapeli-1", alue: "Paapeli", kuvaus: "", lat: 60.0, lng: 24.0, kuva: "" },
+      { id: "paspeli-1", alue: "Paapeli", kuvaus: "", lat: 60.4, lng: 24.4, kuva: "" },
+    ];
+
+    const [yhdistetty] = yhdistaKaikkiSamannimiset(ryhmitteleAlueiksi(paikat));
+
+    expect(alueLoydettyKokonaan(yhdistetty, new Set(["paapeli-1"]))).toBe(false);
+    expect(alueLoydettyKokonaan(yhdistetty, new Set(["paapeli-1", "paspeli-1"]))).toBe(true);
   });
 });
 
