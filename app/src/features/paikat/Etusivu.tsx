@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { Alue } from "./alueet";
+import { normalisoiAlueNimi } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
 import { Edistymispalkki } from "./Edistymispalkki";
@@ -8,7 +9,8 @@ interface EtusivuProps {
   alueet: Alue[];
   lahellaOlevaAlue: LahellaOlevaAlue | null;
   loydettyjaAlueitaKokonaan: number;
-  onValitseAlue: (alue: string) => void;
+  /** Kutsutaan alueen näytettävällä nimellä (ei id:n tekstiosalla), ks. yhdistaSamannimiset. */
+  onValitseAlue: (nimi: string) => void;
 }
 
 /** Muotoilee etäisyyden ihmisluettavaksi: metrit alle kilometrin, muuten kilometrit yhden desimaalin tarkkuudella. */
@@ -17,19 +19,6 @@ function muotoileEtaisyys(etaisyysMetreina: number): string {
     return `${Math.round(etaisyysMetreina / 10) * 10} m`;
   }
   return `${(etaisyysMetreina / 1000).toFixed(1)} km`;
-}
-
-/**
- * Normalisoi haun kirjainkoosta ja ääkkösten kirjoitusasusta riippumattomaksi
- * (esim. "neittävä" == "Neittävä" == "neittava").
- */
-function normalisoiHaku(teksti: string): string {
-  return teksti
-    .trim()
-    .toLowerCase()
-    .replace(/ä/g, "a")
-    .replace(/ö/g, "o")
-    .replace(/å/g, "a");
 }
 
 export function Etusivu({
@@ -43,13 +32,13 @@ export function Etusivu({
 
   function hae(e: FormEvent) {
     e.preventDefault();
-    const normalisoitu = normalisoiHaku(haku);
+    const normalisoitu = normalisoiAlueNimi(haku);
     if (!normalisoitu) return;
 
-    const loytyi = alueet.find((alue) => normalisoiHaku(alue.nimi) === normalisoitu);
+    const loytyi = alueet.find((alue) => normalisoiAlueNimi(alue.nimi) === normalisoitu);
     if (loytyi) {
       setVirhe(null);
-      onValitseAlue(loytyi.alue);
+      onValitseAlue(loytyi.nimi);
     } else {
       setVirhe("Kätköjä ei löytynyt annetulta alueelta.");
     }
@@ -85,7 +74,7 @@ export function Etusivu({
             <button
               type="button"
               className="nappi nappi-ensisijainen"
-              onClick={() => onValitseAlue(lahellaOlevaAlue.alue)}
+              onClick={() => onValitseAlue(lahellaOlevaAlue.nimi)}
             >
               Näytä kartalla
             </button>

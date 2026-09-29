@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
 import { etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
-import { ryhmitteleAlueiksi, alueLoydettyKokonaan } from "./features/paikat/alueet";
+import { ryhmitteleAlueiksi, alueLoydettyKokonaan, yhdistaSamannimiset } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
@@ -108,7 +108,7 @@ export function App() {
 
   const { sijainti, virhe } = useNearbyAlert(paikat, onHalytys);
   const alueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
-  const aktiivinenAlue = alueet.find((alue) => alue.alue === valittuAlue) ?? null;
+  const aktiivinenAlue = valittuAlue ? yhdistaSamannimiset(alueet, valittuAlue) : null;
 
   const lahellaOlevaAlue = useMemo(
     () => etsiLaheisinAlue(paikat, sijainti),

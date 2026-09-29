@@ -67,6 +67,44 @@ export function seuraavaVapaaNumero(paikat: Paikka[], tunniste: string): number 
   return suurin + 1;
 }
 
+/**
+ * Normalisoi alueen näytettävän nimen kirjainkoosta ja ääkkösten
+ * kirjoitusasusta riippumattomaksi vertailua varten (esim. "neittävä" ==
+ * "Neittävä" == "neittava").
+ */
+export function normalisoiAlueNimi(teksti: string): string {
+  return teksti
+    .trim()
+    .toLowerCase()
+    .replace(/ä/g, "a")
+    .replace(/ö/g, "o")
+    .replace(/å/g, "a");
+}
+
+/**
+ * Yhdistää kaikki id:n tekstiosan perusteella muodostetut alueryhmät, joiden
+ * näytettävä nimi täsmää annettuun nimeen. Yksi näytettävä alue-nimi voi
+ * jakautua usealle eri id-tunnisteelle, jos vanhaan kätköön jäänyt
+ * kirjoitusvirhe id:ssä on korjattu vain sen `alue`-kenttään — id on
+ * muuttumaton R2/D1-avain eikä admin voi enää muokata sitä lomakkeella (ks.
+ * CLAUDE.md). Etusivun haku ja lähimmän alueen valinta toimivat näytettävän
+ * nimen perusteella, joten näiden ryhmien kätköt täytyy näyttää samalla
+ * kartalla eikä vain ensimmäisenä löytyneen ryhmän kätköjä.
+ */
+export function yhdistaSamannimiset(alueet: Alue[], nimi: string): Alue | null {
+  const kohde = normalisoiAlueNimi(nimi);
+  const osuvat = alueet.filter((alue) => normalisoiAlueNimi(alue.nimi) === kohde);
+  if (osuvat.length === 0) return null;
+
+  const paikat = osuvat.flatMap((alue) => alue.paikat);
+  return {
+    alue: osuvat[0].alue,
+    nimi: osuvat[0].nimi,
+    keskipiste: laskeKeskipiste(paikat),
+    paikat,
+  };
+}
+
 /** Montako alueen kätköistä on löydetty. */
 export function alueenLoydettyjenMaara(alue: Alue, loydetytIdt: ReadonlySet<string>): number {
   return alue.paikat.filter((paikka) => loydetytIdt.has(paikka.id)).length;

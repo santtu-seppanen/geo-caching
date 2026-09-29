@@ -4,7 +4,7 @@ import { etaisyysMetreina, suuntimaAsteina } from "./distance";
 import { ALUE_AVAUTUU_METREINA } from "./kynnykset";
 
 export interface LahellaOlevaAlue {
-  /** Id:n tekstiosasta johdettu tunniste — käytetään navigointiin (ks. onValitseAlue), vain a-z0-9-. */
+  /** Lähimmän kätkön id:n tekstiosasta johdettu tunniste, vain a-z0-9-. Navigointi käyttää `nimi`-kenttää (ks. onValitseAlue). */
   alue: string;
   /** Kätkön oman `alue`-kentän ihmisluettava nimi (voi sisältää ääkkösiä), näytetään käyttäjälle. */
   nimi: string;
