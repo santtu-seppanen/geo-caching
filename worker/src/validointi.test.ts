@@ -687,6 +687,62 @@ describe("validoiUusiKatkoPyynto", () => {
       }
     });
   });
+
+  describe("pullonKokoMl validointi", () => {
+    it("hyväksyy pyynnön ilman pullonKokoMl-kenttää (null oletuksena)", () => {
+      const tulos = validoiUusiKatkoPyynto(validipyynto, tunnetutPaikkaIdt);
+
+      expect(tulos.ok).toBe(true);
+      if (tulos.ok) {
+        expect(tulos.pyynto.pullonKokoMl).toBeNull();
+      }
+    });
+
+    it("hyväksyy eksplisiittisen null:in", () => {
+      const tulos = validoiUusiKatkoPyynto(
+        { ...validipyynto, pullonKokoMl: null },
+        tunnetutPaikkaIdt,
+      );
+
+      expect(tulos.ok).toBe(true);
+      if (tulos.ok) {
+        expect(tulos.pyynto.pullonKokoMl).toBeNull();
+      }
+    });
+
+    it("hyväksyy sallitun pullon koon", () => {
+      const tulos = validoiUusiKatkoPyynto(
+        { ...validipyynto, pullonKokoMl: 700 },
+        tunnetutPaikkaIdt,
+      );
+
+      expect(tulos.ok).toBe(true);
+      if (tulos.ok) {
+        expect(tulos.pyynto.pullonKokoMl).toBe(700);
+      }
+    });
+
+    it("hylkää tuntemattoman pullon koon", () => {
+      const tulos = validoiUusiKatkoPyynto(
+        { ...validipyynto, pullonKokoMl: 999 },
+        tunnetutPaikkaIdt,
+      );
+
+      expect(tulos.ok).toBe(false);
+      if (!tulos.ok) {
+        expect(tulos.virhe).toBe("pullonKokoMl on tuntematon pullon koko");
+      }
+    });
+
+    it("hylkää merkkijonon", () => {
+      const tulos = validoiUusiKatkoPyynto(
+        { ...validipyynto, pullonKokoMl: "700" },
+        tunnetutPaikkaIdt,
+      );
+
+      expect(tulos.ok).toBe(false);
+    });
+  });
 });
 
 describe("validoiMuokkausKatkoPyynto", () => {

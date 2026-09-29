@@ -188,6 +188,7 @@ async function kasitteleLuoKatko(
       lng: pyynto.lng,
       kuva: kuvaTiedosto,
       piilotaLahimmasta: pyynto.piilotaLahimmasta,
+      pullonKokoMl: pyynto.pullonKokoMl,
     });
   } catch (virhe) {
     console.error(virhe);
@@ -241,6 +242,7 @@ async function kasitteleMuokkausKatko(
       lng: pyynto.lng,
       kuva: kuvaTiedosto,
       piilotaLahimmasta: pyynto.piilotaLahimmasta,
+      pullonKokoMl: pyynto.pullonKokoMl,
     });
   } catch (virhe) {
     console.error(virhe);

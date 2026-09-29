@@ -20,6 +20,7 @@ export interface UusiKatkoPyynto {
     data: string;
   };
   piilotaLahimmasta: boolean;
+  pullonKokoMl: number | null;
 }
 
 export type UusiKatkoValidointiTulos =
@@ -37,12 +38,20 @@ const SALLITUT_KUVAPAATTEET = new Set(["jpg", "jpeg", "png", "webp", "svg"]);
 // pyyntökoon varalle.
 const KUVA_MAX_BASE64_PITUUS = 4_000_000;
 
+/**
+ * Sallitut pullon koot millilitroina — sama lista kuin admin-lomakkeen
+ * valikossa (ks. app/src/features/paikat/pullonKoko.ts). Kiinteä lista
+ * eikä vapaa luku, koska kenttä täytetään aina valikosta.
+ */
+export const SALLITUT_PULLON_KOOT_ML = new Set([50, 200, 350, 500, 700, 750, 1000]);
+
 interface PerusKentat {
   alue: string;
   kuvaus: string;
   lat: number;
   lng: number;
   piilotaLahimmasta: boolean;
+  pullonKokoMl: number | null;
 }
 
 type PerusKenttienValidointiTulos =
@@ -51,7 +60,7 @@ type PerusKenttienValidointiTulos =
 
 /** Yhteinen alue/kuvaus/lat/lng-validointi uuden ja muokatun kätkön pyynnöille. */
 function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidointiTulos {
-  const { alue, kuvaus, lat, lng, piilotaLahimmasta } = data;
+  const { alue, kuvaus, lat, lng, piilotaLahimmasta, pullonKokoMl } = data;
 
   if (typeof alue !== "string" || alue.trim().length === 0) {
     return { ok: false, virhe: "alue on pakollinen" };
@@ -79,6 +88,14 @@ function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidoi
     return { ok: false, virhe: "piilotaLahimmasta täytyy olla totuusarvo" };
   }
 
+  if (
+    pullonKokoMl !== undefined &&
+    pullonKokoMl !== null &&
+    (typeof pullonKokoMl !== "number" || !SALLITUT_PULLON_KOOT_ML.has(pullonKokoMl))
+  ) {
+    return { ok: false, virhe: "pullonKokoMl on tuntematon pullon koko" };
+  }
+
   return {
     ok: true,
     kentat: {
@@ -87,6 +104,7 @@ function validoiPerusKentat(data: Record<string, unknown>): PerusKenttienValidoi
       lat,
       lng,
       piilotaLahimmasta: piilotaLahimmasta === true,
+      pullonKokoMl: pullonKokoMl ?? null,
     },
   };
 }
@@ -171,6 +189,7 @@ export interface MuokkausKatkoPyynto {
   lng: number;
   kuva: { tiedostopaate: string; data: string } | null;
   piilotaLahimmasta: boolean;
+  pullonKokoMl: number | null;
 }
 
 export type MuokkausKatkoValidointiTulos =

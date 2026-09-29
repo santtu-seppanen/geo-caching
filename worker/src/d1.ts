@@ -6,6 +6,8 @@ export interface Paikka {
   lng: number;
   kuva: string;
   piilotaLahimmasta: boolean;
+  /** Pullon koko millilitroina — valinnainen, null jos ei tiedossa. */
+  pullonKokoMl: number | null;
 }
 
 export interface Loyto {
@@ -22,6 +24,7 @@ interface PaikkaRivi {
   lng: number;
   kuva: string;
   piilota_lahimmasta: number;
+  pullon_koko_ml: number | null;
 }
 
 interface LoytoRivi {
@@ -39,6 +42,7 @@ function paikkaRivista(rivi: PaikkaRivi): Paikka {
     lng: rivi.lng,
     kuva: rivi.kuva,
     piilotaLahimmasta: rivi.piilota_lahimmasta === 1,
+    pullonKokoMl: rivi.pullon_koko_ml,
   };
 }
 
@@ -87,7 +91,7 @@ export async function lisaaLoyto(
 export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
   await db
     .prepare(
-      "INSERT INTO paikat (id, alue, kuvaus, lat, lng, kuva, piilota_lahimmasta) VALUES (?, ?, ?, ?, ?, ?, ?)",
+      "INSERT INTO paikat (id, alue, kuvaus, lat, lng, kuva, piilota_lahimmasta, pullon_koko_ml) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     )
     .bind(
       paikka.id,
@@ -97,6 +101,7 @@ export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void>
       paikka.lng,
       paikka.kuva,
       paikka.piilotaLahimmasta ? 1 : 0,
+      paikka.pullonKokoMl,
     )
     .run();
 }
@@ -110,7 +115,7 @@ export async function haePaikkaKuva(db: D1Database, id: string): Promise<string 
 export async function paivitaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
   await db
     .prepare(
-      "UPDATE paikat SET alue = ?, kuvaus = ?, lat = ?, lng = ?, kuva = ?, piilota_lahimmasta = ? WHERE id = ?",
+      "UPDATE paikat SET alue = ?, kuvaus = ?, lat = ?, lng = ?, kuva = ?, piilota_lahimmasta = ?, pullon_koko_ml = ? WHERE id = ?",
     )
     .bind(
       paikka.alue,
@@ -119,6 +124,7 @@ export async function paivitaPaikka(db: D1Database, paikka: Paikka): Promise<voi
       paikka.lng,
       paikka.kuva,
       paikka.piilotaLahimmasta ? 1 : 0,
+      paikka.pullonKokoMl,
       paikka.id,
     )
     .run();

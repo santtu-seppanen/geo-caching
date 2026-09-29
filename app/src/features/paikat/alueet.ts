@@ -82,27 +82,51 @@ export function normalisoiAlueNimi(teksti: string): string {
 }
 
 /**
- * Yhdistää kaikki id:n tekstiosan perusteella muodostetut alueryhmät, joiden
- * näytettävä nimi täsmää annettuun nimeen. Yksi näytettävä alue-nimi voi
- * jakautua usealle eri id-tunnisteelle, jos vanhaan kätköön jäänyt
- * kirjoitusvirhe id:ssä on korjattu vain sen `alue`-kenttään — id on
- * muuttumaton R2/D1-avain eikä admin voi enää muokata sitä lomakkeella (ks.
- * CLAUDE.md). Etusivun haku ja lähimmän alueen valinta toimivat näytettävän
- * nimen perusteella, joten näiden ryhmien kätköt täytyy näyttää samalla
- * kartalla eikä vain ensimmäisenä löytyneen ryhmän kätköjä.
+ * Yhdistää edelleen `ryhmitteleAlueiksi`:n palauttamat ryhmät näytettävän
+ * nimen perusteella. Yksi näytettävä alue-nimi voi jakautua usealle eri
+ * id-tunnisteelle, jos vanhaan kätköön jäänyt kirjoitusvirhe id:ssä on
+ * korjattu vain sen `alue`-kenttään — id on muuttumaton R2/D1-avain eikä
+ * admin voi enää muokata sitä lomakkeella (ks. CLAUDE.md). Kaikkialla missä
+ * alueita näytetään tai lasketaan käyttäjälle kokonaisuutena (aluehaku,
+ * lähimmän alueen kartta, etusivun "X / Y aluetta löydetty" -laskuri) pitää
+ * käyttää tätä eikä `ryhmitteleAlueiksi`:n tulosta suoraan, ettei sama alue
+ * näy kahtena tai sen "kokonaan löydetty" -tila lasketaan ryhmä kerrallaan.
+ * Poikkeus on admin-lomakkeen tunniste-pohjainen kirjanpito (olemassa olevan
+ * nimen tasaus, juoksevan numeron päättely) — se tarvitsee nimenomaan
+ * id-tunniste-kohtaisen ryhmittelyn, joten se käyttää `ryhmitteleAlueiksi`:a
+ * suoraan.
  */
+export function yhdistaKaikkiSamannimiset(alueet: Alue[]): Alue[] {
+  const jarjestys: string[] = [];
+  const ryhmat = new Map<string, Alue[]>();
+
+  for (const alue of alueet) {
+    const avain = normalisoiAlueNimi(alue.nimi);
+    const ryhma = ryhmat.get(avain);
+    if (ryhma) {
+      ryhma.push(alue);
+    } else {
+      ryhmat.set(avain, [alue]);
+      jarjestys.push(avain);
+    }
+  }
+
+  return jarjestys.map((avain) => {
+    const ryhma = ryhmat.get(avain)!;
+    const paikat = ryhma.flatMap((alue) => alue.paikat);
+    return {
+      alue: ryhma[0].alue,
+      nimi: ryhma[0].nimi,
+      keskipiste: laskeKeskipiste(paikat),
+      paikat,
+    };
+  });
+}
+
+/** Etsii yhdistetyistä alueista sen, jonka näytettävä nimi täsmää annettuun nimeen. */
 export function yhdistaSamannimiset(alueet: Alue[], nimi: string): Alue | null {
   const kohde = normalisoiAlueNimi(nimi);
-  const osuvat = alueet.filter((alue) => normalisoiAlueNimi(alue.nimi) === kohde);
-  if (osuvat.length === 0) return null;
-
-  const paikat = osuvat.flatMap((alue) => alue.paikat);
-  return {
-    alue: osuvat[0].alue,
-    nimi: osuvat[0].nimi,
-    keskipiste: laskeKeskipiste(paikat),
-    paikat,
-  };
+  return yhdistaKaikkiSamannimiset(alueet).find((alue) => normalisoiAlueNimi(alue.nimi) === kohde) ?? null;
 }
 
 /** Montako alueen kätköistä on löydetty. */

@@ -6,6 +6,7 @@ import type { MuokkausLomakeSyote } from "./validointi";
 import { pakkaaKuva } from "./kuvaPakkaus";
 import { lueTiedostoBase64na } from "./tiedosto";
 import { KuvaKentta } from "./KuvaKentta";
+import { PullonKokoValitsin } from "./PullonKokoValitsin";
 import type { Paikka } from "../paikat/types";
 
 interface MuokkaaKatkoLomakeProps {
@@ -26,6 +27,7 @@ export function MuokkaaKatkoLomake({
   const [lat, setLat] = useState(String(paikka.lat));
   const [lng, setLng] = useState(String(paikka.lng));
   const [piilotaLahimmasta, setPiilotaLahimmasta] = useState(paikka.piilotaLahimmasta ?? false);
+  const [pullonKokoMl, setPullonKokoMl] = useState<number | null>(paikka.pullonKokoMl ?? null);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -37,7 +39,14 @@ export function MuokkaaKatkoLomake({
     e.preventDefault();
     setVirhe(null);
 
-    const syote: MuokkausLomakeSyote = { alue, kuvaus, lat: latNumero, lng: lngNumero, kuvaTiedosto };
+    const syote: MuokkausLomakeSyote = {
+      alue,
+      kuvaus,
+      lat: latNumero,
+      lng: lngNumero,
+      kuvaTiedosto,
+      pullonKokoMl,
+    };
     const virheet = validoiMuokkausLomake(syote);
     const ensimmainenVirhe = Object.values(virheet)[0];
     if (ensimmainenVirhe) {
@@ -70,6 +79,7 @@ export function MuokkaaKatkoLomake({
           lng: lngNumero!,
           kuva,
           piilotaLahimmasta,
+          pullonKokoMl,
         },
         adminSalasana,
       );
@@ -82,6 +92,7 @@ export function MuokkaaKatkoLomake({
         lng: lngNumero!,
         kuva: kuva ? `${paikka.id}.${kuva.tiedostopaate}` : paikka.kuva,
         piilotaLahimmasta,
+        pullonKokoMl,
       });
     } catch (e) {
       setVirhe(e instanceof Error ? e.message : "Kätkön päivitys epäonnistui");
@@ -145,6 +156,11 @@ export function MuokkaaKatkoLomake({
             onChange={(e) => setPiilotaLahimmasta(e.target.checked)}
           />
           <span className="kentan-nimi">Piilota "Lähin alue" -huomautuksesta etusivulla</span>
+        </label>
+
+        <label className="kentta">
+          <span className="kentan-nimi">Pullon koko (valinnainen)</span>
+          <PullonKokoValitsin arvo={pullonKokoMl} onValitse={setPullonKokoMl} />
         </label>
 
         {virhe && (

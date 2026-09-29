@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
 import { etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
-import { ryhmitteleAlueiksi, alueLoydettyKokonaan, yhdistaSamannimiset } from "./features/paikat/alueet";
+import {
+  ryhmitteleAlueiksi,
+  yhdistaKaikkiSamannimiset,
+  alueLoydettyKokonaan,
+  yhdistaSamannimiset,
+} from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
@@ -107,7 +112,13 @@ export function App() {
   }, []);
 
   const { sijainti, virhe } = useNearbyAlert(paikat, onHalytys);
-  const alueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
+  // Näytettävän nimen mukaan yhdistetty lista — ks. yhdistaKaikkiSamannimiset
+  // siitä miksi id-tunniste-pohjaista ryhmitteleAlueiksi-tulosta ei käytetä
+  // suoraan täällä (etusivun laskuri, aluehaku, aktiivinen alue).
+  const alueet = useMemo(
+    () => yhdistaKaikkiSamannimiset(ryhmitteleAlueiksi(paikat)),
+    [paikat],
+  );
   const aktiivinenAlue = valittuAlue ? yhdistaSamannimiset(alueet, valittuAlue) : null;
 
   const lahellaOlevaAlue = useMemo(

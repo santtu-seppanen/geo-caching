@@ -8,6 +8,7 @@ export interface MuokkausKatkoPyynto {
   lng: number;
   kuva: { tiedostopaate: KuvaPaate; data: string } | null;
   piilotaLahimmasta: boolean;
+  pullonKokoMl: number | null;
 }
 
 /**

@@ -321,6 +321,7 @@ describe("validoiAdminLomake", () => {
     lat: 60.1699,
     lng: 24.9384,
     kuvaTiedosto: new File(["data"], "kuva.jpg", { type: "image/jpeg" }),
+    pullonKokoMl: null,
   };
 
   it("hyväksyy validi lomakkeen", () => {
@@ -398,6 +399,7 @@ describe("validoiAdminLomake", () => {
       lat: null,
       lng: null,
       kuvaTiedosto: null,
+      pullonKokoMl: null,
     });
 
     expect(virheet.idNimi).toBeDefined();
