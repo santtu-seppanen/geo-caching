@@ -20,8 +20,8 @@ function muotoileEtaisyys(etaisyysMetreina: number): string {
 }
 
 /**
- * Sallii kirjoitusasun vaihtelun (esim. "Neittävä" vs. id:n tekstiosa
- * "neittava", koska kätkön id sallii vain a-z0-9-merkit).
+ * Normalisoi haun kirjainkoosta ja ääkkösten kirjoitusasusta riippumattomaksi
+ * (esim. "neittävä" == "Neittävä" == "neittava").
  */
 function normalisoiHaku(teksti: string): string {
   return teksti
@@ -46,7 +46,7 @@ export function Etusivu({
     const normalisoitu = normalisoiHaku(haku);
     if (!normalisoitu) return;
 
-    const loytyi = alueet.find((alue) => normalisoiHaku(alue.alue) === normalisoitu);
+    const loytyi = alueet.find((alue) => normalisoiHaku(alue.nimi) === normalisoitu);
     if (loytyi) {
       setVirhe(null);
       onValitseAlue(loytyi.alue);
