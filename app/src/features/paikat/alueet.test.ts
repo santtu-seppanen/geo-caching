@@ -6,6 +6,7 @@ import {
   alueenLoydettyjenMaara,
   alueLoydettyKokonaan,
   seuraavaVapaaNumero,
+  yhdistaSamannimiset,
 } from "./alueet";
 import type { Paikka } from "./types";
 
@@ -276,6 +277,46 @@ describe("alueenLoydettyjenMaara ja alueLoydettyKokonaan", () => {
 
     expect(alueenLoydettyjenMaara(alue, loydetytIdt)).toBe(2);
     expect(alueLoydettyKokonaan(alue, loydetytIdt)).toBe(true);
+  });
+});
+
+describe("yhdistaSamannimiset", () => {
+  it("palauttaa null jos mikään alue ei täsmää", () => {
+    const paikat: Paikka[] = [
+      { id: "alue-a-1", alue: "Alue A", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+    ];
+
+    expect(yhdistaSamannimiset(ryhmitteleAlueiksi(paikat), "Alue B")).toBeNull();
+  });
+
+  it("yhdistää eri id-tunnisteiden alle jääneet ryhmät, jos niiden näytettävä nimi on korjattu samaksi", () => {
+    // Vanhaan kätköön jäänyt kirjoitusvirhe id:ssä ("paspeli") on korjattu
+    // vain alue-kenttään, koska id on muuttumaton R2/D1-avain.
+    const paikat: Paikka[] = [
+      { id: "paapeli-1", alue: "Paapeli", kuvaus: "P1", lat: 60.0, lng: 24.0, kuva: "" },
+      { id: "paapeli-2", alue: "Paapeli", kuvaus: "P2", lat: 60.2, lng: 24.2, kuva: "" },
+      { id: "paspeli-1", alue: "Paapeli", kuvaus: "P3", lat: 60.4, lng: 24.4, kuva: "" },
+    ];
+
+    const yhdistetty = yhdistaSamannimiset(ryhmitteleAlueiksi(paikat), "paapeli");
+
+    expect(yhdistetty).not.toBeNull();
+    expect(yhdistetty!.nimi).toBe("Paapeli");
+    expect(yhdistetty!.paikat.map((p) => p.id).sort()).toEqual([
+      "paapeli-1",
+      "paapeli-2",
+      "paspeli-1",
+    ]);
+  });
+
+  it("täsmää kirjainkoosta ja ääkkösistä riippumatta", () => {
+    const paikat: Paikka[] = [
+      { id: "apatti-1", alue: "Äpätti", kuvaus: "", lat: 60, lng: 25, kuva: "" },
+    ];
+
+    const yhdistetty = yhdistaSamannimiset(ryhmitteleAlueiksi(paikat), "apatti");
+
+    expect(yhdistetty?.nimi).toBe("Äpätti");
   });
 });
 
