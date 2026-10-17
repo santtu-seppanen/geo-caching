@@ -417,6 +417,45 @@ body {
   border: 1px solid var(--vari-reuna);
 }
 
+.katko-kuva-nappi {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: zoom-in;
+}
+
+.katko-kuva-nappi .katko-kuva {
+  display: block;
+}
+
+/* Kätkön kuva koko ruudun kokoisena (avataan napauttamalla kuvaa). */
+.modaali-sisalto-kuva {
+  position: relative;
+  max-width: none;
+  max-height: none;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.modaali-sisalto-kuva .sulje-nappi {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+}
+
+.iso-kuva {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 0.5rem;
+  cursor: zoom-out;
+}
+
 .katko-kuvaus {
   margin: 0;
 }

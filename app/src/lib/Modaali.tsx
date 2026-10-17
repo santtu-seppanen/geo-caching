@@ -4,6 +4,8 @@ import type { MouseEvent, ReactNode } from "react";
 interface ModaaliProps {
   onSulje: () => void;
   children: ReactNode;
+  /** Lisäluokka sisältölaatikolle, esim. koko ruudun kuvanäkymää varten. */
+  sisallonLuokka?: string;
 }
 
 /**
@@ -18,7 +20,7 @@ interface ModaaliProps {
  * näytön näppäimistön/työkalurivin — sinne ei tarvitse itse rakentaa
  * vierityslukkoa tai kohdistuslogiikkaa.
  */
-export function Modaali({ onSulje, children }: ModaaliProps) {
+export function Modaali({ onSulje, children, sisallonLuokka }: ModaaliProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   // onSulje on tyypillisesti kutsujassa inline-nuolifunktio eli uusi
@@ -69,7 +71,10 @@ export function Modaali({ onSulje, children }: ModaaliProps) {
       tabIndex={-1}
       onClick={kasitteleTaustaKlikkaus}
     >
-      <div className="modaali-sisalto" onClick={(e) => e.stopPropagation()}>
+      <div
+        className={sisallonLuokka ? `modaali-sisalto ${sisallonLuokka}` : "modaali-sisalto"}
+        onClick={(e) => e.stopPropagation()}
+      >
         {children}
       </div>
     </dialog>
