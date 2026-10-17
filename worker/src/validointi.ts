@@ -1,7 +1,17 @@
 export interface LoytoPyynto {
   paikkaId: string;
   nimi: string;
+  /** Löytöön kulunut aika (ms), null jos etsintää ei ollut aloitettu. */
+  kestoMs: number | null;
 }
+
+/**
+ * Etsinnän ehdoton takaraja aloituksesta — sama kuin frontendin
+ * ETSINTA_MAX_MS (ks. app/src/features/pelimoodit/etsinta.ts). Worker
+ * luottaa clientin ilmoittamiin aikoihin, mutta ei hyväksy niitä yli
+ * takarajan.
+ */
+export const ETSINTA_MAX_MS = 3 * 60 * 60 * 1000;
 
 export type ValidointiTulos =
   | { ok: true; pyynto: LoytoPyynto }
@@ -267,7 +277,7 @@ export function validoiLoytoPyynto(
     return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
   }
 
-  const { paikkaId, nimi } = data as Record<string, unknown>;
+  const { paikkaId, nimi, kestoMs, etsintaKestoMs } = data as Record<string, unknown>;
 
   if (typeof paikkaId !== "string" || !tunnetutPaikkaIdt.has(paikkaId)) {
     return { ok: false, virhe: "Tuntematon paikkaId" };
@@ -284,11 +294,27 @@ export function validoiLoytoPyynto(
     };
   }
 
-  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim() } };
+  if (kestoMs !== undefined && kestoMs !== null) {
+    if (!onKesto(kestoMs) || !onKesto(etsintaKestoMs)) {
+      return { ok: false, virhe: "kestoMs ja etsintaKestoMs täytyy olla ei-negatiivisia kokonaislukuja" };
+    }
+    if (etsintaKestoMs > ETSINTA_MAX_MS) {
+      return { ok: false, virhe: "Etsinnän 3 tunnin takaraja on ylittynyt" };
+    }
+    if (kestoMs > etsintaKestoMs) {
+      return { ok: false, virhe: "kestoMs ei voi olla pidempi kuin etsintaKestoMs" };
+    }
+  }
+
+  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null } };
+}
+
+function onKesto(arvo: unknown): arvo is number {
+  return typeof arvo === "number" && Number.isInteger(arvo) && arvo >= 0;
 }
 
 /** Sama lista kuin frontendin PELIMOODIT (ks. app/src/features/pelimoodit/pelimoodit.ts). */
-export const SALLITUT_PELIMOODIT = new Set(["vapaa", "yksi-kerrallaan", "kolmiomittaus", "vihjeet"]);
+export const SALLITUT_PELIMOODIT = new Set(["vapaa", "yksi-kerrallaan", "ajastettu", "kolmiomittaus", "vihjeet"]);
 
 export interface PelimoodiPyynto {
   alueAvain: string;

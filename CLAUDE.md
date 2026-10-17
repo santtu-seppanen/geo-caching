@@ -39,13 +39,26 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   jokaiselle alueelle moodin `/admin`-sivulla (D1-taulu `alueet`, avaimena
   normalisoitu alue-nimi; puuttuva rivi = `vapaa`). `vapaa` = kaikki kätköt
   kartalla; `yksi-kerrallaan` = näkyy vain seuraava itse löytämätön kätkö
-  (luontijärjestyksessä); `kolmiomittaus` = kätkö piilossa, pelaaja mittaa
+  (luontijärjestyksessä); `ajastettu` = kuten yksi kerrallaan, mutta
+  kullekin kätkölle on 5 min — ajan loputtua kätkö ohitetaan ja vuoro
+  siirtyy seuraavaan; `kolmiomittaus` = kätkö piilossa, pelaaja mittaa
   etäisyyden (min. 60 s välein) ja kartalle piirtyy ympyröitä;
   `vihjeet` = kätkö piilossa, 3 yhä pienempää vihjeympyrää avautuvat
-  ajastetusti (0/5/10 min) kun pelaaja on 2 km sisällä. Piilomoodeissakin
-  kätkö paljastuu 100 m sisällä. Vihjeajastin ja mittaukset muistetaan
-  laitteella `localStorage`:ssa — ei huijauksenestoa, koska koordinaatit
-  ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
+  ajastetusti (0/5/10 min). Piilomoodeissakin kätkö paljastuu 100 m
+  sisällä.
+- **Etsintä** (ks. `app/src/features/pelimoodit/etsinta.ts`): pelaaja
+  aloittaa alueen etsinnän itse ("Aloita etsintä" etusivulla — jossa voi
+  valita lähellä olevista alueista — tai aluesivun paneelissa). Kaikki
+  ajastimet johdetaan pelkästä aloitushetkestä ja pelaajan omista
+  löytöajoista, joten aika kuluu myös sovelluksen ollessa kiinni ja uusi
+  aloitus nollaa vihjeet ja ajastetun haun (pitää odottaa alusta).
+  Jokaiselle löydölle tallennetaan `loydot.kesto_ms` = aika edellisestä
+  omasta löydöstä tai aloituksesta. Etsintä päättyy ehdottomasti
+  **3 h** aloituksesta (`ETSINTA_MAX_MS`, sama vakio workerissa): worker
+  luottaa clientin ilmoittamiin aikoihin, mutta hylkää löydön, jonka
+  `etsintaKestoMs` ylittää takarajan. Etsinnän aloitus ja kolmiomittaukset
+  muistetaan laitteella `localStorage`:ssa — ei huijauksenestoa, koska
+  koordinaatit ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
 
 ## Arkkitehtuuri lyhyesti
 

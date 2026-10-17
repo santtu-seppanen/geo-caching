@@ -87,6 +87,8 @@ export interface OmaLoytoRivi {
   alue: string;
   kuvaus: string;
   aika: string;
+  /** Löytöön kulunut aika (ks. Loyto.kestoMs), null jos ei tiedossa. */
+  kestoMs: number | null;
 }
 
 /**
@@ -109,6 +111,7 @@ export function laskeOmatLoydot(loydot: Loyto[], paikat: Paikka[], nimi: string)
         alue: paikka?.alue ?? "Tuntematon alue",
         kuvaus: paikka?.kuvaus ?? "Tuntematon kätkö",
         aika: loyto.aika,
+        kestoMs: loyto.kestoMs ?? null,
       };
     })
     .sort((a, b) => b.aika.localeCompare(a.aika));

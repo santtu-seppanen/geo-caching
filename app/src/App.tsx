@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNearbyAlert, type LahellaOlevaPaikka } from "./features/etsi/useNearbyAlert";
-import { etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
+import { etsiLahellaOlevatAlueet, etsiLaheisinAlue } from "./features/etsi/laheisinAlue";
 import {
   ryhmitteleAlueiksi,
   yhdistaKaikkiSamannimiset,
   alueLoydettyKokonaan,
   yhdistaSamannimiset,
+  normalisoiAlueNimi,
 } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { Etusivu } from "./features/paikat/Etusivu";
@@ -21,6 +22,7 @@ import {
   haeAlueidenPelimoodit,
   type AlueidenPelimoodit,
 } from "./features/pelimoodit/pelimoodiApi";
+import { tallennaEtsinnanAlku } from "./features/pelimoodit/pelitila";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
 import heroKuva from "./assets/hero-aarrearkku.jpg";
@@ -139,6 +141,16 @@ export function App() {
     [sijainti, paikat],
   );
 
+  const lahellaOlevatAlueet = useMemo(
+    () => etsiLahellaOlevatAlueet(paikat, sijainti),
+    [sijainti, paikat],
+  );
+
+  const aloitaEtsinta = useCallback((nimi: string) => {
+    tallennaEtsinnanAlku(normalisoiAlueNimi(nimi), Date.now());
+    setValittuAlue(nimi);
+  }, []);
+
   const loydetytIdt = useMemo(
     () => new Set([...loydot, ...omatLoydot].map((loyto) => loyto.paikkaId)),
     [loydot, omatLoydot],
@@ -225,6 +237,7 @@ export function App() {
         </p>
       ) : aktiivinenAlue ? (
         <Aluesivu
+          key={aktiivinenAlue.nimi}
           alue={aktiivinenAlue}
           pelimoodi={alueenPelimoodi(pelimoodit, aktiivinenAlue.nimi)}
           sijainti={sijainti}
@@ -237,8 +250,11 @@ export function App() {
         <Etusivu
           alueet={alueet}
           lahellaOlevaAlue={lahellaOlevaAlue}
+          lahellaOlevatAlueet={lahellaOlevatAlueet}
+          pelimoodit={pelimoodit}
           loydettyjaAlueitaKokonaan={loydettyjaAlueitaKokonaan}
           onValitseAlue={setValittuAlue}
+          onAloitaEtsinta={aloitaEtsinta}
         />
       )}
     </main>

@@ -4,13 +4,22 @@ import { normalisoiAlueNimi } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
 import { Edistymispalkki } from "./Edistymispalkki";
+import { PELIMOODIN_NIMI } from "../pelimoodit/pelimoodit";
+import { alueenPelimoodi, type AlueidenPelimoodit } from "../pelimoodit/pelimoodiApi";
+import { lataaEtsinnanAlku } from "../pelimoodit/pelitila";
+import { etsintaKaynnissa } from "../pelimoodit/etsinta";
 
 interface EtusivuProps {
   alueet: Alue[];
   lahellaOlevaAlue: LahellaOlevaAlue | null;
+  /** ALUE_AVAUTUU_METREINA-säteellä olevat alueet lähimmästä alkaen, ks. etsiLahellaOlevatAlueet. */
+  lahellaOlevatAlueet: LahellaOlevaAlue[];
+  pelimoodit: AlueidenPelimoodit;
   loydettyjaAlueitaKokonaan: number;
   /** Kutsutaan alueen näytettävällä nimellä (ei id:n tekstiosalla), ks. yhdistaSamannimiset. */
   onValitseAlue: (nimi: string) => void;
+  /** Kuten onValitseAlue, mutta aloittaa samalla alueen etsinnän (ks. tallennaEtsinnanAlku). */
+  onAloitaEtsinta: (nimi: string) => void;
 }
 
 /** Muotoilee etäisyyden ihmisluettavaksi: metrit alle kilometrin, muuten kilometrit yhden desimaalin tarkkuudella. */
@@ -24,11 +33,20 @@ function muotoileEtaisyys(etaisyysMetreina: number): string {
 export function Etusivu({
   alueet,
   lahellaOlevaAlue,
+  lahellaOlevatAlueet,
+  pelimoodit,
   loydettyjaAlueitaKokonaan,
   onValitseAlue,
+  onAloitaEtsinta,
 }: EtusivuProps) {
   const [haku, setHaku] = useState("");
   const [virhe, setVirhe] = useState<string | null>(null);
+  // Valinta muistetaan nimellä, ja jos alue putoaa listalta (käyttäjä liikkuu), palataan lähimpään.
+  const [valittuNimi, setValittuNimi] = useState<string | null>(null);
+  const valittu =
+    lahellaOlevatAlueet.find((alue) => alue.nimi === valittuNimi) ?? lahellaOlevatAlueet[0] ?? null;
+  const valitunEtsintaKaynnissa =
+    valittu !== null && etsintaKaynnissa(lataaEtsinnanAlku(normalisoiAlueNimi(valittu.nimi)), Date.now());
 
   function hae(e: FormEvent) {
     e.preventDefault();
@@ -47,7 +65,7 @@ export function Etusivu({
   return (
     <section className="aluehaku">
       {lahellaOlevaAlue && (
-        <p
+        <div
           className={
             "lahella-huomautus" + (lahellaOlevaAlue.avautuuKartalle ? "" : " lahella-huomautus-kaukana")
           }
@@ -70,18 +88,58 @@ export function Etusivu({
           <span className="lahella-rivi">
             Suuntaa {ilmansuuntaTekstiksi(lahellaOlevaAlue.suuntimaAsteina)}.
           </span>
-          {lahellaOlevaAlue.avautuuKartalle ? (
-            <button
-              type="button"
-              className="nappi nappi-ensisijainen"
-              onClick={() => onValitseAlue(lahellaOlevaAlue.nimi)}
-            >
-              Näytä kartalla
-            </button>
+          {lahellaOlevaAlue.avautuuKartalle && valittu ? (
+            <>
+              {lahellaOlevatAlueet.length > 1 && (
+                <label className="lahella-valinta">
+                  <span className="lahella-rivi">Lähellä on {lahellaOlevatAlueet.length} aluetta:</span>
+                  <select
+                    className="teksti-syote"
+                    value={valittu.nimi}
+                    onChange={(e) => setValittuNimi(e.target.value)}
+                  >
+                    {lahellaOlevatAlueet.map((alue) => (
+                      <option key={alue.nimi} value={alue.nimi}>
+                        {alue.nimi} ({muotoileEtaisyys(alue.etaisyysMetreina)})
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              )}
+              <span className="lahella-rivi lahella-vihje">
+                Pelimoodi: {PELIMOODIN_NIMI[alueenPelimoodi(pelimoodit, valittu.nimi)]}
+              </span>
+              {valitunEtsintaKaynnissa ? (
+                <button
+                  type="button"
+                  className="nappi nappi-ensisijainen"
+                  onClick={() => onValitseAlue(valittu.nimi)}
+                >
+                  Jatka etsintää
+                </button>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="nappi nappi-ensisijainen"
+                    onClick={() => onAloitaEtsinta(valittu.nimi)}
+                  >
+                    Aloita etsintä
+                  </button>
+                  <button
+                    type="button"
+                    className="nappi nappi-toissijainen"
+                    onClick={() => onValitseAlue(valittu.nimi)}
+                  >
+                    Näytä kartalla
+                  </button>
+                </>
+              )}
+            </>
           ) : (
             <span className="lahella-rivi lahella-vihje">Tule lähemmäs, niin näet alueen kartalla.</span>
           )}
-        </p>
+        </div>
       )}
       <div className="aluehaku-kortti">
         <h2>Etsi kätköjä</h2>

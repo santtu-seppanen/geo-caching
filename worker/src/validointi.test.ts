@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   validoiLoytoPyynto,
+  ETSINTA_MAX_MS,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
   validoiUusiKatkoPyynto,
@@ -20,6 +21,45 @@ describe("validoiLoytoPyynto", () => {
       expect(tulos.pyynto.paikkaId).toBe("paikka-1");
       expect(tulos.pyynto.nimi).toBe("Löytäjä");
     }
+  });
+
+  it("kestoMs puuttuessa tallentaa null", () => {
+    const tulos = validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "Löytäjä" }, tunnetutPaikkaIdt);
+    expect(tulos.ok && tulos.pyynto.kestoMs).toBeNull();
+  });
+
+  it("hyväksyy kestoMs:n", () => {
+    const tulos = validoiLoytoPyynto(
+      { paikkaId: "paikka-1", nimi: "Löytäjä", kestoMs: 252_000, etsintaKestoMs: 600_000 },
+      tunnetutPaikkaIdt
+    );
+    expect(tulos.ok && tulos.pyynto.kestoMs).toBe(252_000);
+  });
+
+  it("hylkää virheellisen kestoMs:n", () => {
+    for (const kestoMs of [-1, 1.5, "100"]) {
+      expect(
+        validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "Löytäjä", kestoMs, etsintaKestoMs: 600_000 }, tunnetutPaikkaIdt).ok
+      ).toBe(false);
+    }
+  });
+
+  it("vaatii etsintaKestoMs:n kestoMs:n kanssa", () => {
+    expect(validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "Löytäjä", kestoMs: 1000 }, tunnetutPaikkaIdt).ok).toBe(false);
+  });
+
+  it("hylkää löydön 3 tunnin takarajan jälkeen", () => {
+    const tulos = validoiLoytoPyynto(
+      { paikkaId: "paikka-1", nimi: "Löytäjä", kestoMs: 1000, etsintaKestoMs: ETSINTA_MAX_MS + 1 },
+      tunnetutPaikkaIdt
+    );
+    expect(tulos).toEqual({ ok: false, virhe: "Etsinnän 3 tunnin takaraja on ylittynyt" });
+  });
+
+  it("hylkää löytöajan, joka on pidempi kuin koko etsintä", () => {
+    expect(
+      validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "Löytäjä", kestoMs: 2000, etsintaKestoMs: 1000 }, tunnetutPaikkaIdt).ok
+    ).toBe(false);
   });
 
   it("trimmaa whitespace:sta nimi:n", () => {
@@ -861,6 +901,10 @@ describe("validoiPelimoodiPyynto", () => {
   it("hyväksyy tunnetun moodin", () => {
     const tulos = validoiPelimoodiPyynto({ alueAvain: "apatti", pelimoodi: "kolmiomittaus" });
     expect(tulos).toEqual({ ok: true, pyynto: { alueAvain: "apatti", pelimoodi: "kolmiomittaus" } });
+  });
+
+  it("hyväksyy ajastetun haun", () => {
+    expect(validoiPelimoodiPyynto({ alueAvain: "apatti", pelimoodi: "ajastettu" }).ok).toBe(true);
   });
 
   it("hylkää tuntemattoman moodin", () => {

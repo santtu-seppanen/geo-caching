@@ -14,6 +14,8 @@ export interface Loyto {
   paikkaId: string;
   nimi: string;
   aika: string;
+  /** Löytöön kulunut aika millisekunteina, null jos ei tiedossa. */
+  kestoMs: number | null;
 }
 
 interface PaikkaRivi {
@@ -31,6 +33,7 @@ interface LoytoRivi {
   paikka_id: string;
   nimi: string;
   aika: string;
+  kesto_ms: number | null;
 }
 
 function paikkaRivista(rivi: PaikkaRivi): Paikka {
@@ -58,9 +61,14 @@ export async function haePaikkaIdt(db: D1Database): Promise<Set<string>> {
 
 export async function haeLoydot(db: D1Database): Promise<Loyto[]> {
   const { results } = await db
-    .prepare("SELECT paikka_id, nimi, aika FROM loydot ORDER BY id")
+    .prepare("SELECT paikka_id, nimi, aika, kesto_ms FROM loydot ORDER BY id")
     .all<LoytoRivi>();
-  return results.map((rivi) => ({ paikkaId: rivi.paikka_id, nimi: rivi.nimi, aika: rivi.aika }));
+  return results.map((rivi) => ({
+    paikkaId: rivi.paikka_id,
+    nimi: rivi.nimi,
+    aika: rivi.aika,
+    kestoMs: rivi.kesto_ms,
+  }));
 }
 
 /** Onko nimimerkki jo merkinnyt tämän kätkön löydetyksi (kirjainkoosta riippumatta). */
@@ -78,14 +86,14 @@ export async function onkoJoLoytanyt(
 
 export async function lisaaLoyto(
   db: D1Database,
-  pyynto: { paikkaId: string; nimi: string },
+  pyynto: { paikkaId: string; nimi: string; kestoMs: number | null },
 ): Promise<Loyto> {
   const aika = new Date().toISOString();
   await db
-    .prepare("INSERT INTO loydot (paikka_id, nimi, aika) VALUES (?, ?, ?)")
-    .bind(pyynto.paikkaId, pyynto.nimi, aika)
+    .prepare("INSERT INTO loydot (paikka_id, nimi, aika, kesto_ms) VALUES (?, ?, ?, ?)")
+    .bind(pyynto.paikkaId, pyynto.nimi, aika, pyynto.kestoMs)
     .run();
-  return { paikkaId: pyynto.paikkaId, nimi: pyynto.nimi, aika };
+  return { paikkaId: pyynto.paikkaId, nimi: pyynto.nimi, aika, kestoMs: pyynto.kestoMs };
 }
 
 export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void> {

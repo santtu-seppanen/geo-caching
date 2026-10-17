@@ -110,6 +110,20 @@ body {
   width: auto;
 }
 
+.lahella-valinta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  align-items: center;
+  width: 100%;
+}
+
+.pelimoodi-vahvistus {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
 .lahella-huomautus-kaukana {
   border-color: var(--vari-reuna);
 }

@@ -1,5 +1,5 @@
 import type { Paikka } from "../paikat/types";
-import { paikanTunniste } from "../paikat/alueet";
+import { normalisoiAlueNimi, paikanTunniste } from "../paikat/alueet";
 import { etaisyysMetreina, suuntimaAsteina } from "./distance";
 import { ALUE_AVAUTUU_METREINA } from "./kynnykset";
 
@@ -44,4 +44,38 @@ export function etsiLaheisinAlue(
     }
   }
   return lahin;
+}
+
+/**
+ * Kaikki alueet, joiden jokin kätkö on ALUE_AVAUTUU_METREINA-säteellä,
+ * lähimmästä kaukaisimpaan — etusivun aluevalintaa varten, kun lähellä on
+ * useampi alue. Samannimiset (normalisoituna) yhdistetään, ja
+ * piilotaLahimmasta-kätköt jätetään pois kuten etsiLaheisinAlue:ssa.
+ */
+export function etsiLahellaOlevatAlueet(
+  paikat: Paikka[],
+  sijainti: { lat: number; lng: number } | null,
+): LahellaOlevaAlue[] {
+  if (!sijainti) return [];
+
+  const alueittain = new Map<string, LahellaOlevaAlue>();
+  for (const paikka of paikat) {
+    if (paikka.piilotaLahimmasta) continue;
+
+    const etaisyys = etaisyysMetreina(sijainti, paikka);
+    if (etaisyys > ALUE_AVAUTUU_METREINA) continue;
+
+    const avain = normalisoiAlueNimi(paikka.alue);
+    const aiempi = alueittain.get(avain);
+    if (!aiempi || etaisyys < aiempi.etaisyysMetreina) {
+      alueittain.set(avain, {
+        alue: paikanTunniste(paikka.id),
+        nimi: paikka.alue,
+        etaisyysMetreina: etaisyys,
+        suuntimaAsteina: suuntimaAsteina(sijainti, paikka),
+        avautuuKartalle: true,
+      });
+    }
+  }
+  return [...alueittain.values()].sort((a, b) => a.etaisyysMetreina - b.etaisyysMetreina);
 }

@@ -15,4 +15,6 @@ export interface Loyto {
   paikkaId: string;
   nimi: string;
   aika: string;
+  /** Löytöön kulunut aika (ms) edellisestä löydöstä tai etsinnän aloituksesta, null jos ei tiedossa. */
+  kestoMs?: number | null;
 }

@@ -3,7 +3,16 @@
  * (ks. worker/). Käyttäjä näkee oman löytönsä heti optimistisesti
  * lisättynä — muut näkevät sen seuraavalla `/loydot`-haulla.
  */
-export async function ilmoitaLoyto(paikkaId: string, nimi: string): Promise<void> {
+/**
+ * `ajat` vain käynnissä olevan etsinnän aikana: kestoMs edellisestä
+ * löydöstä tai aloituksesta, etsintaKestoMs aloituksesta (worker hylkää
+ * löydön, jos se ylittää etsinnän takarajan).
+ */
+export async function ilmoitaLoyto(
+  paikkaId: string,
+  nimi: string,
+  ajat: { kestoMs: number; etsintaKestoMs: number } | null,
+): Promise<void> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/loyda`;
 
   const vastaus = await fetch(url, {
@@ -12,7 +21,7 @@ export async function ilmoitaLoyto(paikkaId: string, nimi: string): Promise<void
       "Content-Type": "application/json",
       "X-Jaettu-Salasana": import.meta.env.VITE_LOYTO_SALASANA,
     },
-    body: JSON.stringify({ paikkaId, nimi }),
+    body: JSON.stringify({ paikkaId, nimi, ...ajat }),
   });
 
   if (!vastaus.ok) {

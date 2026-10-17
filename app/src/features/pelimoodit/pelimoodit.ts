@@ -3,7 +3,7 @@ import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 
 /** Sama lista kuin workerin SALLITUT_PELIMOODIT (ks. worker/src/validointi.ts). */
-export const PELIMOODIT = ["vapaa", "yksi-kerrallaan", "kolmiomittaus", "vihjeet"] as const;
+export const PELIMOODIT = ["vapaa", "yksi-kerrallaan", "ajastettu", "kolmiomittaus", "vihjeet"] as const;
 export type Pelimoodi = (typeof PELIMOODIT)[number];
 
 export const OLETUS_PELIMOODI: Pelimoodi = "vapaa";
@@ -11,6 +11,7 @@ export const OLETUS_PELIMOODI: Pelimoodi = "vapaa";
 export const PELIMOODIN_NIMI: Record<Pelimoodi, string> = {
   vapaa: "Vapaa etsintä",
   "yksi-kerrallaan": "Yksi kerrallaan",
+  ajastettu: "Ajastettu haku",
   kolmiomittaus: "Kolmiomittaus",
   vihjeet: "Ajastetut vihjeet",
 };
@@ -18,6 +19,8 @@ export const PELIMOODIN_NIMI: Record<Pelimoodi, string> = {
 export const PELIMOODIN_KUVAUS: Record<Pelimoodi, string> = {
   vapaa: "Kaikki alueen kätköt näkyvät kartalla.",
   "yksi-kerrallaan": "Kartalla näkyy vain seuraava kätkö. Seuraava paljastuu, kun löydät edellisen.",
+  ajastettu:
+    "Kartalla näkyy vain seuraava kätkö, ja sen löytämiseen on 5 minuuttia etsinnän aloituksesta tai edellisestä kätköstä. Jos aika loppuu, kätkö katoaa ja vuoro siirtyy seuraavaan.",
   kolmiomittaus:
     "Kätkö ei näy kartalla. Mittaa etäisyys kätköön eri paikoista — ympyröiden leikkauspisteessä se on.",
   vihjeet:
@@ -33,6 +36,9 @@ export function etsitaankoYksiKerrallaan(moodi: Pelimoodi): boolean {
   return moodi !== "vapaa";
 }
 
+/** Ajastetussa haussa aika kätköä kohden (ks. etsinta.ts). */
+export const AJASTETTU_HAKU_MS = 5 * 60_000;
+
 export function kohdePiilossa(moodi: Pelimoodi): boolean {
   return moodi === "kolmiomittaus" || moodi === "vihjeet";
 }
@@ -47,7 +53,8 @@ export function nykyinenKohde(paikat: Paikka[], omatLoydetytIdt: ReadonlySet<str
 }
 
 /**
- * Kartalla näytettävät kätköt pelimoodin mukaan. Pelaajan itse löytämät
+ * Kartalla näytettävät kätköt pelimoodin mukaan (`kohde` ks.
+ * etsinnanEteneminen). Pelaajan itse löytämät
  * näkyvät aina, samoin mikä tahansa KATKO_AVAUTUU_METREINA-säteellä oleva
  * (muuten piilomoodeissa kätköä ei voisi avata, ja lähellä-hälytys
  * paljastaa sen joka tapauksessa).
@@ -56,15 +63,15 @@ export function nakyvatPaikat(
   moodi: Pelimoodi,
   paikat: Paikka[],
   omatLoydetytIdt: ReadonlySet<string>,
+  kohde: Paikka | null,
   sijainti: { lat: number; lng: number } | null,
 ): Paikka[] {
   if (moodi === "vapaa") return paikat;
 
-  const kohde = nykyinenKohde(paikat, omatLoydetytIdt);
   return paikat.filter(
     (paikka) =>
       omatLoydetytIdt.has(paikka.id) ||
-      (moodi === "yksi-kerrallaan" && paikka === kohde) ||
+      (!kohdePiilossa(moodi) && paikka === kohde) ||
       (sijainti !== null && etaisyysMetreina(sijainti, paikka) <= KATKO_AVAUTUU_METREINA),
   );
 }

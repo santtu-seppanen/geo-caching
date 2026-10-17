@@ -159,8 +159,14 @@ describe("laskeOmatLoydot", () => {
         alue: "Äpätti",
         kuvaus: "Puun juurella",
         aika: "2026-01-01T10:00:00.000Z",
+        kestoMs: null,
       },
     ]);
+  });
+
+  it("välittää löytöajan", () => {
+    const tulos = laskeOmatLoydot([loyto({ kestoMs: 252_000 })], [paikka({})], "Matti");
+    expect(tulos[0].kestoMs).toBe(252_000);
   });
 
   it("järjestää tuoreimmat ensin", () => {

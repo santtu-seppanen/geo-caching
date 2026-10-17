@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { etsiLaheisinAlue } from "./laheisinAlue";
+import { etsiLahellaOlevatAlueet, etsiLaheisinAlue } from "./laheisinAlue";
 import type { Paikka } from "../paikat/types";
 
 function paikka(osittaiset: Partial<Paikka>): Paikka {
@@ -86,5 +86,28 @@ describe("etsiLaheisinAlue", () => {
 
     expect(tulos?.alue).toBe("neittava");
     expect(tulos?.avautuuKartalle).toBe(false);
+  });
+});
+
+describe("etsiLahellaOlevatAlueet", () => {
+  const sijainti = { lat: 60.1699, lng: 24.9384 };
+
+  it("palauttaa kynnyksen sisällä olevat alueet lähimmästä alkaen, samannimiset yhdistettynä", () => {
+    const tulos = etsiLahellaOlevatAlueet(
+      [
+        paikka({ id: "apatti-1", alue: "Äpätti", lat: 60.1699 + 0.01 }),
+        paikka({ id: "neittava-1", alue: "Neittävä", lat: 60.1699 + 0.005 }),
+        paikka({ id: "apatti-x-1", alue: "äpätti", lat: 60.1699 + 0.008 }),
+        paikka({ id: "kaukana-1", alue: "Kaukana", lat: 60.1699 + 0.03 }),
+      ],
+      sijainti,
+    );
+
+    expect(tulos.map((alue) => alue.nimi)).toEqual(["Neittävä", "äpätti"]);
+  });
+
+  it("jättää piilotaLahimmasta-kätköt pois", () => {
+    const tulos = etsiLahellaOlevatAlueet([paikka({ piilotaLahimmasta: true })], sijainti);
+    expect(tulos).toEqual([]);
   });
 });
