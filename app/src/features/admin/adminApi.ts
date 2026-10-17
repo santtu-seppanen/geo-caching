@@ -115,3 +115,26 @@ export async function poistaKatko(id: string, adminSalasana: string): Promise<vo
     throw new Error(data?.error ?? "Kätkön poisto epäonnistui");
   }
 }
+
+/** Asettaa alueen pelimoodin (ks. features/pelimoodit/). Alue tunnistetaan normalisoidulla nimellä. */
+export async function asetaPelimoodi(
+  alueAvain: string,
+  pelimoodi: string,
+  adminSalasana: string,
+): Promise<void> {
+  const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/aseta-pelimoodi`;
+
+  const vastaus = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Admin-Salasana": adminSalasana,
+    },
+    body: JSON.stringify({ alueAvain, pelimoodi }),
+  });
+
+  if (!vastaus.ok) {
+    const data = (await vastaus.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(data?.error ?? "Pelimoodin tallennus epäonnistui");
+  }
+}
