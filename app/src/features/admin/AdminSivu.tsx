@@ -14,6 +14,7 @@ import { lueTiedostoBase64na } from "./tiedosto";
 import { KuvaKentta } from "./KuvaKentta";
 import { PullonKokoValitsin } from "./PullonKokoValitsin";
 import { MuokkaaKatkoLomake } from "./MuokkaaKatkoLomake";
+import { PelimoodiAsetukset } from "./PelimoodiAsetukset";
 import { Modaali } from "../../lib/Modaali";
 import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
@@ -394,6 +395,8 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           {lahetetaan ? "Lähetetään…" : "Luo kätkö"}
         </button>
       </form>
+
+      <PelimoodiAsetukset paikat={paikat} adminSalasana={adminSalasana} />
 
       <h2>Poista kätkö</h2>
 

@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { validoiLoytoPyynto, validoiMuokkausKatkoPyynto, validoiUusiKatkoPyynto } from "./validointi";
+import {
+  validoiLoytoPyynto,
+  validoiMuokkausKatkoPyynto,
+  validoiPelimoodiPyynto,
+  validoiUusiKatkoPyynto,
+} from "./validointi";
 
 describe("validoiLoytoPyynto", () => {
   const tunnetutPaikkaIdt = new Set(["paikka-1", "paikka-2", "paikka-3"]);
@@ -849,5 +854,20 @@ describe("validoiMuokkausKatkoPyynto", () => {
     if (!tulos.ok) {
       expect(tulos.virhe).toBe("Pyyntö täytyy olla JSON-objekti");
     }
+  });
+});
+
+describe("validoiPelimoodiPyynto", () => {
+  it("hyväksyy tunnetun moodin", () => {
+    const tulos = validoiPelimoodiPyynto({ alueAvain: "apatti", pelimoodi: "kolmiomittaus" });
+    expect(tulos).toEqual({ ok: true, pyynto: { alueAvain: "apatti", pelimoodi: "kolmiomittaus" } });
+  });
+
+  it("hylkää tuntemattoman moodin", () => {
+    expect(validoiPelimoodiPyynto({ alueAvain: "apatti", pelimoodi: "turbo" }).ok).toBe(false);
+  });
+
+  it("hylkää tyhjän alueen", () => {
+    expect(validoiPelimoodiPyynto({ alueAvain: "  ", pelimoodi: "vapaa" }).ok).toBe(false);
   });
 });

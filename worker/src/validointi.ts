@@ -286,3 +286,36 @@ export function validoiLoytoPyynto(
 
   return { ok: true, pyynto: { paikkaId, nimi: nimi.trim() } };
 }
+
+/** Sama lista kuin frontendin PELIMOODIT (ks. app/src/features/pelimoodit/pelimoodit.ts). */
+export const SALLITUT_PELIMOODIT = new Set(["vapaa", "yksi-kerrallaan", "kolmiomittaus", "vihjeet"]);
+
+export interface PelimoodiPyynto {
+  alueAvain: string;
+  pelimoodi: string;
+}
+
+export type PelimoodiValidointiTulos =
+  | { ok: true; pyynto: PelimoodiPyynto }
+  | { ok: false; virhe: string };
+
+export function validoiPelimoodiPyynto(data: unknown): PelimoodiValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+
+  const { alueAvain, pelimoodi } = data as Record<string, unknown>;
+
+  if (typeof alueAvain !== "string" || alueAvain.trim().length === 0) {
+    return { ok: false, virhe: "alueAvain on pakollinen" };
+  }
+  if (alueAvain.length > ALUE_MAX_PITUUS) {
+    return { ok: false, virhe: `alueAvain saa olla enintään ${ALUE_MAX_PITUUS} merkkiä` };
+  }
+
+  if (typeof pelimoodi !== "string" || !SALLITUT_PELIMOODIT.has(pelimoodi)) {
+    return { ok: false, virhe: "Tuntematon pelimoodi" };
+  }
+
+  return { ok: true, pyynto: { alueAvain: alueAvain.trim(), pelimoodi } };
+}

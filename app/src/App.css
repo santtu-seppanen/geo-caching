@@ -974,3 +974,69 @@ body {
     align-self: flex-start;
   }
 }
+
+/* Pelimoodit (ks. features/pelimoodit/) */
+.pelimoodi-paneeli {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--vari-reuna);
+  border-radius: 0.75rem;
+  background: var(--vari-pinta);
+}
+
+.pelimoodi-paneeli p {
+  margin: 0;
+}
+
+.pelimoodi-otsikko {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-weight: 700;
+}
+
+.pelimoodi-kohde {
+  color: var(--vari-teksti-himmea);
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.pelimoodi-kuvaus {
+  font-size: 0.85rem;
+  color: var(--vari-teksti-himmea);
+}
+
+.pelimoodi-tila {
+  font-weight: 600;
+}
+
+.vihje-ympyra {
+  stroke: var(--vari-ensisijainen);
+  fill: var(--vari-ensisijainen);
+}
+
+.mittaus-ympyra {
+  stroke: var(--vari-aksentti);
+  fill: var(--vari-aksentti);
+}
+
+.pelimoodi-valinta {
+  width: auto;
+  flex-shrink: 0;
+}
+
+.pelimoodi-selitteet {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.pelimoodi-selitteet dt {
+  font-weight: 700;
+}
+
+.pelimoodi-selitteet dd {
+  margin: 0 0 0.5rem;
+  color: var(--vari-teksti-himmea);
+}

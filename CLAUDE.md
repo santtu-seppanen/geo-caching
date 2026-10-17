@@ -35,6 +35,17 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   `app/src/features/tilastot/tilastoLaskenta.ts`. Tilastot-näkymä (header)
   näyttää pistetaulun (löytöjen määrä nimimerkkiä kohden, klikkaamalla
   laajenee mitalimäärät) ja oman löytöhistorian.
+- **Pelimoodit** (ks. `app/src/features/pelimoodit/`): admin asettaa
+  jokaiselle alueelle moodin `/admin`-sivulla (D1-taulu `alueet`, avaimena
+  normalisoitu alue-nimi; puuttuva rivi = `vapaa`). `vapaa` = kaikki kätköt
+  kartalla; `yksi-kerrallaan` = näkyy vain seuraava itse löytämätön kätkö
+  (luontijärjestyksessä); `kolmiomittaus` = kätkö piilossa, pelaaja mittaa
+  etäisyyden (min. 60 s välein) ja kartalle piirtyy ympyröitä;
+  `vihjeet` = kätkö piilossa, 3 yhä pienempää vihjeympyrää avautuvat
+  ajastetusti (0/5/10 min) kun pelaaja on 2 km sisällä. Piilomoodeissakin
+  kätkö paljastuu 100 m sisällä. Vihjeajastin ja mittaukset muistetaan
+  laitteella `localStorage`:ssa — ei huijauksenestoa, koska koordinaatit
+  ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
 
 ## Arkkitehtuuri lyhyesti
 
@@ -65,6 +76,8 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   - `GET /paikat`, `GET /loydot` — palauttavat kaiken kätkö-/löytödatan
     JSON:ina D1:stä. Julkisia, ei vaadi salasanaa (data oli aiemminkin
     kaikille näkyvässä JS-bundlessa, joten tämä ei ole regressio).
+  - `GET /alueet` — alueiden pelimoodit (`[{ alueAvain, pelimoodi }]`).
+    Julkinen.
   - `GET /kuvat/:tiedostonimi` — striimaa kuvan R2:sta oikealla
     `Content-Type`-headerilla.
   - `POST /loyda` — validoi pyynnön (tunnettu `paikkaId`, nimi ei
@@ -81,6 +94,8 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     tallentaa kuvan R2:een ja lisää rivin `paikat`-tauluun.
   - `POST /admin/poista-katko` — sama admin-salasana, poistaa kätkön
     (ja sen löydöt) D1:stä sekä sen kuvan R2:sta.
+  - `POST /admin/aseta-pelimoodi` — sama admin-salasana, asettaa alueen
+    pelimoodin (`{ alueAvain, pelimoodi }`).
   - Toisin kuin `VITE_LOYTO_SALASANA`, admin-salasanaa **ei** upoteta
     build-aikana bundleen (kuka tahansa voisi lukea sen sivun lähdekoodista)
     — käyttäjä syöttää sen `/admin`-lomakkeeseen käyttökerralla.
@@ -103,6 +118,8 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   - `features/paikat/` — kätködata (tyypit, aluejaottelu/keskipisteet).
   - `features/etsi/` — etäisyyslaskenta ja avautumiskynnykset
     (`KATKO_AVAUTUU_METREINA`, `ALUE_AVAUTUU_METREINA`).
+  - `features/pelimoodit/` — alueen pelimoodit (näkyvät kätköt,
+    vihjeympyrät, kolmiomittaus, laitekohtainen etsintätila).
   - `features/tilastot/` — pistetaulu (löytöjen määrä nimimerkkiä
     kohden) ja omat löydöt -aikajana, molemmat pääteltynä pelkästä
     `loydot`+`paikat`-datasta clientillä, ei omaa backend-tilaa.

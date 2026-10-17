@@ -149,3 +149,24 @@ export async function poistaPaikka(db: D1Database, id: string): Promise<string |
 
   return rivi.kuva;
 }
+
+export interface AlueenPelimoodi {
+  alueAvain: string;
+  pelimoodi: string;
+}
+
+export async function haeAlueidenPelimoodit(db: D1Database): Promise<AlueenPelimoodi[]> {
+  const { results } = await db
+    .prepare("SELECT alue_avain, pelimoodi FROM alueet")
+    .all<{ alue_avain: string; pelimoodi: string }>();
+  return results.map((rivi) => ({ alueAvain: rivi.alue_avain, pelimoodi: rivi.pelimoodi }));
+}
+
+export async function asetaAlueenPelimoodi(db: D1Database, asetus: AlueenPelimoodi): Promise<void> {
+  await db
+    .prepare(
+      "INSERT INTO alueet (alue_avain, pelimoodi) VALUES (?, ?) ON CONFLICT (alue_avain) DO UPDATE SET pelimoodi = excluded.pelimoodi",
+    )
+    .bind(asetus.alueAvain, asetus.pelimoodi)
+    .run();
+}

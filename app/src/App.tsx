@@ -16,6 +16,11 @@ import { AdminSivu } from "./features/admin/AdminSivu";
 import { Modaali } from "./lib/Modaali";
 import type { Loyto, Paikka } from "./features/paikat/types";
 import { haeLoydot, haePaikat } from "./features/paikat/paikatApi";
+import {
+  alueenPelimoodi,
+  haeAlueidenPelimoodit,
+  type AlueidenPelimoodit,
+} from "./features/pelimoodit/pelimoodiApi";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
 import heroKuva from "./assets/hero-aarrearkku.jpg";
@@ -35,6 +40,7 @@ export function App() {
   const [paikat, setPaikat] = useState<Paikka[]>([]);
   const [loydot, setLoydot] = useState<Loyto[]>([]);
   const [omatLoydot, setOmatLoydot] = useState<Loyto[]>([]);
+  const [pelimoodit, setPelimoodit] = useState<AlueidenPelimoodit>(new Map());
   const [lataustila, setLataustila] = useState<Lataustila>("lataa");
 
   useEffect(() => {
@@ -47,10 +53,17 @@ export function App() {
     async function lataaData() {
       setLataustila("lataa");
       try {
-        const [uudetPaikat, uudetLoydot] = await Promise.all([haePaikat(), haeLoydot()]);
+        const [uudetPaikat, uudetLoydot, uudetPelimoodit] = await Promise.all([
+          haePaikat(),
+          haeLoydot(),
+          // Pelimoodien puuttuminen ei estä pelaamista — kaikki alueet
+          // toimivat silloin oletusmoodissa.
+          haeAlueidenPelimoodit().catch(() => new Map()),
+        ]);
         if (peruttu) return;
         setPaikat(uudetPaikat);
         setLoydot(uudetLoydot);
+        setPelimoodit(uudetPelimoodit);
         setLataustila("valmis");
       } catch {
         if (peruttu) return;
@@ -213,6 +226,7 @@ export function App() {
       ) : aktiivinenAlue ? (
         <Aluesivu
           alue={aktiivinenAlue}
+          pelimoodi={alueenPelimoodi(pelimoodit, aktiivinenAlue.nimi)}
           sijainti={sijainti}
           loydot={loydot}
           omatLoydot={omatLoydot}
