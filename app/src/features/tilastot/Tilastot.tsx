@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Loyto, Paikka } from "../paikat/types";
 import { haePelaajanNimi } from "../../lib/pelaajanNimi";
+import { muotoileKesto } from "../../lib/kesto";
 import {
   yhdistaLoydot,
   laskePistetaulu,
@@ -88,6 +89,9 @@ export function Tilastot({ paikat, loydot, omatLoydot, onSulje }: TilastotProps)
                 <span className="omat-loydot-kuvaus">{rivi.kuvaus}</span>
                 <span className="omat-loydot-aika">
                   {new Date(rivi.aika).toLocaleDateString("fi-FI")}
+                </span>
+                <span className="omat-loydot-aika" title="Löytöaika edellisestä löydöstä tai etsinnän aloituksesta">
+                  ⏱ {rivi.kestoMs != null ? muotoileKesto(rivi.kestoMs) : "N/A"}
                 </span>
               </li>
             ))}

@@ -7,16 +7,30 @@ import { mitalitYhdelleKatkolle, MITALI_EMOJI } from "../tilastot/tilastoLaskent
 import { pullonKokoNimi } from "./pullonKoko";
 import { PullonKokoIkoni } from "./PullonKokoIkoni";
 import { Modaali } from "../../lib/Modaali";
+import { muotoileKesto } from "../../lib/kesto";
+import { etsintaKaynnissa } from "../pelimoodit/etsinta";
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
   loydot: Loyto[];
   omatLoydot: Loyto[];
+  /** Käynnissä olevan etsinnän aloitus, null jos ei käynnissä (ks. etsintaKaynnissa). */
+  etsintaAlkoi: number | null;
+  /** Edellinen oma löytö tai etsinnän aloitus — löydölle tallennetaan kesto tästä. null jos etsintää ei ole aloitettu. */
+  loytoajastinAlkoi: number | null;
   onLoyto: (loyto: Loyto) => void;
   onSulje: () => void;
 }
 
-export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: KatkoPaneeliProps) {
+export function KatkoPaneeli({
+  paikka,
+  loydot,
+  omatLoydot,
+  etsintaAlkoi,
+  loytoajastinAlkoi,
+  onLoyto,
+  onSulje,
+}: KatkoPaneeliProps) {
   const [nimi, setNimi] = useState(() => haePelaajanNimi());
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -41,10 +55,18 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
 
     setLahetetaan(true);
     setVirhe(null);
+    // Tarkistetaan takaraja vasta lähetyshetkellä — paneeli on voinut olla
+    // auki takarajan yli. Takarajan jälkeen löytö kirjataan ilman kestoa.
+    const nyt = Date.now();
+    const ajat =
+      etsintaAlkoi !== null && loytoajastinAlkoi !== null && etsintaKaynnissa(etsintaAlkoi, nyt)
+        ? { kestoMs: nyt - loytoajastinAlkoi, etsintaKestoMs: nyt - etsintaAlkoi }
+        : null;
+    const kestoMs = ajat?.kestoMs ?? null;
     try {
-      await ilmoitaLoyto(paikka.id, siistittyNimi);
+      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat);
       tallennaPelaajanNimi(siistittyNimi);
-      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date().toISOString() });
+      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date(nyt).toISOString(), kestoMs });
     } catch (virhe) {
       setVirhe(virhe instanceof Error ? virhe.message : "Löydön tallennus epäonnistui");
     } finally {
@@ -105,6 +127,7 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
                 <li key={`${loyto.nimi}-${loyto.aika}-${indeksi}`}>
                   {mitali && <span aria-hidden="true">{MITALI_EMOJI[mitali]} </span>}
                   {loyto.nimi} — {new Date(loyto.aika).toLocaleDateString("fi-FI")}
+                  {loyto.kestoMs != null && <> · ⏱ {muotoileKesto(loyto.kestoMs)}</>}
                 </li>
               );
             })}

@@ -22,21 +22,31 @@ describe("nykyinenKohde", () => {
 
 describe("nakyvatPaikat", () => {
   it("vapaassa moodissa näyttää kaikki", () => {
-    expect(nakyvatPaikat("vapaa", paikat, new Set(), kaukana)).toHaveLength(3);
+    expect(nakyvatPaikat("vapaa", paikat, new Set(), null, kaukana)).toHaveLength(3);
   });
 
-  it("yksi kerrallaan näyttää löydetyt ja seuraavan", () => {
-    const nakyvat = nakyvatPaikat("yksi-kerrallaan", paikat, new Set(["apatti-1"]), kaukana);
+  it("yksi kerrallaan näyttää löydetyt ja kohteen", () => {
+    const nakyvat = nakyvatPaikat("yksi-kerrallaan", paikat, new Set(["apatti-1"]), paikat[1], kaukana);
     expect(nakyvat.map((p) => p.id)).toEqual(["apatti-1", "apatti-2"]);
   });
 
+  it("ajastetussa haussa näyttää löydetyt ja kohteen", () => {
+    const nakyvat = nakyvatPaikat("ajastettu", paikat, new Set(["apatti-1"]), paikat[2], kaukana);
+    expect(nakyvat.map((p) => p.id)).toEqual(["apatti-1", "apatti-3"]);
+  });
+
+  it("ajastetussa haussa ilman kohdetta näyttää vain löydetyt", () => {
+    const nakyvat = nakyvatPaikat("ajastettu", paikat, new Set(["apatti-1"]), null, kaukana);
+    expect(nakyvat.map((p) => p.id)).toEqual(["apatti-1"]);
+  });
+
   it("piilomoodeissa näyttää vain löydetyt", () => {
-    const nakyvat = nakyvatPaikat("kolmiomittaus", paikat, new Set(["apatti-1"]), kaukana);
+    const nakyvat = nakyvatPaikat("kolmiomittaus", paikat, new Set(["apatti-1"]), paikat[1], kaukana);
     expect(nakyvat.map((p) => p.id)).toEqual(["apatti-1"]);
   });
 
   it("piilomoodeissa paljastaa 100 m säteellä olevan kätkön", () => {
-    const nakyvat = nakyvatPaikat("vihjeet", paikat, new Set(), { lat: 60.0205, lng: 25 });
+    const nakyvat = nakyvatPaikat("vihjeet", paikat, new Set(), paikat[0], { lat: 60.0205, lng: 25 });
     expect(nakyvat.map((p) => p.id)).toEqual(["apatti-3"]);
   });
 });

@@ -2,23 +2,18 @@ import { useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Circle, CircleMarker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Alue } from "./alueet";
-import { alueenLoydettyjenMaara } from "./alueet";
+import { alueenLoydettyjenMaara, normalisoiAlueNimi } from "./alueet";
 import type { Paikka, Loyto } from "./types";
 import type { Sijainti } from "../../lib/geolocation";
 import { etaisyysMetreina } from "../etsi/distance";
-import { ALUE_AVAUTUU_METREINA, KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
+import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
 import { Edistymispalkki } from "./Edistymispalkki";
 import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
 import { Modaali } from "../../lib/Modaali";
 import { haePelaajanNimi } from "../../lib/pelaajanNimi";
-import {
-  etsitaankoYksiKerrallaan,
-  kohdePiilossa,
-  nakyvatPaikat,
-  nykyinenKohde,
-  type Pelimoodi,
-} from "../pelimoodit/pelimoodit";
+import { kohdePiilossa, nakyvatPaikat, type Pelimoodi } from "../pelimoodit/pelimoodit";
+import { etsinnanEteneminen, etsintaKaynnissa, loytoajastimenAlku } from "../pelimoodit/etsinta";
 import {
   avautuneitaVihjeita,
   mitattuEtaisyys,
@@ -26,6 +21,7 @@ import {
   VIHJE_TASOT,
 } from "../pelimoodit/vihjeet";
 import { useNyt, usePelitila } from "../pelimoodit/usePelitila";
+import { lataaEtsinnanAlku, tallennaEtsinnanAlku } from "../pelimoodit/pelitila";
 import { PelimoodiPaneeli } from "../pelimoodit/PelimoodiPaneeli";
 
 interface AluesivuProps {
@@ -83,30 +79,42 @@ export function Aluesivu({
   );
 
   // Pelimoodeissa edetään pelaajan omien löytöjen mukaan, ei kenen tahansa.
+  // Aikaisin löytöhetki per kätkö — etsinnän eteneminen ja löytöajastin
+  // johdetaan näistä (ks. etsinta.ts).
   const pelaajanNimi = haePelaajanNimi().trim().toLowerCase();
-  const omatLoydetytIdt = useMemo(
-    () =>
-      new Set(
-        [
-          ...omatLoydot,
-          ...loydot.filter((loyto) => pelaajanNimi && loyto.nimi.trim().toLowerCase() === pelaajanNimi),
-        ].map((loyto) => loyto.paikkaId),
-      ),
-    [loydot, omatLoydot, pelaajanNimi],
-  );
+  const omatLoytoajat = useMemo(() => {
+    const ajat = new Map<string, number>();
+    for (const loyto of [
+      ...omatLoydot,
+      ...loydot.filter((loyto) => pelaajanNimi && loyto.nimi.trim().toLowerCase() === pelaajanNimi),
+    ]) {
+      const aika = Date.parse(loyto.aika);
+      const aiempi = ajat.get(loyto.paikkaId);
+      if (aiempi === undefined || aika < aiempi) ajat.set(loyto.paikkaId, aika);
+    }
+    return ajat;
+  }, [loydot, omatLoydot, pelaajanNimi]);
+  const omatLoydetytIdt = useMemo(() => new Set(omatLoytoajat.keys()), [omatLoytoajat]);
 
-  const kohde = etsitaankoYksiKerrallaan(pelimoodi) ? nykyinenKohde(alue.paikat, omatLoydetytIdt) : null;
+  const alueAvain = normalisoiAlueNimi(alue.nimi);
+  const [etsintaAlkoi, setEtsintaAlkoi] = useState(() => lataaEtsinnanAlku(alueAvain));
+  function aloitaEtsinta() {
+    const alkoi = Date.now();
+    tallennaEtsinnanAlku(alueAvain, alkoi);
+    setEtsintaAlkoi(alkoi);
+  }
+
+  const nyt = useNyt(1000, etsintaAlkoi !== null || pelimoodi === "kolmiomittaus");
+  // Takarajan jälkeen etsintä on kuin aloittamaton: ajastettu haku ja
+  // vihjeet pysähtyvät eikä löydöille tallenneta kestoa.
+  const kaynnissa = etsintaKaynnissa(etsintaAlkoi, nyt);
+  const aktiivinenAlku = kaynnissa ? etsintaAlkoi : null;
+  const eteneminen = etsinnanEteneminen(pelimoodi, alue.paikat, omatLoytoajat, aktiivinenAlku, nyt);
+  const { kohde, vuoroAlkoi } = eteneminen;
+  const loytoajastinAlkoi = loytoajastimenAlku(omatLoytoajat, aktiivinenAlku);
+
   const piilossa = kohdePiilossa(pelimoodi) && kohde !== null;
-  const { tila, kaynnistaAjastin, lisaaMittaus } = usePelitila(piilossa ? kohde.id : null);
-  const nyt = useNyt(1000, piilossa);
-
-  // Vihjeiden ajastin käynnistyy vasta kätkön lähellä, ettei vihjeitä voi
-  // "kerätä" kotisohvalta odottelemalla.
-  const kohdeAlueenSisalla =
-    kohde !== null && sijainti !== null && etaisyysMetreina(sijainti, kohde) <= ALUE_AVAUTUU_METREINA;
-  useEffect(() => {
-    if (pelimoodi === "vihjeet" && kohdeAlueenSisalla) kaynnistaAjastin();
-  }, [pelimoodi, kohdeAlueenSisalla, kaynnistaAjastin]);
+  const { tila, lisaaMittaus } = usePelitila(piilossa ? kohde.id : null);
 
   function mittaa() {
     if (!sijainti || !kohde) return;
@@ -118,7 +126,7 @@ export function Aluesivu({
     });
   }
 
-  const naytettavatPaikat = nakyvatPaikat(pelimoodi, alue.paikat, omatLoydetytIdt, sijainti);
+  const naytettavatPaikat = nakyvatPaikat(pelimoodi, alue.paikat, omatLoydetytIdt, kohde, sijainti);
 
   const mittausYmpyrat: Ympyra[] =
     pelimoodi === "kolmiomittaus" && piilossa
@@ -126,8 +134,8 @@ export function Aluesivu({
       : [];
 
   const vihjeYmpyrat: Ympyra[] =
-    pelimoodi === "vihjeet" && piilossa && tila.alkoi !== null
-      ? VIHJE_TASOT.slice(0, avautuneitaVihjeita(tila.alkoi, nyt)).map((taso, indeksi) => ({
+    pelimoodi === "vihjeet" && piilossa && vuoroAlkoi !== null
+      ? VIHJE_TASOT.slice(0, avautuneitaVihjeita(vuoroAlkoi, nyt)).map((taso, indeksi) => ({
           keskipiste: vihjeYmpyranKeskipiste(kohde, indeksi),
           sadeMetreina: taso.sadeMetreina,
         }))
@@ -182,11 +190,16 @@ export function Aluesivu({
       <PelimoodiPaneeli
         moodi={pelimoodi}
         paikat={alue.paikat}
-        kohde={kohde}
+        eteneminen={eteneminen}
+        etsintaAlkoi={etsintaAlkoi}
+        kaynnissa={kaynnissa}
+        loytoajastinAlkoi={loytoajastinAlkoi}
+        kaikkiLoydetty={alue.paikat.every((paikka) => omatLoydetytIdt.has(paikka.id))}
         tila={tila}
         nyt={nyt}
         sijaintiTiedossa={sijainti !== null}
         onMittaa={mittaa}
+        onAloita={aloitaEtsinta}
       />
 
       {vihjeViesti && (
@@ -255,6 +268,8 @@ export function Aluesivu({
             paikka={valittuPaikka}
             loydot={loydot}
             omatLoydot={omatLoydot}
+            etsintaAlkoi={aktiivinenAlku}
+            loytoajastinAlkoi={loytoajastinAlkoi}
             onLoyto={onLoyto}
             onSulje={() => setValittuPaikka(null)}
           />
