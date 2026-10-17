@@ -6,6 +6,7 @@ import { haePelaajanNimi, tallennaPelaajanNimi } from "../../lib/pelaajanNimi";
 import { mitalitYhdelleKatkolle, MITALI_EMOJI } from "../tilastot/tilastoLaskenta";
 import { pullonKokoNimi } from "./pullonKoko";
 import { PullonKokoIkoni } from "./PullonKokoIkoni";
+import { Modaali } from "../../lib/Modaali";
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
@@ -19,6 +20,8 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
   const [nimi, setNimi] = useState(() => haePelaajanNimi());
   const [lahetetaan, setLahetetaan] = useState(false);
   const [virhe, setVirhe] = useState<string | null>(null);
+  const [kuvaAuki, setKuvaAuki] = useState(false);
+  const kuvaUrl = `${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`;
 
   const naytettavatLoydot = [
     ...loydot.filter((loyto) => loyto.paikkaId === paikka.id),
@@ -55,11 +58,32 @@ export function KatkoPaneeli({ paikka, loydot, omatLoydot, onLoyto, onSulje }: K
         Sulje
       </button>
 
-      <img
-        className="katko-kuva"
-        src={`${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`}
-        alt={paikka.kuvaus}
-      />
+      <button
+        type="button"
+        className="katko-kuva-nappi"
+        onClick={() => setKuvaAuki(true)}
+        aria-label="Avaa kuva isompana"
+      >
+        <img className="katko-kuva" src={kuvaUrl} alt={paikka.kuvaus} />
+      </button>
+
+      {kuvaAuki && (
+        <Modaali onSulje={() => setKuvaAuki(false)} sisallonLuokka="modaali-sisalto-kuva">
+          <button
+            type="button"
+            className="nappi nappi-toissijainen sulje-nappi"
+            onClick={() => setKuvaAuki(false)}
+          >
+            Sulje
+          </button>
+          <img
+            className="iso-kuva"
+            src={kuvaUrl}
+            alt={paikka.kuvaus}
+            onClick={() => setKuvaAuki(false)}
+          />
+        </Modaali>
+      )}
       <p className="katko-kuvaus">{paikka.kuvaus}</p>
 
       {paikka.pullonKokoMl != null && (
