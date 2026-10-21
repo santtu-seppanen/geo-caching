@@ -36,8 +36,10 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, onSulje }: LoytoAnimaati
 
   return (
     <Modaali onSulje={onSulje} sisallonLuokka="modaali-sisalto-sarjakuva">
-      <button type="button" className="loyto-sarjakuva" onClick={onSulje} aria-label="Ohita animaatio">
-        <div className="loyto-otsikko">KÄTKÖ LÖYDETTY!</div>
+      <button type="button" className={`loyto-sarjakuva${mitali ? ` loyto-${mitali}` : ""}`} onClick={onSulje} aria-label="Ohita animaatio">
+        <div className="loyto-otsikko">
+          {mitali === "kulta" ? "ENSIMMÄINEN LÖYTÄJÄ!" : "KÄTKÖ LÖYDETTY!"}
+        </div>
 
         <div className="loyto-ruudut" role="status">
           <div className="loyto-ruutu loyto-ruutu-1">
@@ -47,7 +49,7 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, onSulje }: LoytoAnimaati
           {ruutu >= 2 && (
             <div className="loyto-ruutu loyto-ruutu-2">
               <span className="loyto-rajahdys" aria-hidden="true">
-                <span>LÖYTYI!</span>
+                <span>{mitali === "kulta" ? "KULTAA!" : "LÖYTYI!"}</span>
               </span>
             </div>
           )}
