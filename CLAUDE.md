@@ -122,6 +122,10 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     muuttujaksi (ks. `app/.env.local.example`) sekä paikalliseen
     kehitykseen että GitHub Actions -buildiin — sama URL palvelee kaikkia
     reittejä. Pelkkä uusi deploy ilman provisiointia: `npm run deploy`.
+    `main`-pushi, joka muuttaa `worker/`-hakemistoa, deployaa workerin
+    automaattisesti (`.github/workflows/deploy-worker.yml`: testit, D1-
+    migraatiot, deploy) — vaatii GitHub-secretit `CLOUDFLARE_API_TOKEN` ja
+    `CLOUDFLARE_ACCOUNT_ID`.
 
 ## Konventiot
 
