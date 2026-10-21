@@ -116,3 +116,31 @@ export function laskeOmatLoydot(loydot: Loyto[], paikat: Paikka[], nimi: string)
     })
     .sort((a, b) => b.aika.localeCompare(a.aika));
 }
+
+/**
+ * Alueen "mestarit": eniten alueen kätköjä löytäneet nimimerkit (useita jos
+ * tasatilanne). Tyhjä lista jos alueella ei ole yhtään löytöä. Kutsujan
+ * antamat löydöt voivat sisältää muidenkin alueiden löytöjä — ne suodatetaan
+ * pois. Sama nimimerkki lasketaan kätkökohtaisesti kerran (tuplat ohitetaan).
+ */
+export function alueenMestarit(
+  alueenPaikkaIdt: ReadonlySet<string>,
+  loydot: Loyto[],
+): { nimet: string[]; maara: number } {
+  const kaytetyt = new Set<string>();
+  const maarat = new Map<string, number>();
+  for (const loyto of loydot) {
+    if (!alueenPaikkaIdt.has(loyto.paikkaId)) continue;
+    const avain = `${loyto.paikkaId}|${loyto.nimi.toLowerCase()}`;
+    if (kaytetyt.has(avain)) continue;
+    kaytetyt.add(avain);
+    maarat.set(loyto.nimi, (maarat.get(loyto.nimi) ?? 0) + 1);
+  }
+  const maara = Math.max(0, ...maarat.values());
+  if (maara === 0) return { nimet: [], maara: 0 };
+  const nimet = [...maarat.entries()]
+    .filter(([, m]) => m === maara)
+    .map(([nimi]) => nimi)
+    .sort((a, b) => a.localeCompare(b, "fi"));
+  return { nimet, maara };
+}

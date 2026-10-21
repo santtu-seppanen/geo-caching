@@ -8,6 +8,7 @@ import type { Sijainti } from "../../lib/geolocation";
 import { etaisyysMetreina } from "../etsi/distance";
 import { KATKO_AVAUTUU_METREINA } from "../etsi/kynnykset";
 import { KatkoPaneeli } from "./KatkoPaneeli";
+import { alueenMestarit, yhdistaLoydot } from "../tilastot/tilastoLaskenta";
 import { Edistymispalkki } from "./Edistymispalkki";
 import { omaSijaintiIkoni, loydettyIkoni, oletusIkoni } from "./leafletIkonit";
 import { Modaali } from "../../lib/Modaali";
@@ -76,6 +77,12 @@ export function Aluesivu({
   const loydetytIdt = useMemo(
     () => new Set([...loydot, ...omatLoydot].map((loyto) => loyto.paikkaId)),
     [loydot, omatLoydot],
+  );
+
+  const mestarit = useMemo(
+    () =>
+      alueenMestarit(new Set(alue.paikat.map((p) => p.id)), yhdistaLoydot(loydot, omatLoydot)),
+    [alue, loydot, omatLoydot],
   );
 
   // Pelimoodeissa edetään pelaajan omien löytöjen mukaan, ei kenen tahansa.
@@ -186,6 +193,12 @@ export function Aluesivu({
         yhteensa={alue.paikat.length}
         teksti="kätköä löydetty tällä alueella"
       />
+
+      {mestarit.maara > 0 && (
+        <p className="alueen-mestari">
+          👑 Alueen mestari: {mestarit.nimet.join(", ")} ({mestarit.maara} kätköä)
+        </p>
+      )}
 
       <PelimoodiPaneeli
         moodi={pelimoodi}
