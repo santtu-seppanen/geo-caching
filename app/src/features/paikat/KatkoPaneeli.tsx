@@ -8,7 +8,11 @@ import { pullonKokoNimi } from "./pullonKoko";
 import { PullonKokoIkoni } from "./PullonKokoIkoni";
 import { Modaali } from "../../lib/Modaali";
 import { muotoileKesto } from "../../lib/kesto";
+import type { Sijainti } from "../../lib/geolocation";
 import { etsintaKaynnissa } from "../pelimoodit/etsinta";
+
+/** Tätä epätarkempi GPS varoittaa pelaajaa, koska worker tarkistaa etäisyyden. */
+const HUONO_TARKKUUS_M = 50;
 
 interface KatkoPaneeliProps {
   paikka: Paikka;
@@ -19,7 +23,7 @@ interface KatkoPaneeliProps {
   /** Edellinen oma löytö tai etsinnän aloitus — löydölle tallennetaan kesto tästä. null jos etsintää ei ole aloitettu. */
   loytoajastinAlkoi: number | null;
   /** Pelaajan nykyinen sijainti — worker vertaa sitä kätkön koordinaatteihin. */
-  sijainti: { lat: number; lng: number } | null;
+  sijainti: Sijainti | null;
   onLoyto: (loyto: Loyto) => void;
   onSulje: () => void;
 }
@@ -153,6 +157,16 @@ export function KatkoPaneeli({
             Olet jo merkinnyt tämän kätkön löydetyksi nimellä “{siistiNimi}”.
           </p>
         )}
+        {!sijainti && (
+          <p className="lomake-virhe" role="alert">
+            Sijaintia ei saatu — salli paikannus, jotta löydön voi kirjata.
+          </p>
+        )}
+        {sijainti && sijainti.tarkkuusMetreina > HUONO_TARKKUUS_M && (
+          <p className="lomake-virhe" role="alert">
+            GPS on epätarkka (±{Math.round(sijainti.tarkkuusMetreina)} m) — kirjaus voi epäonnistua, siirry avoimempaan paikkaan.
+          </p>
+        )}
         {virhe && (
           <p className="lomake-virhe" role="alert">
             {virhe}
@@ -161,7 +175,7 @@ export function KatkoPaneeli({
         <button
           className="nappi nappi-ensisijainen"
           type="submit"
-          disabled={!siistiNimi || lahetetaan || joLoytanytTallaNimella}
+          disabled={!siistiNimi || lahetetaan || joLoytanytTallaNimella || !sijainti}
         >
           {lahetetaan ? "Lähetetään…" : "Merkitse löydetyksi"}
         </button>

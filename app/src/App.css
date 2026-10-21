@@ -1231,3 +1231,8 @@ body {
     animation: none;
   }
 }
+
+.loyto-kulta .loyto-otsikko { background: #ffd23f; }
+.loyto-hopea .loyto-otsikko { background: #dfe3e8; }
+.loyto-pronssi .loyto-otsikko { background: #e0a46b; }
+.loyto-kulta .loyto-rajahdys { background: #fff3a0; }
