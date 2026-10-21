@@ -27,6 +27,14 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   käyttäjän omasta sijainnista. Kätkön kuva ja kuvaus paljastuvat vasta
   **100 m** sisällä (ks. `app/src/features/etsi/`), jottei kartta
   itsessään spoilaa kätköä.
+  Karttalaattoina käytetään OSM:n vakiopalvelua OSMF:n laattakäyttöehtojen
+  mukaisesti (`app/src/lib/karttalaatat.ts`): attribuutio näkyvissä,
+  `tile.openstreetmap.org` ilman a/b/c-alidomaineja, **ei esilatausta tai
+  massalatausta** — vain käyttäjän oikeasti katsomat laatat jäävät service
+  workerin välimuistiin (CacheFirst, max 400 kpl, max 7 vrk), joten jo
+  katsottu kartta-alue toimii ilman verkkoa. Älä lisää alueen laattojen
+  "lataa offline" -toimintoa tälle palvelulle; se vaatisi oman
+  laattapalvelimen tai kaupallisen laattatarjoajan.
 - Löytö (nimi + ajankohta) kirjataan `worker/`-Cloudflare Workerin kautta
   Cloudflare D1 -tietokantaan — ks. Arkkitehtuuri alla. Sama nimimerkki ei
   voi merkitä samaa kätköä löydetyksi kahdesti. Kätkön kolme ensimmäistä

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { LAATTA_ATTRIBUUTIO, LAATTA_MAX_ZOOM, LAATTA_URL } from "../../lib/karttalaatat";
 import { MapContainer, TileLayer, Marker, Circle, CircleMarker, useMap } from "react-leaflet";
 import L from "leaflet";
 import type { Alue } from "./alueet";
@@ -230,8 +231,9 @@ export function Aluesivu({
           style={{ height: "100%", width: "100%" }}
         >
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url={LAATTA_URL}
+            attribution={LAATTA_ATTRIBUUTIO}
+            maxZoom={LAATTA_MAX_ZOOM}
           />
           <SovitaKartta pisteet={sovitusPisteet} ympyrat={sovitusYmpyrat} />
           {vihjeYmpyrat.map((ympyra, indeksi) => (
