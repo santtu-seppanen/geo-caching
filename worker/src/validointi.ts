@@ -3,6 +3,26 @@ export interface LoytoPyynto {
   nimi: string;
   /** Löytöön kulunut aika (ms), null jos etsintää ei ollut aloitettu. */
   kestoMs: number | null;
+  /** Pelaajan sijainti löytöhetkellä — worker vertaa sitä kätkön koordinaatteihin. null jos puuttuu. */
+  sijainti: { lat: number; lng: number } | null;
+}
+
+/**
+ * Suurin sallittu etäisyys kätköstä löydön kirjaushetkellä. Hieman
+ * KATKO_AVAUTUU_METREINA:a (100 m, ks. app/src/features/etsi/kynnykset.ts)
+ * suurempi, jotta GPS:n epätarkkuus ei estä oikeaa löytöä.
+ */
+export const LOYTO_MAX_ETAISYYS_M = 150;
+
+export function etaisyysMetreina(
+  a: { lat: number; lng: number },
+  b: { lat: number; lng: number },
+): number {
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const sinDLat = Math.sin(toRad(b.lat - a.lat) / 2);
+  const sinDLng = Math.sin(toRad(b.lng - a.lng) / 2);
+  const h = sinDLat * sinDLat + Math.cos(toRad(a.lat)) * Math.cos(toRad(b.lat)) * sinDLng * sinDLng;
+  return 2 * 6371000 * Math.asin(Math.min(1, Math.sqrt(h)));
 }
 
 /**
@@ -277,7 +297,7 @@ export function validoiLoytoPyynto(
     return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
   }
 
-  const { paikkaId, nimi, kestoMs, etsintaKestoMs } = data as Record<string, unknown>;
+  const { paikkaId, nimi, kestoMs, etsintaKestoMs, lat, lng } = data as Record<string, unknown>;
 
   if (typeof paikkaId !== "string" || !tunnetutPaikkaIdt.has(paikkaId)) {
     return { ok: false, virhe: "Tuntematon paikkaId" };
@@ -306,7 +326,15 @@ export function validoiLoytoPyynto(
     }
   }
 
-  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null } };
+  let sijainti: { lat: number; lng: number } | null = null;
+  if (lat !== undefined || lng !== undefined) {
+    if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return { ok: false, virhe: "lat ja lng täytyy olla lukuja" };
+    }
+    sijainti = { lat, lng };
+  }
+
+  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null, sijainti } };
 }
 
 function onKesto(arvo: unknown): arvo is number {

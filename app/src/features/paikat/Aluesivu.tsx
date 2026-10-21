@@ -270,6 +270,7 @@ export function Aluesivu({
             omatLoydot={omatLoydot}
             etsintaAlkoi={aktiivinenAlku}
             loytoajastinAlkoi={loytoajastinAlkoi}
+            sijainti={sijainti}
             onLoyto={onLoyto}
             onSulje={() => setValittuPaikka(null)}
           />

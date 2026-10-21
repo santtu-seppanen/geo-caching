@@ -23,6 +23,10 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, onSulje }: LoytoAnimaati
   const [ruutu, setRuutu] = useState(1);
 
   useEffect(() => {
+    navigator.vibrate?.([60, 40, 120]);
+  }, []);
+
+  useEffect(() => {
     const ajastin = setTimeout(
       () => (ruutu < RUUTUJA ? setRuutu(ruutu + 1) : onSulje()),
       RUUDUN_KESTO_MS,

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   validoiLoytoPyynto,
   ETSINTA_MAX_MS,
+  etaisyysMetreina,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
   validoiUusiKatkoPyynto,
@@ -913,5 +914,30 @@ describe("validoiPelimoodiPyynto", () => {
 
   it("hylkää tyhjän alueen", () => {
     expect(validoiPelimoodiPyynto({ alueAvain: "  ", pelimoodi: "vapaa" }).ok).toBe(false);
+  });
+});
+
+describe("löydön sijainti", () => {
+  const tunnetut = new Set(["paikka-1"]);
+
+  it("hyväksyy lat/lng:n ja palauttaa sen", () => {
+    const tulos = validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A", lat: 60.1, lng: 24.9 }, tunnetut);
+    expect(tulos.ok && tulos.pyynto.sijainti).toEqual({ lat: 60.1, lng: 24.9 });
+  });
+
+  it("puuttuva sijainti on null", () => {
+    const tulos = validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A" }, tunnetut);
+    expect(tulos.ok && tulos.pyynto.sijainti).toBeNull();
+  });
+
+  it("hylkää vain toisen koordinaatin tai ei-luvun", () => {
+    expect(validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A", lat: 60.1 }, tunnetut).ok).toBe(false);
+    expect(validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A", lat: "60", lng: 24 }, tunnetut).ok).toBe(false);
+  });
+
+  it("etaisyysMetreina laskee ~111 km asteelle", () => {
+    const m = etaisyysMetreina({ lat: 60, lng: 24 }, { lat: 61, lng: 24 });
+    expect(m).toBeGreaterThan(110_000);
+    expect(m).toBeLessThan(112_000);
   });
 });
