@@ -13,6 +13,7 @@ import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVerta
 import { ansaitutMerkit } from "./features/tilastot/merkit";
 import { haeHaaste, type Haaste } from "./features/haaste/haaste";
 import { aanetPaalla, asetaAanet } from "./lib/aanet";
+import { useEtsinnanPalautus } from "./features/pelimoodit/useEtsinnanPalautus";
 import { useEtsinnanIlmoitukset } from "./features/pelimoodit/useEtsinnanIlmoitukset";
 import { ETSINNAN_ILMOITUKSEN_TEKSTI, type EtsinnanIlmoitus } from "./features/pelimoodit/etsinnanIlmoitus";
 import { haeJono } from "./lib/loytoJono";
@@ -109,6 +110,13 @@ export function App() {
     );
     return mitalitYhdelleKatkolle(katkonLoydot).get(loytoAnimaatio.nimi);
   }, [loytoAnimaatio, loydot, omatLoydot]);
+
+  // Toisella laitteella aloitettu etsintä palautuu nimimerkin perusteella (ks. useEtsinnanPalautus).
+  // `etsintaVersio` uudelleenmuodostaa aluesivun, jotta se lukee päivittyneen aloituksen.
+  const [nimiLaukaisin, setNimiLaukaisin] = useState(0);
+  const [etsintaVersio, setEtsintaVersio] = useState(0);
+  const onEtsintaPalautettu = useCallback(() => setEtsintaVersio((v) => v + 1), []);
+  useEtsinnanPalautus(nimiLaukaisin, onEtsintaPalautettu);
 
   const kaikkiLoydot = useMemo(() => yhdistaLoydot(loydot, omatLoydot), [loydot, omatLoydot]);
 
@@ -342,7 +350,7 @@ export function App() {
         </p>
       ) : aktiivinenAlue ? (
         <Aluesivu
-          key={aktiivinenAlue.nimi}
+          key={`${aktiivinenAlue.nimi}-${etsintaVersio}`}
           alue={aktiivinenAlue}
           pelimoodi={alueenPelimoodi(pelimoodit, aktiivinenAlue.nimi)}
           sijainti={sijainti}
@@ -362,6 +370,7 @@ export function App() {
           loydettyjaAlueitaKokonaan={loydettyjaAlueitaKokonaan}
           onValitseAlue={setValittuAlue}
           onAloitaEtsinta={aloitaEtsinta}
+          onNimimerkki={() => setNimiLaukaisin((n) => n + 1)}
         />
       )}
     </main>

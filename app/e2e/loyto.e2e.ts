@@ -8,12 +8,14 @@ const paikat = [
 ];
 
 interface Mock {
+  /** Palvelimen GET /etsinnat -vastaus; testi voi muuttaa. */
+  etsinnat: unknown[];
   postit: { body: Record<string, unknown>; salasana: string | undefined }[];
 }
 
 /** Mockaa Workerin API:n; palauttaa tallennetut POST /loyda -pyynnöt. */
 async function mockaaApi(page: Page, loydaVastaus: { status: number; body: unknown } = { status: 201, body: { ok: true } }): Promise<Mock> {
-  const mock: Mock = { postit: [] };
+  const mock: Mock = { etsinnat: [], postit: [] };
   const json = (body: unknown, status = 200) => ({
     status,
     contentType: "application/json",
@@ -28,6 +30,7 @@ async function mockaaApi(page: Page, loydaVastaus: { status: number; body: unkno
     if (polku === "/paikat") return route.fulfill(json(paikat));
     if (polku === "/loydot") return route.fulfill(json([]));
     if (polku === "/alueet") return route.fulfill(json([]));
+    if (polku === "/etsinnat") return route.fulfill(json(mock.etsinnat));
     if (polku === "/haaste") return route.fulfill(json(null));
     if (polku.startsWith("/kuvat/")) return route.fulfill({ status: 200, contentType: "image/gif", body: Buffer.from("R0lGODlhAQABAAAAACw=", "base64") });
     if (polku === "/loyda" && pyynto.method() === "POST") {
@@ -121,4 +124,23 @@ test("ilman verkkoa löytö jonotetaan ja lähtee kun yhteys palaa", async ({ pa
   await expect.poll(() => mock.postit.length).toBe(1);
   expect(mock.postit[0].body).toMatchObject({ nimi: "Offline-Olli", paikkaId: "neittava-1" });
   await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("viinakatkoily.loytojono") ?? "[]").length)).toBe(0);
+});
+
+test("toisella laitteella aloitettu etsintä palautuu nimimerkillä", async ({ page }) => {
+  const mock = await mockaaApi(page);
+  // Toinen laite aloitti etsinnän 10 min sitten samalla nimimerkillä (kirjainkoko eri).
+  mock.etsinnat = [
+    { alueAvain: "neittava", nimi: "OLLI", alkoi: new Date(Date.now() - 600_000).toISOString(), sijainti: null },
+  ];
+  await page.goto("./");
+  expect(await page.evaluate(() => localStorage.getItem("viinakatkoily.etsinta.neittava"))).toBeNull();
+
+  await page.getByLabel("Nimimerkki").fill("olli");
+  await page.getByRole("button", { name: "Tallenna" }).click();
+
+  await expect
+    .poll(() => page.evaluate(() => Number(localStorage.getItem("viinakatkoily.etsinta.neittava"))))
+    .toBeGreaterThan(Date.now() - 700_000);
+  const alkoi = await page.evaluate(() => Number(localStorage.getItem("viinakatkoily.etsinta.neittava")));
+  expect(alkoi).toBeLessThan(Date.now() - 500_000);
 });
