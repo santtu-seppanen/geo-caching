@@ -401,3 +401,59 @@ export function validoiPelimoodiPyynto(data: unknown): PelimoodiValidointiTulos 
 
   return { ok: true, pyynto: { alueAvain: alueAvain.trim(), pelimoodi } };
 }
+
+export const HAASTE_NIMI_MAX_PITUUS = 60;
+export const HAASTE_TAVOITE_MAX = 1000;
+
+export interface Haaste {
+  nimi: string;
+  /** ISO-aikaleimat; loppu on aina alun jälkeen. */
+  alku: string;
+  loppu: string;
+  /** Montako eri kätköä pitää löytää haasteen aikana. */
+  tavoite: number;
+}
+
+export type HaasteValidointiTulos =
+  | { ok: true; haaste: Haaste | null }
+  | { ok: false; virhe: string };
+
+/** `{ poista: true }` tyhjentää haasteen (haaste: null), muuten validoidaan uusi haaste. */
+export function validoiHaastePyynto(data: unknown): HaasteValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+  const { poista, nimi, alku, loppu, tavoite } = data as Record<string, unknown>;
+
+  if (poista === true) return { ok: true, haaste: null };
+
+  if (typeof nimi !== "string" || nimi.trim().length === 0) {
+    return { ok: false, virhe: "nimi on pakollinen" };
+  }
+  if (nimi.trim().length > HAASTE_NIMI_MAX_PITUUS) {
+    return { ok: false, virhe: `nimi saa olla enintään ${HAASTE_NIMI_MAX_PITUUS} merkkiä` };
+  }
+
+  const alkuMs = typeof alku === "string" ? Date.parse(alku) : NaN;
+  const loppuMs = typeof loppu === "string" ? Date.parse(loppu) : NaN;
+  if (Number.isNaN(alkuMs) || Number.isNaN(loppuMs)) {
+    return { ok: false, virhe: "alku ja loppu täytyy olla ISO-aikaleimoja" };
+  }
+  if (loppuMs <= alkuMs) {
+    return { ok: false, virhe: "loppu täytyy olla alun jälkeen" };
+  }
+
+  if (typeof tavoite !== "number" || !Number.isInteger(tavoite) || tavoite < 1 || tavoite > HAASTE_TAVOITE_MAX) {
+    return { ok: false, virhe: `tavoite täytyy olla kokonaisluku 1–${HAASTE_TAVOITE_MAX}` };
+  }
+
+  return {
+    ok: true,
+    haaste: {
+      nimi: nimi.trim(),
+      alku: new Date(alkuMs).toISOString(),
+      loppu: new Date(loppuMs).toISOString(),
+      tavoite,
+    },
+  };
+}
