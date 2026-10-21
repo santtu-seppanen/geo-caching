@@ -148,7 +148,7 @@ export function KatkoPaneeli({
       <div className="loytajat">
         <h3>Löytäjät</h3>
         {naytettavatLoydot.length === 0 ? (
-          <p className="tyhja-tila">Ei vielä löytäjiä — ole ensimmäinen!</p>
+          <p className="tyhja-tila tapahtuma-kupla">Ei vielä löytäjiä — ole ensimmäinen!</p>
         ) : (
           <ul className="loytaja-lista">
             {naytettavatLoydot.map((loyto, indeksi) => {
