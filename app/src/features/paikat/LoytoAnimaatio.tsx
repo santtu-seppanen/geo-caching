@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Modaali } from "../../lib/Modaali";
 import { muotoileKesto } from "../../lib/kesto";
+import type { Merkki } from "../tilastot/merkit";
 import { MITALI_EMOJI, type Mitali } from "../tilastot/tilastoLaskenta";
 
 /** Yhden ruudun kesto — kolme ruutua, jonka jälkeen animaatio sulkeutuu itsestään. */
@@ -12,6 +13,8 @@ interface LoytoAnimaatioProps {
   mitali: Mitali | undefined;
   kestoMs: number | null;
   kommentti?: string | null;
+  /** Tämän löydön ansaitsemat saavutusmerkit (ks. tilastot/merkit.ts). */
+  merkit?: Merkki[];
   onSulje: () => void;
 }
 
@@ -20,7 +23,7 @@ interface LoytoAnimaatioProps {
  * (ks. Saannot.tsx): keltainen otsikkolaatikko, paksu musta kehys ja
  * puhekupla. Kolme ruutua ilmestyy peräkkäin; napautus ohittaa.
  */
-export function LoytoAnimaatio({ nimi, mitali, kestoMs, kommentti, onSulje }: LoytoAnimaatioProps) {
+export function LoytoAnimaatio({ nimi, mitali, kestoMs, kommentti, merkit = [], onSulje }: LoytoAnimaatioProps) {
   const [ruutu, setRuutu] = useState(1);
 
   useEffect(() => {
@@ -61,6 +64,15 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, kommentti, onSulje }: Lo
                 {kestoMs != null && <> Aika: ⏱ {muotoileKesto(kestoMs)}</>}
                 {kommentti && <> “{kommentti}”</>}
               </span>
+              {merkit.length > 0 && (
+                <ul className="loyto-merkit">
+                  {merkit.map((m) => (
+                    <li key={m.id}>
+                      <span aria-hidden="true">{m.emoji}</span> {m.nimi}
+                    </li>
+                  ))}
+                </ul>
+              )}
               {mitali && (
                 <span className="loyto-mitali" aria-label={`Mitali: ${mitali}`}>
                   {MITALI_EMOJI[mitali]}

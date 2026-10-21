@@ -9,6 +9,7 @@ import {
   normalisoiAlueNimi,
 } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
+import { ansaitutMerkit } from "./features/tilastot/merkit";
 import { haeJono } from "./lib/loytoJono";
 import { lahetaJonotetutLoydot } from "./features/paikat/loydotApi";
 import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
@@ -97,6 +98,14 @@ export function App() {
     );
     return mitalitYhdelleKatkolle(katkonLoydot).get(loytoAnimaatio.nimi);
   }, [loytoAnimaatio, loydot, omatLoydot]);
+
+  const animaationMerkit = useMemo(
+    () =>
+      loytoAnimaatio
+        ? ansaitutMerkit(loytoAnimaatio, paikat, yhdistaLoydot(loydot, omatLoydot))
+        : [],
+    [loytoAnimaatio, paikat, loydot, omatLoydot],
+  );
 
   const lisaaOmaLoyto = useCallback((loyto: Loyto) => {
     setOmatLoydot((edelliset) => [...edelliset, loyto]);
@@ -264,6 +273,7 @@ export function App() {
           mitali={animaationMitali}
           kestoMs={loytoAnimaatio.kestoMs ?? null}
           kommentti={loytoAnimaatio.kommentti}
+          merkit={animaationMerkit}
           onSulje={suljeLoytoAnimaatio}
         />
       )}
