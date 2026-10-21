@@ -14,6 +14,9 @@ import { etsintaKaynnissa } from "../pelimoodit/etsinta";
 /** Tätä epätarkempi GPS varoittaa pelaajaa, koska worker tarkistaa etäisyyden. */
 const HUONO_TARKKUUS_M = 50;
 
+/** Sama raja kuin workerissa (worker/src/validointi.ts). */
+const KOMMENTTI_MAX_PITUUS = 140;
+
 interface KatkoPaneeliProps {
   paikka: Paikka;
   loydot: Loyto[];
@@ -40,6 +43,7 @@ export function KatkoPaneeli({
 }: KatkoPaneeliProps) {
   const [nimi, setNimi] = useState(() => haePelaajanNimi());
   const [lahetetaan, setLahetetaan] = useState(false);
+  const [kommentti, setKommentti] = useState("");
   const [virhe, setVirhe] = useState<string | null>(null);
   const [kuvaAuki, setKuvaAuki] = useState(false);
   const kuvaUrl = `${import.meta.env.VITE_LOYTO_API_URL}/kuvat/${paikka.kuva}`;
@@ -64,6 +68,7 @@ export function KatkoPaneeli({
     setVirhe(null);
     // Tarkistetaan takaraja vasta lähetyshetkellä — paneeli on voinut olla
     // auki takarajan yli. Takarajan jälkeen löytö kirjataan ilman kestoa.
+    const siistittyKommentti = kommentti.trim() || null;
     const nyt = Date.now();
     const ajat =
       etsintaAlkoi !== null && loytoajastinAlkoi !== null && etsintaKaynnissa(etsintaAlkoi, nyt)
@@ -71,9 +76,9 @@ export function KatkoPaneeli({
         : null;
     const kestoMs = ajat?.kestoMs ?? null;
     try {
-      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat, sijainti);
+      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat, sijainti, siistittyKommentti);
       tallennaPelaajanNimi(siistittyNimi);
-      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date(nyt).toISOString(), kestoMs });
+      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date(nyt).toISOString(), kestoMs, kommentti: siistittyKommentti });
     } catch (virhe) {
       setVirhe(virhe instanceof Error ? virhe.message : "Löydön tallennus epäonnistui");
     } finally {
@@ -135,6 +140,7 @@ export function KatkoPaneeli({
                   {mitali && <span aria-hidden="true">{MITALI_EMOJI[mitali]} </span>}
                   {loyto.nimi} — {new Date(loyto.aika).toLocaleDateString("fi-FI")}
                   {loyto.kestoMs != null && <> · ⏱ {muotoileKesto(loyto.kestoMs)}</>}
+                  {loyto.kommentti && <q className="loyto-kommentti">{loyto.kommentti}</q>}
                 </li>
               );
             })}
@@ -150,6 +156,16 @@ export function KatkoPaneeli({
             value={nimi}
             onChange={(e) => setNimi(e.target.value)}
             placeholder="Esim. Matti M."
+          />
+        </label>
+        <label className="kentta">
+          <span className="kentan-nimi">Kommentti (vapaaehtoinen)</span>
+          <input
+            className="teksti-syote"
+            value={kommentti}
+            onChange={(e) => setKommentti(e.target.value)}
+            maxLength={KOMMENTTI_MAX_PITUUS}
+            placeholder="Esim. löytyi puun takaa"
           />
         </label>
         {joLoytanytTallaNimella && (

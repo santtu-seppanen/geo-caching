@@ -11,6 +11,7 @@ interface LoytoAnimaatioProps {
   nimi: string;
   mitali: Mitali | undefined;
   kestoMs: number | null;
+  kommentti?: string | null;
   onSulje: () => void;
 }
 
@@ -19,7 +20,7 @@ interface LoytoAnimaatioProps {
  * (ks. Saannot.tsx): keltainen otsikkolaatikko, paksu musta kehys ja
  * puhekupla. Kolme ruutua ilmestyy peräkkäin; napautus ohittaa.
  */
-export function LoytoAnimaatio({ nimi, mitali, kestoMs, onSulje }: LoytoAnimaatioProps) {
+export function LoytoAnimaatio({ nimi, mitali, kestoMs, kommentti, onSulje }: LoytoAnimaatioProps) {
   const [ruutu, setRuutu] = useState(1);
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, onSulje }: LoytoAnimaati
               <span className="loyto-kupla">
                 Ja näin: LÖYDETTY! Nimimerkki: {nimi}.
                 {kestoMs != null && <> Aika: ⏱ {muotoileKesto(kestoMs)}</>}
+                {kommentti && <> “{kommentti}”</>}
               </span>
               {mitali && (
                 <span className="loyto-mitali" aria-label={`Mitali: ${mitali}`}>

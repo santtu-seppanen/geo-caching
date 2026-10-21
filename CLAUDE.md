@@ -98,6 +98,8 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     (`X-Jaettu-Salasana`-header — karsii botteja, ei oikea autentikointi),
     hylkää (409) jos sama nimimerkki (kirjainkoosta riippumatta) on jo
     merkinnyt saman kätkön löydetyksi, ja lisää rivin `loydot`-tauluun.
+    Löytäjä voi jättää myös vapaaehtoisen kommentin (`loydot.kommentti`,
+    max 140 merkkiä, trimmattuna; tyhjä = NULL).
     Sama tuplan esto tehdään ensin myös clientillä (`KatkoPaneeli.tsx`)
     UX:n vuoksi, mutta worker on aina lopullinen totuus.
   - `POST /admin/luo-katko` — validoi uuden kätkön kentät (id, alue,

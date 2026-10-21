@@ -3,6 +3,8 @@ export interface LoytoPyynto {
   nimi: string;
   /** Löytöön kulunut aika (ms), null jos etsintää ei ollut aloitettu. */
   kestoMs: number | null;
+  /** Vapaaehtoinen kommentti, null jos tyhjä. */
+  kommentti: string | null;
   /** Pelaajan sijainti löytöhetkellä — worker vertaa sitä kätkön koordinaatteihin. null jos puuttuu. */
   sijainti: { lat: number; lng: number } | null;
 }
@@ -38,6 +40,7 @@ export type ValidointiTulos =
   | { ok: false; virhe: string };
 
 const NIMI_MAX_PITUUS = 50;
+export const KOMMENTTI_MAX_PITUUS = 140;
 
 export interface UusiKatkoPyynto {
   id: string;
@@ -297,7 +300,7 @@ export function validoiLoytoPyynto(
     return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
   }
 
-  const { paikkaId, nimi, kestoMs, etsintaKestoMs, lat, lng } = data as Record<string, unknown>;
+  const { paikkaId, nimi, kestoMs, etsintaKestoMs, lat, lng, kommentti } = data as Record<string, unknown>;
 
   if (typeof paikkaId !== "string" || !tunnetutPaikkaIdt.has(paikkaId)) {
     return { ok: false, virhe: "Tuntematon paikkaId" };
@@ -326,6 +329,17 @@ export function validoiLoytoPyynto(
     }
   }
 
+  let siistittyKommentti: string | null = null;
+  if (kommentti !== undefined && kommentti !== null) {
+    if (typeof kommentti !== "string") {
+      return { ok: false, virhe: "kommentti täytyy olla merkkijono" };
+    }
+    if (kommentti.trim().length > KOMMENTTI_MAX_PITUUS) {
+      return { ok: false, virhe: `kommentti saa olla enintään ${KOMMENTTI_MAX_PITUUS} merkkiä` };
+    }
+    siistittyKommentti = kommentti.trim() || null;
+  }
+
   let sijainti: { lat: number; lng: number } | null = null;
   if (lat !== undefined || lng !== undefined) {
     if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
@@ -334,7 +348,7 @@ export function validoiLoytoPyynto(
     sijainti = { lat, lng };
   }
 
-  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null, sijainti } };
+  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null, kommentti: siistittyKommentti, sijainti } };
 }
 
 function onKesto(arvo: unknown): arvo is number {
