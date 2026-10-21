@@ -5,6 +5,7 @@ import {
   ryhmitteleAlueiksi,
   yhdistaKaikkiSamannimiset,
   alueLoydettyKokonaan,
+  type Alue,
   yhdistaSamannimiset,
   normalisoiAlueNimi,
 } from "./features/paikat/alueet";
@@ -12,6 +13,8 @@ import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVerta
 import { ansaitutMerkit } from "./features/tilastot/merkit";
 import { haeHaaste, type Haaste } from "./features/haaste/haaste";
 import { aanetPaalla, asetaAanet } from "./lib/aanet";
+import { useEtsinnanIlmoitukset } from "./features/pelimoodit/useEtsinnanIlmoitukset";
+import { ETSINNAN_ILMOITUKSEN_TEKSTI, type EtsinnanIlmoitus } from "./features/pelimoodit/etsinnanIlmoitus";
 import { haeJono } from "./lib/loytoJono";
 import { lahetaJonotetutLoydot } from "./features/paikat/loydotApi";
 import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
@@ -189,6 +192,25 @@ export function App() {
   const alueAvaimet = useMemo(() => alueet.map((alue) => normalisoiAlueNimi(alue.nimi)), [alueet]);
   useSijainninJako(sijainti, alueAvaimet);
 
+  // Etsinnän 15 min varoitus ja päättyminen: käyttöjärjestelmäilmoitus + sovelluksen sisäinen kupla.
+  const [etsintaKupla, setEtsintaKupla] = useState<string | null>(null);
+  const alueetRef = useRef<Alue[]>([]);
+  useEffect(() => {
+    alueetRef.current = alueet;
+  }, [alueet]);
+  const onEtsinnanIlmoitus = useCallback((alueAvain: string, ilmoitus: EtsinnanIlmoitus) => {
+    const nimi = alueetRef.current.find((a) => normalisoiAlueNimi(a.nimi) === alueAvain)?.nimi ?? alueAvain;
+    const teksti = ETSINNAN_ILMOITUKSEN_TEKSTI[ilmoitus](nimi);
+    setEtsintaKupla(teksti);
+    void nayttaIlmoitus(ilmoitus === "paattyi" ? "Etsintä päättyi" : "Etsintä päättyy pian", teksti);
+  }, []);
+  useEtsinnanIlmoitukset(onEtsinnanIlmoitus);
+  useEffect(() => {
+    if (!etsintaKupla) return;
+    const ajastin = setTimeout(() => setEtsintaKupla(null), 8000);
+    return () => clearTimeout(ajastin);
+  }, [etsintaKupla]);
+
   const lahellaOlevaAlue = useMemo(
     () => etsiLaheisinAlue(paikat, sijainti),
     [sijainti, paikat],
@@ -285,11 +307,18 @@ export function App() {
         <Modaali onSulje={() => setNaytaTilastot(false)}>
           <Tilastot
             paikat={paikat}
+            pelimoodit={pelimoodit}
             loydot={loydot}
             omatLoydot={omatLoydot}
             onSulje={() => setNaytaTilastot(false)}
           />
         </Modaali>
+      )}
+
+      {etsintaKupla && (
+        <p className="tapahtuma-kupla" role="status">
+          {etsintaKupla}
+        </p>
       )}
 
       {loytoAnimaatio && (

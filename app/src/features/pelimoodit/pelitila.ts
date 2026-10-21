@@ -64,3 +64,20 @@ export function tallennaEtsinnanAlku(alueAvain: string, alkoi: number): void {
     // Hiljainen epäonnistuminen — etsintä on käynnissä vain tämän sivulatauksen ajan.
   }
 }
+
+/** Kaikki laitteella tallennetut etsinnät (normalisoitu alue-avain + aloitushetki). */
+export function lataaKaikkiEtsinnat(): { alueAvain: string; alkoi: number }[] {
+  const tulos: { alueAvain: string; alkoi: number }[] = [];
+  try {
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const avain = window.localStorage.key(i);
+      if (!avain?.startsWith(ETSINTA_ETULIITE)) continue;
+      const alueAvain = avain.slice(ETSINTA_ETULIITE.length);
+      const alkoi = lataaEtsinnanAlku(alueAvain);
+      if (alkoi !== null) tulos.push({ alueAvain, alkoi });
+    }
+  } catch {
+    // localStorage ei käytettävissä — ei etsintöjä.
+  }
+  return tulos;
+}

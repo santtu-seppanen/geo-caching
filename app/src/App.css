@@ -1537,3 +1537,8 @@ body {
   width: 100%;
   color: var(--vari-teksti-himmea);
 }
+
+.ohitukset-lista {
+  margin: 0;
+  padding-left: 1.2rem;
+}
