@@ -182,3 +182,28 @@ export async function asetaAlueenPelimoodi(db: D1Database, asetus: AlueenPelimoo
     .bind(asetus.alueAvain, asetus.pelimoodi)
     .run();
 }
+
+export interface Haaste {
+  nimi: string;
+  alku: string;
+  loppu: string;
+  tavoite: number;
+}
+
+export async function haeHaaste(db: D1Database): Promise<Haaste | null> {
+  return db.prepare("SELECT nimi, alku, loppu, tavoite FROM haaste WHERE id = 1").first<Haaste>();
+}
+
+/** Korvaa nykyisen haasteen; null poistaa sen. */
+export async function asetaHaaste(db: D1Database, haaste: Haaste | null): Promise<void> {
+  if (!haaste) {
+    await db.prepare("DELETE FROM haaste WHERE id = 1").run();
+    return;
+  }
+  await db
+    .prepare(
+      "INSERT INTO haaste (id, nimi, alku, loppu, tavoite) VALUES (1, ?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET nimi = excluded.nimi, alku = excluded.alku, loppu = excluded.loppu, tavoite = excluded.tavoite",
+    )
+    .bind(haaste.nimi, haaste.alku, haaste.loppu, haaste.tavoite)
+    .run();
+}

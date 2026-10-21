@@ -112,6 +112,12 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     tallentaa kuvan R2:een ja lisää rivin `paikat`-tauluun.
   - `POST /admin/poista-katko` — sama admin-salasana, poistaa kätkön
     (ja sen löydöt) D1:stä sekä sen kuvan R2:sta.
+  - `GET /haaste` — aktiivinen aikarajattu yhteishaaste tai `null` (julkinen).
+    `POST /admin/aseta-haaste` (admin-salasana) asettaa sen
+    (`{ nimi, alku, loppu, tavoite }`) tai poistaa (`{ poista: true }`).
+    D1-taulussa `haaste` on tasan yksi rivi; edistymistä ei tallenneta —
+    client laskee sen `loydot.aika`-kentästä (montako eri kätköä löydetty
+    välillä alku–loppu, ks. `app/src/features/haaste/`).
   - `POST /admin/aseta-pelimoodi` — sama admin-salasana, asettaa alueen
     pelimoodin (`{ alueAvain, pelimoodi }`).
   - Toisin kuin `VITE_LOYTO_SALASANA`, admin-salasanaa **ei** upoteta

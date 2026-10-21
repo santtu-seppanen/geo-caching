@@ -3,6 +3,7 @@ import {
   validoiLoytoPyynto,
   ETSINTA_MAX_MS,
   etaisyysMetreina,
+  validoiHaastePyynto,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
   validoiUusiKatkoPyynto,
@@ -981,5 +982,37 @@ describe("löydön aika (offline-jono)", () => {
     expect(pyynto(new Date(Date.now() - 8 * 24 * 3_600_000).toISOString()).ok).toBe(false);
     expect(pyynto("eilen").ok).toBe(false);
     expect(pyynto(123).ok).toBe(false);
+  });
+});
+
+describe("validoiHaastePyynto", () => {
+  const ok = { nimi: " Viikonloppu ", alku: "2026-10-23T16:00:00Z", loppu: "2026-10-25T18:00:00Z", tavoite: 10 };
+
+  it("hyväksyy ja normalisoi haasteen", () => {
+    expect(validoiHaastePyynto(ok)).toEqual({
+      ok: true,
+      haaste: { nimi: "Viikonloppu", alku: "2026-10-23T16:00:00.000Z", loppu: "2026-10-25T18:00:00.000Z", tavoite: 10 },
+    });
+  });
+
+  it("poista tyhjentää haasteen", () => {
+    expect(validoiHaastePyynto({ poista: true })).toEqual({ ok: true, haaste: null });
+  });
+
+  it("hylkää virheelliset kentät", () => {
+    for (const huono of [
+      { ...ok, nimi: "  " },
+      { ...ok, nimi: "x".repeat(61) },
+      { ...ok, alku: "huomenna" },
+      { ...ok, loppu: ok.alku },
+      { ...ok, loppu: "2026-10-22T00:00:00Z" },
+      { ...ok, tavoite: 0 },
+      { ...ok, tavoite: 1.5 },
+      { ...ok, tavoite: 1001 },
+      { ...ok, tavoite: "10" },
+    ]) {
+      expect(validoiHaastePyynto(huono).ok, JSON.stringify(huono)).toBe(false);
+    }
+    expect(validoiHaastePyynto(null).ok).toBe(false);
   });
 });

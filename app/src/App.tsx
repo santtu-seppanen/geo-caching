@@ -10,6 +10,7 @@ import {
 } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { ansaitutMerkit } from "./features/tilastot/merkit";
+import { haeHaaste, type Haaste } from "./features/haaste/haaste";
 import { haeJono } from "./lib/loytoJono";
 import { lahetaJonotetutLoydot } from "./features/paikat/loydotApi";
 import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
@@ -51,6 +52,7 @@ export function App() {
   const [omatLoydot, setOmatLoydot] = useState<Loyto[]>(() =>
     haeJono().map(({ paikkaId, nimi, aika, kestoMs, kommentti }) => ({ paikkaId, nimi, aika, kestoMs, kommentti })),
   );
+  const [haaste, setHaaste] = useState<Haaste | null>(null);
   const [pelimoodit, setPelimoodit] = useState<AlueidenPelimoodit>(new Map());
   const [lataustila, setLataustila] = useState<Lataustila>("lataa");
 
@@ -71,6 +73,8 @@ export function App() {
           // toimivat silloin oletusmoodissa.
           haeAlueidenPelimoodit().catch(() => new Map()),
         ]);
+        // Kuten pelimoodit: haasteen puuttuminen ei estä pelaamista.
+        haeHaaste().then((h) => !peruttu && setHaaste(h)).catch(() => {});
         if (peruttu) return;
         setPaikat(uudetPaikat);
         setLoydot(uudetLoydot);
@@ -98,6 +102,8 @@ export function App() {
     );
     return mitalitYhdelleKatkolle(katkonLoydot).get(loytoAnimaatio.nimi);
   }, [loytoAnimaatio, loydot, omatLoydot]);
+
+  const kaikkiLoydot = useMemo(() => yhdistaLoydot(loydot, omatLoydot), [loydot, omatLoydot]);
 
   const animaationMerkit = useMemo(
     () =>
@@ -303,6 +309,8 @@ export function App() {
           lahellaOlevaAlue={lahellaOlevaAlue}
           lahellaOlevatAlueet={lahellaOlevatAlueet}
           pelimoodit={pelimoodit}
+          haaste={haaste}
+          kaikkiLoydot={kaikkiLoydot}
           loydettyjaAlueitaKokonaan={loydettyjaAlueitaKokonaan}
           onValitseAlue={setValittuAlue}
           onAloitaEtsinta={aloitaEtsinta}
