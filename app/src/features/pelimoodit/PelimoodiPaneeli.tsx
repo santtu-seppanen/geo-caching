@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Paikka } from "../paikat/types";
 import type { Pelitila } from "./pelitila";
 import { ETSINTA_MAX_MS, type Eteneminen } from "./etsinta";
@@ -10,6 +10,10 @@ import {
   VIHJE_TASOT,
 } from "./vihjeet";
 import { muotoileKesto } from "../../lib/kesto";
+import { pelitapahtuma, type TapahtumaTila } from "./tapahtumat";
+
+/** Kuinka kauan tapahtumakupla näkyy. */
+const KUPLA_NAKYVISSA_MS = 4000;
 
 interface PelimoodiPaneeliProps {
   moodi: Pelimoodi;
@@ -46,6 +50,24 @@ export function PelimoodiPaneeli({
   const { kohde, vuoroAlkoi, ohitetutIdt } = eteneminen;
   const aloitettu = etsintaAlkoi !== null;
   const paattyi = aloitettu && !kaynnissa;
+
+  // Sarjakuvakupla vihjeen avautuessa / kätkön ohituksessa — vertaa edelliseen renderiin.
+  const [kupla, setKupla] = useState<string | null>(null);
+  const edellinenTila = useRef<TapahtumaTila | null>(null);
+  const nykyinenTila: TapahtumaTila = {
+    moodi,
+    vuoroAlkoi,
+    avautuneitaVihjeita: vuoroAlkoi === null ? 0 : avautuneitaVihjeita(vuoroAlkoi, nyt),
+    ohitettuja: ohitetutIdt.size,
+  };
+  const viesti = pelitapahtuma(edellinenTila.current, nykyinenTila);
+  useEffect(() => {
+    edellinenTila.current = nykyinenTila;
+    if (!viesti) return;
+    setKupla(viesti);
+    const ajastin = setTimeout(() => setKupla(null), KUPLA_NAKYVISSA_MS);
+    return () => clearTimeout(ajastin);
+  }, [nykyinenTila.moodi, nykyinenTila.vuoroAlkoi, nykyinenTila.avautuneitaVihjeita, nykyinenTila.ohitettuja]);
 
   const viimeisinMittaus = tila.mittaukset.at(-1) ?? null;
   const mittausOdotusMs = viimeisinMittaus ? viimeisinMittaus.aika + MITTAUS_VALI_MS - nyt : 0;
@@ -127,6 +149,11 @@ export function PelimoodiPaneeli({
 
   return (
     <div className="pelimoodi-paneeli">
+      {kupla && (
+        <p className="tapahtuma-kupla" role="status">
+          {kupla}
+        </p>
+      )}
       <p className="pelimoodi-otsikko">
         <span className="pelimoodi-nimi">{PELIMOODIN_NIMI[moodi]}</span>
         {kohde && (

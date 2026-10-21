@@ -1281,3 +1281,34 @@ body {
   font-weight: 900;
   text-transform: uppercase;
 }
+
+/* Pelitapahtuman (uusi vihje, ohitettu kätkö) puhekupla — sama muotokieli kuin löytöanimaatiossa. */
+.tapahtuma-kupla {
+  position: relative;
+  margin: 0 0 0.9rem;
+  padding: 0.5rem 0.9rem;
+  background: #fff;
+  border: 3px solid #1a1a1a;
+  border-radius: 1.2rem;
+  font-weight: 800;
+  animation: loyto-pamahdys 0.3s ease-out;
+}
+
+.tapahtuma-kupla::after {
+  content: "";
+  position: absolute;
+  left: 1.4rem;
+  bottom: -0.6rem;
+  width: 0.8rem;
+  height: 0.8rem;
+  background: #fff;
+  border-right: 3px solid #1a1a1a;
+  border-bottom: 3px solid #1a1a1a;
+  transform: skewX(-25deg) rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tapahtuma-kupla {
+    animation: none;
+  }
+}
