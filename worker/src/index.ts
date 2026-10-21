@@ -13,6 +13,8 @@ import {
 } from "./d1.js";
 import { haeKuva, poistaKuva, tallennaKuva } from "./r2.js";
 import {
+  etaisyysMetreina,
+  LOYTO_MAX_ETAISYYS_M,
   validoiLoytoPyynto,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
@@ -132,6 +134,17 @@ async function kasitteleLoyda(
   const tulos = validoiLoytoPyynto(data, tunnetutPaikkaIdt);
   if (!tulos.ok) {
     return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  const paikka = (await haePaikat(env.DB)).find((p) => p.id === tulos.pyynto.paikkaId);
+  if (!paikka) {
+    return jsonVastaus({ error: "Tuntematon paikkaId" }, 400, corsHeaders);
+  }
+  if (!tulos.pyynto.sijainti) {
+    return jsonVastaus({ error: "Sijainti puuttuu — salli paikannus ja yritä uudelleen" }, 400, corsHeaders);
+  }
+  if (etaisyysMetreina(tulos.pyynto.sijainti, paikka) > LOYTO_MAX_ETAISYYS_M) {
+    return jsonVastaus({ error: "Olet liian kaukana kätköstä" }, 403, corsHeaders);
   }
 
   if (await onkoJoLoytanyt(env.DB, tulos.pyynto.paikkaId, tulos.pyynto.nimi)) {
