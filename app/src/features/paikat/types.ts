@@ -17,4 +17,6 @@ export interface Loyto {
   aika: string;
   /** Löytöön kulunut aika (ms) edellisestä löydöstä tai etsinnän aloituksesta, null jos ei tiedossa. */
   kestoMs?: number | null;
+  /** Löytäjän vapaaehtoinen kommentti, null/puuttuu jos ei jätetty. */
+  kommentti?: string | null;
 }

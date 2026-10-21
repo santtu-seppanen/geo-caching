@@ -941,3 +941,24 @@ describe("löydön sijainti", () => {
     expect(m).toBeLessThan(112_000);
   });
 });
+
+describe("löydön kommentti", () => {
+  const tunnetut = new Set(["paikka-1"]);
+  const pyynto = (kommentti: unknown) => validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A", kommentti }, tunnetut);
+
+  it("puuttuva, tyhjä ja pelkkä välilyönti tallentuvat nulliksi", () => {
+    expect(validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A" }, tunnetut)).toMatchObject({ ok: true, pyynto: { kommentti: null } });
+    expect(pyynto("")).toMatchObject({ ok: true, pyynto: { kommentti: null } });
+    expect(pyynto("   ")).toMatchObject({ ok: true, pyynto: { kommentti: null } });
+  });
+
+  it("trimmaa ja hyväksyy tasan 140 merkkiä", () => {
+    expect(pyynto("  moi  ")).toMatchObject({ ok: true, pyynto: { kommentti: "moi" } });
+    expect(pyynto("x".repeat(140)).ok).toBe(true);
+    expect(pyynto("x".repeat(141)).ok).toBe(false);
+  });
+
+  it("hylkää ei-merkkijonon", () => {
+    expect(pyynto(123).ok).toBe(false);
+  });
+});

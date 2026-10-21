@@ -4,7 +4,7 @@ import { ETSINTA_MAX_MS } from "./validointi";
 
 interface Rivit {
   paikat: Record<string, unknown>[];
-  loydot: { paikka_id: string; nimi: string; aika: string; kesto_ms: number | null }[];
+  loydot: { paikka_id: string; nimi: string; aika: string; kesto_ms: number | null; kommentti: string | null }[];
 }
 
 /** Minimaalinen muistinvarainen D1, joka tunnistaa vain tämän workerin /loyda-reitin kyselyt. */
@@ -36,8 +36,8 @@ function luoDb(rivit: Rivit): D1Database {
         },
         async run() {
           if (sql.startsWith("INSERT INTO loydot")) {
-            const [paikka_id, nimi, aika, kesto_ms] = arvot as [string, string, string, number | null];
-            rivit.loydot.push({ paikka_id, nimi, aika, kesto_ms });
+            const [paikka_id, nimi, aika, kesto_ms, kommentti] = arvot as [string, string, string, number | null, string | null];
+            rivit.loydot.push({ paikka_id, nimi, aika, kesto_ms, kommentti });
             return { success: true };
           }
           throw new Error(`Tuntematon kysely: ${sql}`);
@@ -136,6 +136,16 @@ describe("POST /loyda", () => {
 
     const liianPitka = await loyda(env, { paikkaId: "neittava-1", nimi: "B", ...KATKO, kestoMs: 1000, etsintaKestoMs: ETSINTA_MAX_MS + 1 });
     expect(liianPitka.status).toBe(400);
+    expect(rivit.loydot).toHaveLength(1);
+  });
+
+  it("tallentaa trimmatun kommentin ja hylkää liian pitkän", async () => {
+    const ok = await loyda(env, { paikkaId: "neittava-1", nimi: "A", ...KATKO, kommentti: "  Puun takana!  " });
+    expect(ok.status).toBe(201);
+    expect(rivit.loydot[0].kommentti).toBe("Puun takana!");
+
+    const pitka = await loyda(env, { paikkaId: "neittava-1", nimi: "B", ...KATKO, kommentti: "x".repeat(141) });
+    expect(pitka.status).toBe(400);
     expect(rivit.loydot).toHaveLength(1);
   });
 
