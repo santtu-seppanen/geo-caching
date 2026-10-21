@@ -32,7 +32,12 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   voi merkitä samaa kätköä löydetyksi kahdesti. Kätkön kolme ensimmäistä
   löytäjää saavat kulta/hopea/pronssi-mitalin (pääteltynä `aika`-kentän
   järjestyksestä, ei omaa saraketta) — ks.
-  `app/src/features/tilastot/tilastoLaskenta.ts`. Tilastot-näkymä (header)
+  `app/src/features/tilastot/tilastoLaskenta.ts`. Aluesivu näyttää alueen
+  mestarin (eniten alueen kätköjä löytänyt, `alueenMestarit`), ja
+  löytöanimaatio näyttää löydön ansaitsemat saavutusmerkit
+  (`features/tilastot/merkit.ts`: alue valloitettu, yökätköilijä 00–05,
+  nopea nappaus ≤ 5 min) — pääteltyinä clientillä, ei tallenneta.
+  Tilastot-näkymä (header)
   näyttää pistetaulun (löytöjen määrä nimimerkkiä kohden, klikkaamalla
   laajenee mitalimäärät) ja oman löytöhistorian.
 - **Pelimoodit** (ks. `app/src/features/pelimoodit/`): admin asettaa
@@ -177,6 +182,14 @@ Mallivalinnat subagenteille on kunkin agentin omassa frontmatterissa
 (`model:`-kenttä) — halvempia malleja käytetään yksinkertaisiin, hyvin
 rajattuihin tehtäviin (esim. testien kirjoitus), tehokkaampia
 arkkitehtuuripäätöksiin ja geofencing-logiikkaan.
+
+## Testit
+
+- `cd app && npm test` ja `cd worker && npm test` — vitest (yksikkö- ja
+  komponenttitestit; workerin reitit muistinvaraisella D1-feikillä).
+- `cd app && npm run test:e2e` — Playwright, ajaa tuotantobuildin
+  (`vite preview`) ja mockaa Workerin `page.route`:lla, joten Cloudflare-
+  tiliä ei tarvita. Kerran: `npx playwright install chromium`.
 
 ## Ajaminen paikallisesti
 
