@@ -13,6 +13,7 @@ export async function ilmoitaLoyto(
   nimi: string,
   ajat: { kestoMs: number; etsintaKestoMs: number } | null,
   sijainti: { lat: number; lng: number } | null,
+  kommentti: string | null = null,
 ): Promise<void> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/loyda`;
 
@@ -22,7 +23,7 @@ export async function ilmoitaLoyto(
       "Content-Type": "application/json",
       "X-Jaettu-Salasana": import.meta.env.VITE_LOYTO_SALASANA,
     },
-    body: JSON.stringify({ paikkaId, nimi, lat: sijainti?.lat, lng: sijainti?.lng, ...ajat }),
+    body: JSON.stringify({ paikkaId, nimi, lat: sijainti?.lat, lng: sijainti?.lng, kommentti, ...ajat }),
   });
 
   if (!vastaus.ok) {

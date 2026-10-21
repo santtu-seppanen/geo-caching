@@ -245,6 +245,7 @@ export function App() {
           nimi={loytoAnimaatio.nimi}
           mitali={animaationMitali}
           kestoMs={loytoAnimaatio.kestoMs ?? null}
+          kommentti={loytoAnimaatio.kommentti}
           onSulje={suljeLoytoAnimaatio}
         />
       )}

@@ -83,6 +83,25 @@ describe("KatkoPaneeli löytöflow", () => {
     expect(onLoyto).toHaveBeenCalledWith(expect.objectContaining({ paikkaId: "neittava-1", nimi: "Matti" }));
   });
 
+  it("lähettää kommentin trimmattuna ja näyttää sen löytäjälistassa", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+    vi.stubGlobal("fetch", fetchMock);
+    piirra({ omatLoydot: [{ paikkaId: "neittava-1", nimi: "Liisa", aika: new Date().toISOString(), kommentti: "Puun takana" }] });
+    expect(kontti.textContent).toContain("Puun takana");
+
+    kirjoitaNimi("Matti");
+    const kommenttiKentta = kontti.querySelectorAll("input")[1] as HTMLInputElement;
+    const asetin = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+    act(() => {
+      asetin.call(kommenttiKentta, "  Löytyi kiven alta  ");
+      kommenttiKentta.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => {
+      lahetaNappi().click();
+    });
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body).kommentti).toBe("Löytyi kiven alta");
+  });
+
   it("estää lähetyksen ilman nimeä", () => {
     piirra();
     expect(lahetaNappi().disabled).toBe(true);

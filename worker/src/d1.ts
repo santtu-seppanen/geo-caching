@@ -16,6 +16,8 @@ export interface Loyto {
   aika: string;
   /** Löytöön kulunut aika millisekunteina, null jos ei tiedossa. */
   kestoMs: number | null;
+  /** Löytäjän vapaaehtoinen kommentti, null jos ei jätetty. */
+  kommentti: string | null;
 }
 
 interface PaikkaRivi {
@@ -34,6 +36,7 @@ interface LoytoRivi {
   nimi: string;
   aika: string;
   kesto_ms: number | null;
+  kommentti: string | null;
 }
 
 function paikkaRivista(rivi: PaikkaRivi): Paikka {
@@ -61,13 +64,14 @@ export async function haePaikkaIdt(db: D1Database): Promise<Set<string>> {
 
 export async function haeLoydot(db: D1Database): Promise<Loyto[]> {
   const { results } = await db
-    .prepare("SELECT paikka_id, nimi, aika, kesto_ms FROM loydot ORDER BY id")
+    .prepare("SELECT paikka_id, nimi, aika, kesto_ms, kommentti FROM loydot ORDER BY id")
     .all<LoytoRivi>();
   return results.map((rivi) => ({
     paikkaId: rivi.paikka_id,
     nimi: rivi.nimi,
     aika: rivi.aika,
     kestoMs: rivi.kesto_ms,
+    kommentti: rivi.kommentti,
   }));
 }
 
@@ -86,14 +90,14 @@ export async function onkoJoLoytanyt(
 
 export async function lisaaLoyto(
   db: D1Database,
-  pyynto: { paikkaId: string; nimi: string; kestoMs: number | null },
+  pyynto: { paikkaId: string; nimi: string; kestoMs: number | null; kommentti: string | null },
 ): Promise<Loyto> {
   const aika = new Date().toISOString();
   await db
-    .prepare("INSERT INTO loydot (paikka_id, nimi, aika, kesto_ms) VALUES (?, ?, ?, ?)")
-    .bind(pyynto.paikkaId, pyynto.nimi, aika, pyynto.kestoMs)
+    .prepare("INSERT INTO loydot (paikka_id, nimi, aika, kesto_ms, kommentti) VALUES (?, ?, ?, ?, ?)")
+    .bind(pyynto.paikkaId, pyynto.nimi, aika, pyynto.kestoMs, pyynto.kommentti)
     .run();
-  return { paikkaId: pyynto.paikkaId, nimi: pyynto.nimi, aika, kestoMs: pyynto.kestoMs };
+  return { paikkaId: pyynto.paikkaId, nimi: pyynto.nimi, aika, kestoMs: pyynto.kestoMs, kommentti: pyynto.kommentti };
 }
 
 export async function lisaaPaikka(db: D1Database, paikka: Paikka): Promise<void> {
