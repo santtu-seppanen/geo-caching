@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { soitaLoytoAani } from "../../lib/aanet";
 import { Modaali } from "../../lib/Modaali";
 import { muotoileKesto } from "../../lib/kesto";
 import type { Merkki } from "../tilastot/merkit";
@@ -28,6 +29,7 @@ export function LoytoAnimaatio({ nimi, mitali, kestoMs, kommentti, merkit = [], 
 
   useEffect(() => {
     navigator.vibrate?.([60, 40, 120]);
+    soitaLoytoAani();
   }, []);
 
   useEffect(() => {

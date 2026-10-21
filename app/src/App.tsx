@@ -11,6 +11,7 @@ import {
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
 import { ansaitutMerkit } from "./features/tilastot/merkit";
 import { haeHaaste, type Haaste } from "./features/haaste/haaste";
+import { aanetPaalla, asetaAanet } from "./lib/aanet";
 import { haeJono } from "./lib/loytoJono";
 import { lahetaJonotetutLoydot } from "./features/paikat/loydotApi";
 import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
@@ -52,6 +53,7 @@ export function App() {
   const [omatLoydot, setOmatLoydot] = useState<Loyto[]>(() =>
     haeJono().map(({ paikkaId, nimi, aika, kestoMs, kommentti }) => ({ paikkaId, nimi, aika, kestoMs, kommentti })),
   );
+  const [aanet, setAanet] = useState(aanetPaalla);
   const [haaste, setHaaste] = useState<Haaste | null>(null);
   const [pelimoodit, setPelimoodit] = useState<AlueidenPelimoodit>(new Map());
   const [lataustila, setLataustila] = useState<Lataustila>("lataa");
@@ -232,6 +234,17 @@ export function App() {
               onClick={() => setNaytaTilastot(true)}
             >
               Tilastot
+            </button>
+            <button
+              type="button"
+              className="saannot-linkki"
+              aria-pressed={aanet}
+              onClick={() => {
+                asetaAanet(!aanet);
+                setAanet(!aanet);
+              }}
+            >
+              {aanet ? "🔊 Äänet" : "🔇 Äänet"}
             </button>
             <button
               type="button"
