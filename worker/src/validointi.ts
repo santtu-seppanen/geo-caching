@@ -528,3 +528,41 @@ export function validoiEtsinnanSijaintiPyynto(data: unknown): EtsinnanSijaintiVa
 
   return { ok: true, pyynto: { ...perus.pyynto, lat, lng } };
 }
+
+export const ALUEEN_SALASANA_MIN_PITUUS = 6;
+const ALUEEN_SALASANA_MAX_PITUUS = 100;
+
+export interface UusiAluePyynto {
+  /** Näytettävä nimi trimmattuna (voi sisältää ääkkösiä). */
+  alue: string;
+  salasana: string;
+}
+
+export type UusiAlueValidointiTulos = { ok: true; pyynto: UusiAluePyynto } | { ok: false; virhe: string };
+
+export function validoiUusiAluePyynto(data: unknown): UusiAlueValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+
+  const { alue, salasana } = data as Record<string, unknown>;
+
+  if (typeof alue !== "string" || alue.trim().length === 0) {
+    return { ok: false, virhe: "Alueen nimi on pakollinen" };
+  }
+  if (alue.length > ALUE_MAX_PITUUS) {
+    return { ok: false, virhe: `Alueen nimi saa olla enintään ${ALUE_MAX_PITUUS} merkkiä` };
+  }
+  if (!/[a-z0-9]/.test(alue.toLowerCase().replace(/[äå]/g, "a").replace(/ö/g, "o"))) {
+    return { ok: false, virhe: "Alueen nimessä pitää olla vähintään yksi kirjain tai numero" };
+  }
+
+  if (typeof salasana !== "string" || salasana.length < ALUEEN_SALASANA_MIN_PITUUS) {
+    return { ok: false, virhe: `Salasanan pitää olla vähintään ${ALUEEN_SALASANA_MIN_PITUUS} merkkiä` };
+  }
+  if (salasana.length > ALUEEN_SALASANA_MAX_PITUUS) {
+    return { ok: false, virhe: `Salasana saa olla enintään ${ALUEEN_SALASANA_MAX_PITUUS} merkkiä` };
+  }
+
+  return { ok: true, pyynto: { alue: alue.trim(), salasana } };
+}

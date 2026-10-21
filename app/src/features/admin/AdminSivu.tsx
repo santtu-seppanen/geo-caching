@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FormEvent } from "react";
-import { kirjauduAdmin, luoKatko, poistaKatko } from "./adminApi";
+import { kirjauduAdmin, luoAlue, luoKatko, poistaKatko, type AdminTunnus } from "./adminApi";
 import {
   paattelKuvaPaate,
   rakennaId,
@@ -21,7 +21,7 @@ import { haeNykyinenSijaintiKerran, virheTeksti } from "../../lib/geolocation";
 import type { SijaintiVirhe } from "../../lib/geolocation";
 import type { Paikka } from "../paikat/types";
 import { haePaikat } from "../paikat/paikatApi";
-import { ryhmitteleAlueiksi, seuraavaVapaaNumero } from "../paikat/alueet";
+import { normalisoiAlueNimi, ryhmitteleAlueiksi, seuraavaVapaaNumero } from "../paikat/alueet";
 
 interface AdminSivuProps {
   onTakaisin: () => void;
@@ -35,11 +35,17 @@ const TYHJA_LOMAKE = {
 };
 
 export function AdminSivu({ onTakaisin }: AdminSivuProps) {
-  const [adminSalasana, setAdminSalasana] = useState("");
-  const [kirjauduttu, setKirjauduttu] = useState(false);
+  // null = ei kirjauduttu. Alueen salasanalla kirjautunut näkee ja muokkaa
+  // vain oman alueensa kätköjä (worker tarkistaa saman).
+  const [tunnus, setTunnus] = useState<AdminTunnus | null>(null);
+  const kirjauduttu = tunnus !== null;
+  const [alueSyote, setAlueSyote] = useState("");
   const [salasanaSyote, setSalasanaSyote] = useState("");
   const [kirjaudutaan, setKirjaudutaan] = useState(false);
   const [kirjautumisVirhe, setKirjautumisVirhe] = useState<string | null>(null);
+  const [uusiAlue, setUusiAlue] = useState({ nimi: "", salasana: "", vahvistus: "" });
+  const [luodaanAluetta, setLuodaanAluetta] = useState(false);
+  const [alueenLuontiVirhe, setAlueenLuontiVirhe] = useState<string | null>(null);
   const [lomake, setLomake] = useState(TYHJA_LOMAKE);
   const [kuvaTiedosto, setKuvaTiedosto] = useState<File | null>(null);
   const [piilotaLahimmasta, setPiilotaLahimmasta] = useState(false);
@@ -73,6 +79,16 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
   const olemassaOlevatAlueet = useMemo(() => ryhmitteleAlueiksi(paikat), [paikat]);
 
+  // Alueen adminin oma alue: kätköjen käyttämä kirjoitusasu jos alueella on
+  // jo kätköjä, muuten kirjautumisessa annettu nimi.
+  const omaAlue = tunnus?.alue
+    ? (paikat.find((p) => normalisoiAlueNimi(p.alue) === normalisoiAlueNimi(tunnus.alue!))?.alue ?? tunnus.alue)
+    : null;
+  const naytettavatPaikat = useMemo(
+    () => (omaAlue ? paikat.filter((p) => normalisoiAlueNimi(p.alue) === normalisoiAlueNimi(omaAlue)) : paikat),
+    [paikat, omaAlue],
+  );
+
   async function kasittelePoisto(id: string) {
     if (poistoVahvistus !== id) {
       setPoistoVahvistus(id);
@@ -84,7 +100,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     setPoistoVirhe(null);
     setPoistoOnnistui(null);
     try {
-      await poistaKatko(id, adminSalasana);
+      await poistaKatko(id, tunnus!);
       setPaikat((edelliset) => edelliset.filter((paikka) => paikka.id !== id));
       setPoistoOnnistui(`Kätkö "${id}" poistettu.`);
     } catch (e) {
@@ -101,20 +117,41 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
     setKirjaudutaan(true);
     setKirjautumisVirhe(null);
     try {
-      await kirjauduAdmin(salasanaSyote);
-      setAdminSalasana(salasanaSyote);
-      setKirjauduttu(true);
+      const yritys = { salasana: salasanaSyote, alue: alueSyote.trim() || null };
+      const { kaikki } = await kirjauduAdmin(yritys);
+      // Master-salasana oikeuttaa kaikkeen, vaikka alue olisi kirjoitettu.
+      setTunnus(kaikki ? { ...yritys, alue: null } : yritys);
     } catch {
-      setKirjautumisVirhe("Väärä salasana");
+      setKirjautumisVirhe(alueSyote.trim() ? "Väärä alue tai salasana" : "Väärä salasana");
     } finally {
       setKirjaudutaan(false);
     }
   }
 
+  async function luoUusiAlue(e: FormEvent) {
+    e.preventDefault();
+    setAlueenLuontiVirhe(null);
+    if (uusiAlue.salasana !== uusiAlue.vahvistus) {
+      setAlueenLuontiVirhe("Salasanat eivät täsmää");
+      return;
+    }
+
+    setLuodaanAluetta(true);
+    try {
+      const nimi = uusiAlue.nimi.trim();
+      await luoAlue(nimi, uusiAlue.salasana);
+      setTunnus({ salasana: uusiAlue.salasana, alue: nimi });
+      setUusiAlue({ nimi: "", salasana: "", vahvistus: "" });
+    } catch (virhe) {
+      setAlueenLuontiVirhe(virhe instanceof Error ? virhe.message : "Alueen luonti epäonnistui");
+    } finally {
+      setLuodaanAluetta(false);
+    }
+  }
+
   function kirjauduUlos() {
-    setAdminSalasana("");
+    setTunnus(null);
     setSalasanaSyote("");
-    setKirjauduttu(false);
   }
 
   function paivitaKentta(kentta: keyof typeof TYHJA_LOMAKE, arvo: string) {
@@ -128,6 +165,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
    * ettei sama alue päädy näkymään kahdella eri nimellä.
    */
   function tasaaAlueOlemassaOlevaan() {
+    if (omaAlue) return;
     const tunniste = alueTunnisteeksi(lomake.alue);
     if (!tunniste) return;
     const olemassaOleva = olemassaOlevatAlueet.find((alue) => alue.alue === tunniste);
@@ -156,15 +194,18 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const latNumero = lomake.lat.trim() === "" ? null : Number(lomake.lat);
   const lngNumero = lomake.lng.trim() === "" ? null : Number(lomake.lng);
 
+  // Alueen adminilla alue on aina oma alue — kenttä on lukittu.
+  const lomakkeenAlue = omaAlue ?? lomake.alue;
+
   // Tunniste ja juokseva numero johdetaan alue-nimestä — admin ei kirjoita
   // niitä enää itse (ks. alueTunnisteeksi ja seuraavaVapaaNumero).
-  const idNimi = alueTunnisteeksi(lomake.alue);
+  const idNimi = alueTunnisteeksi(lomakkeenAlue);
   const idNumero = idNimi ? String(seuraavaVapaaNumero(paikat, idNimi)) : "";
 
   const syote: AdminLomakeSyote = {
     idNimi,
     idNumero,
-    alue: lomake.alue,
+    alue: lomakkeenAlue,
     kuvaus: lomake.kuvaus,
     lat: latNumero,
     lng: lngNumero,
@@ -175,22 +216,19 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
   const pakollisetPuuttuvat =
     !idNimi ||
     !idNumero ||
-    !lomake.alue.trim() ||
+    !lomakkeenAlue.trim() ||
     !lomake.kuvaus.trim() ||
     latNumero === null ||
     lngNumero === null ||
     !kuvaTiedosto ||
-    !adminSalasana.trim();
+    !tunnus;
 
   async function lahetaLomake(e: FormEvent) {
     e.preventDefault();
     setVirhe(null);
     setOnnistui(null);
 
-    if (!adminSalasana.trim()) {
-      setVirhe("Admin-salasana on pakollinen");
-      return;
-    }
+    if (!tunnus) return;
 
     const virheet = validoiAdminLomake(syote);
     const ensimmainenVirhe = Object.values(virheet)[0];
@@ -217,7 +255,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
       const tulos = await luoKatko(
         {
           id: rakennaId(idNimi, idNumero),
-          alue: lomake.alue.trim(),
+          alue: lomakkeenAlue.trim(),
           kuvaus: lomake.kuvaus.trim(),
           lat: latNumero!,
           lng: lngNumero!,
@@ -225,7 +263,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           piilotaLahimmasta,
           pullonKokoMl,
         },
-        adminSalasana,
+        tunnus,
       );
       setOnnistui(`Kätkö "${tulos.id}" luotu!`);
       setLomake(TYHJA_LOMAKE);
@@ -257,14 +295,24 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
 
         <form className="admin-lomake" onSubmit={kirjaudu}>
           <label className="kentta">
-            <span className="kentan-nimi">Admin-salasana</span>
+            <span className="kentan-nimi">Alue</span>
+            <input
+              className="teksti-syote"
+              value={alueSyote}
+              onChange={(e) => setAlueSyote(e.target.value)}
+              placeholder="oman alueesi nimi (tyhjä = pääkäyttäjä)"
+              autoComplete="off"
+            />
+          </label>
+
+          <label className="kentta">
+            <span className="kentan-nimi">Salasana</span>
             <input
               className="teksti-syote"
               type="password"
               value={salasanaSyote}
               onChange={(e) => setSalasanaSyote(e.target.value)}
               autoComplete="off"
-              autoFocus
             />
           </label>
 
@@ -282,6 +330,59 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
             {kirjaudutaan ? "Tarkistetaan…" : "Jatka"}
           </button>
         </form>
+
+        <h2>Luo uusi alue</h2>
+        <p className="tyhja-tila">
+          Kuka tahansa voi perustaa oman alueen. Salasanalla pääset myöhemmin lisäämään ja muokkaamaan
+          vain tämän alueen kätköjä.
+        </p>
+
+        <form className="admin-lomake" onSubmit={luoUusiAlue}>
+          <label className="kentta">
+            <span className="kentan-nimi">Alueen nimi</span>
+            <input
+              className="teksti-syote"
+              value={uusiAlue.nimi}
+              onChange={(e) => setUusiAlue((a) => ({ ...a, nimi: e.target.value }))}
+              placeholder="esim. Neittävä"
+              autoComplete="off"
+            />
+          </label>
+          <label className="kentta">
+            <span className="kentan-nimi">Salasana (väh. 6 merkkiä)</span>
+            <input
+              className="teksti-syote"
+              type="password"
+              value={uusiAlue.salasana}
+              onChange={(e) => setUusiAlue((a) => ({ ...a, salasana: e.target.value }))}
+              autoComplete="new-password"
+            />
+          </label>
+          <label className="kentta">
+            <span className="kentan-nimi">Salasana uudelleen</span>
+            <input
+              className="teksti-syote"
+              type="password"
+              value={uusiAlue.vahvistus}
+              onChange={(e) => setUusiAlue((a) => ({ ...a, vahvistus: e.target.value }))}
+              autoComplete="new-password"
+            />
+          </label>
+
+          {alueenLuontiVirhe && (
+            <p className="lomake-virhe" role="alert">
+              {alueenLuontiVirhe}
+            </p>
+          )}
+
+          <button
+            className="nappi nappi-ensisijainen"
+            type="submit"
+            disabled={!uusiAlue.nimi.trim() || uusiAlue.salasana.length < 6 || luodaanAluetta}
+          >
+            {luodaanAluetta ? "Luodaan…" : "Luo alue"}
+          </button>
+        </form>
       </section>
     );
   }
@@ -297,8 +398,10 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         Takaisin
       </button>
       <button type="button" className="nappi nappi-toissijainen" onClick={kirjauduUlos}>
-        Vaihda salasana
+        Kirjaudu ulos
       </button>
+
+      <p className="tyhja-tila">{omaAlue ? `Hallitset aluetta ${omaAlue}.` : "Pääkäyttäjä — kaikki alueet."}</p>
 
       <h2>Luo uusi kätkö</h2>
 
@@ -307,9 +410,10 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
           <span className="kentan-nimi">alue</span>
           <input
             className="teksti-syote"
-            value={lomake.alue}
+            value={lomakkeenAlue}
             onChange={(e) => paivitaKentta("alue", e.target.value)}
             onBlur={tasaaAlueOlemassaOlevaan}
+            readOnly={omaAlue !== null}
             placeholder="esim. Neittävä"
           />
         </label>
@@ -397,9 +501,9 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         </button>
       </form>
 
-      <PelimoodiAsetukset paikat={paikat} adminSalasana={adminSalasana} />
+      <PelimoodiAsetukset paikat={naytettavatPaikat} tunnus={tunnus} />
 
-      <HaasteAsetukset adminSalasana={adminSalasana} />
+      {!omaAlue && <HaasteAsetukset adminSalasana={tunnus.salasana} />}
 
       <h2>Poista kätkö</h2>
 
@@ -421,11 +525,11 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         </p>
       )}
 
-      {paikat.length === 0 && !paikatVirhe ? (
+      {naytettavatPaikat.length === 0 && !paikatVirhe ? (
         <p className="tyhja-tila">Ei kätköjä.</p>
       ) : (
         <ul className="admin-katko-lista">
-          {paikat.map((paikka) => (
+          {naytettavatPaikat.map((paikka) => (
             <li key={paikka.id} className="admin-katko-rivi">
               <button
                 type="button"
@@ -441,7 +545,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
                     ? "nappi nappi-vaara"
                     : "nappi nappi-toissijainen"
                 }
-                disabled={!adminSalasana.trim() || poistetaan === paikka.id}
+                disabled={poistetaan === paikka.id}
                 onClick={() => kasittelePoisto(paikka.id)}
               >
                 {poistetaan === paikka.id
@@ -459,7 +563,7 @@ export function AdminSivu({ onTakaisin }: AdminSivuProps) {
         <Modaali onSulje={() => setMuokattavaPaikka(null)}>
           <MuokkaaKatkoLomake
             paikka={muokattavaPaikka}
-            adminSalasana={adminSalasana}
+            tunnus={tunnus}
             onTallennettu={(paivitetty) => {
               setPaikat((edelliset) =>
                 edelliset.map((p) => (p.id === paivitetty.id ? paivitetty : p)),

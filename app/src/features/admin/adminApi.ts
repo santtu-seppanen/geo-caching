@@ -1,5 +1,23 @@
 import type { KuvaPaate, UusiKatkoPyynto } from "./validointi";
 
+/**
+ * Admin-kirjautuminen: master-salasana (alue null) oikeuttaa kaikkeen,
+ * alueen oma salasana vain sen alueeseen (ks. workerin tarkistaAdmin).
+ */
+export interface AdminTunnus {
+  salasana: string;
+  /** Alueen näytettävä nimi, null = master. */
+  alue: string | null;
+}
+
+function adminOtsakkeet(tunnus: AdminTunnus): Record<string, string> {
+  return {
+    "X-Admin-Salasana": tunnus.salasana,
+    // Header-arvot eivät salli kaikkia Unicode-merkkejä, joten nimi enkoodataan.
+    ...(tunnus.alue ? { "X-Admin-Alue": encodeURIComponent(tunnus.alue) } : {}),
+  };
+}
+
 export interface MuokkausKatkoPyynto {
   id: string;
   alue: string;
@@ -12,21 +30,43 @@ export interface MuokkausKatkoPyynto {
 }
 
 /**
- * Tarkistaa admin-salasanan Workerista ilman sivuvaikutuksia. Käytetään
+ * Tarkistaa admin-tunnuksen Workerista ilman sivuvaikutuksia. Käytetään
  * admin-sivun kirjautumislomakkeessa, jotta väärästä salasanasta näkee
- * virheen heti eikä vasta ensimmäistä kätköä luodessa.
+ * virheen heti eikä vasta ensimmäistä kätköä luodessa. Palauttaa, onko
+ * tunnus master (kaikki alueet).
  */
-export async function kirjauduAdmin(adminSalasana: string): Promise<void> {
+export async function kirjauduAdmin(tunnus: AdminTunnus): Promise<{ kaikki: boolean }> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/kirjaudu`;
 
   const vastaus = await fetch(url, {
     method: "POST",
-    headers: { "X-Admin-Salasana": adminSalasana },
+    headers: adminOtsakkeet(tunnus),
+  });
+
+  const data = (await vastaus.json().catch(() => null)) as { error?: string; kaikki?: boolean } | null;
+  if (!vastaus.ok) {
+    throw new Error(data?.error ?? "Väärä salasana");
+  }
+  return { kaikki: data?.kaikki === true };
+}
+
+/**
+ * Luo uuden alueen omalla salasanalla — kuka tahansa voi luoda alueen.
+ * Kuten löydöt, vaatii vain jaetun bottisalasanan.
+ */
+export async function luoAlue(alue: string, salasana: string): Promise<void> {
+  const vastaus = await fetch(`${import.meta.env.VITE_LOYTO_API_URL}/alue/luo`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Jaettu-Salasana": import.meta.env.VITE_LOYTO_SALASANA,
+    },
+    body: JSON.stringify({ alue, salasana }),
   });
 
   if (!vastaus.ok) {
     const data = (await vastaus.json().catch(() => null)) as { error?: string } | null;
-    throw new Error(data?.error ?? "Väärä salasana");
+    throw new Error(data?.error ?? "Alueen luonti epäonnistui");
   }
 }
 
@@ -37,14 +77,14 @@ export async function kirjauduAdmin(adminSalasana: string): Promise<void> {
  * lomakkeessa — sitä EI upoteta build-aikaiseen env-muuttujaan, koska se
  * antaisi kirjoitusoikeuden tietokantaan kenelle tahansa joka lukee bundlen.
  */
-export async function luoKatko(pyynto: UusiKatkoPyynto, adminSalasana: string): Promise<{ id: string }> {
+export async function luoKatko(pyynto: UusiKatkoPyynto, tunnus: AdminTunnus): Promise<{ id: string }> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/luo-katko`;
 
   const vastaus = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Salasana": adminSalasana,
+      ...adminOtsakkeet(tunnus),
     },
     body: JSON.stringify(pyynto),
   });
@@ -68,7 +108,7 @@ export async function luoKatko(pyynto: UusiKatkoPyynto, adminSalasana: string): 
  */
 export async function muokkaaKatko(
   pyynto: MuokkausKatkoPyynto,
-  adminSalasana: string,
+  tunnus: AdminTunnus,
 ): Promise<{ id: string }> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/muokkaa-katko`;
 
@@ -76,7 +116,7 @@ export async function muokkaaKatko(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Salasana": adminSalasana,
+      ...adminOtsakkeet(tunnus),
     },
     body: JSON.stringify(pyynto),
   });
@@ -98,14 +138,14 @@ export async function muokkaaKatko(
  * Postaa kätkön poistopyynnön Cloudflare Workeriin. Poistaa kätkön ja sen
  * kaikki löydöt D1:stä sekä kuvan R2:sta.
  */
-export async function poistaKatko(id: string, adminSalasana: string): Promise<void> {
+export async function poistaKatko(id: string, tunnus: AdminTunnus): Promise<void> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/poista-katko`;
 
   const vastaus = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Salasana": adminSalasana,
+      ...adminOtsakkeet(tunnus),
     },
     body: JSON.stringify({ id }),
   });
@@ -120,7 +160,7 @@ export async function poistaKatko(id: string, adminSalasana: string): Promise<vo
 export async function asetaPelimoodi(
   alueAvain: string,
   pelimoodi: string,
-  adminSalasana: string,
+  tunnus: AdminTunnus,
 ): Promise<void> {
   const url = `${import.meta.env.VITE_LOYTO_API_URL}/admin/aseta-pelimoodi`;
 
@@ -128,7 +168,7 @@ export async function asetaPelimoodi(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "X-Admin-Salasana": adminSalasana,
+      ...adminOtsakkeet(tunnus),
     },
     body: JSON.stringify({ alueAvain, pelimoodi }),
   });

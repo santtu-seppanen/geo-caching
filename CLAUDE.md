@@ -146,12 +146,23 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     oman löytöhetkensä (`aika`, worker hyväksyy max 7 pv vanhan).
     Sama tuplan esto tehdään ensin myös clientillä (`KatkoPaneeli.tsx`)
     UX:n vuoksi, mutta worker on aina lopullinen totuus.
+  - `POST /alue/luo` — kuka tahansa voi luoda uuden alueen omalla
+    salasanallaan (`{ alue, salasana }`, jaettu bottisalasana kuten
+    löydöissä). Salasana tallennetaan PBKDF2-hashina `alueet.salasana_hash`-
+    sarakkeeseen (ks. `worker/src/alueSalasana.ts`). 409 jos nimi (tai sen
+    id-tunniste) on jo käytössä kätköillä tai toisella alueella.
+  - **Admin-oikeudet:** `X-Admin-Salasana` on joko master-salasana
+    (`ADMIN_SALASANA`, oikeuttaa kaikkeen) tai `X-Admin-Alue`-headerissa
+    (URI-enkoodattu alueen nimi) nimetyn alueen oma salasana, joka
+    oikeuttaa vain sen alueen kätköihin ja pelimoodiin (403 muuten).
+    Yhteishaaste on vain masterille. Vanhoilla alueilla ei ole omaa
+    salasanaa — niitä hallitsee vain master.
   - `POST /admin/luo-katko` — validoi uuden kätkön kentät (id, alue,
-    kuvaus, lat/lng, kuva base64:na), tarkistaa admin-salasanan
-    (`X-Admin-Salasana`-header, eri salaisuus kuin löytöjen jaettu
-    salasana koska tämä kirjoittaa sisältöä eikä vain lokita löytöä),
-    tallentaa kuvan R2:een ja lisää rivin `paikat`-tauluun.
-  - `POST /admin/poista-katko` — sama admin-salasana, poistaa kätkön
+    kuvaus, lat/lng, kuva base64:na), tarkistaa admin-oikeuden
+    (eri salaisuus kuin löytöjen jaettu salasana koska tämä kirjoittaa
+    sisältöä eikä vain lokita löytöä), tallentaa kuvan R2:een ja lisää
+    rivin `paikat`-tauluun.
+  - `POST /admin/poista-katko` — sama admin-oikeus, poistaa kätkön
     (ja sen löydöt) D1:stä sekä sen kuvan R2:sta.
   - `GET /haaste` — aktiivinen aikarajattu yhteishaaste tai `null` (julkinen).
     `POST /admin/aseta-haaste` (admin-salasana) asettaa sen

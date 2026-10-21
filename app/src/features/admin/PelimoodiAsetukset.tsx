@@ -16,15 +16,15 @@ import {
   haeAlueidenPelimoodit,
   type AlueidenPelimoodit,
 } from "../pelimoodit/pelimoodiApi";
-import { asetaPelimoodi } from "./adminApi";
+import { asetaPelimoodi, type AdminTunnus } from "./adminApi";
 
 interface PelimoodiAsetuksetProps {
   paikat: Paikka[];
-  adminSalasana: string;
+  tunnus: AdminTunnus;
 }
 
 /** Admin valitsee jokaiselle alueelle pelimoodin; kaikki pelaavat aluetta samalla moodilla. */
-export function PelimoodiAsetukset({ paikat, adminSalasana }: PelimoodiAsetuksetProps) {
+export function PelimoodiAsetukset({ paikat, tunnus }: PelimoodiAsetuksetProps) {
   const [pelimoodit, setPelimoodit] = useState<AlueidenPelimoodit>(new Map());
   const [tallennetaan, setTallennetaan] = useState<string | null>(null);
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -44,7 +44,7 @@ export function PelimoodiAsetukset({ paikat, adminSalasana }: PelimoodiAsetukset
     setTallennetaan(avain);
     setVirhe(null);
     try {
-      await asetaPelimoodi(avain, moodi, adminSalasana);
+      await asetaPelimoodi(avain, moodi, tunnus);
       setPelimoodit((edelliset) => new Map(edelliset).set(avain, moodi));
     } catch (e) {
       setVirhe(e instanceof Error ? e.message : "Pelimoodin tallennus epäonnistui");

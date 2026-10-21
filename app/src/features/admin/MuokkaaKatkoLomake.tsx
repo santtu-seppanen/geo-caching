@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { muokkaaKatko } from "./adminApi";
+import { muokkaaKatko, type AdminTunnus } from "./adminApi";
 import { paattelKuvaPaate, validoiMuokkausLomake, KUVA_MAX_TAVUA_PAKATTUNA } from "./validointi";
 import type { MuokkausLomakeSyote } from "./validointi";
 import { pakkaaKuva } from "./kuvaPakkaus";
@@ -11,14 +11,14 @@ import type { Paikka } from "../paikat/types";
 
 interface MuokkaaKatkoLomakeProps {
   paikka: Paikka;
-  adminSalasana: string;
+  tunnus: AdminTunnus;
   onTallennettu: (paikka: Paikka) => void;
   onSulje: () => void;
 }
 
 export function MuokkaaKatkoLomake({
   paikka,
-  adminSalasana,
+  tunnus,
   onTallennettu,
   onSulje,
 }: MuokkaaKatkoLomakeProps) {
@@ -81,7 +81,7 @@ export function MuokkaaKatkoLomake({
           piilotaLahimmasta,
           pullonKokoMl,
         },
-        adminSalasana,
+        tunnus,
       );
 
       onTallennettu({
@@ -108,7 +108,13 @@ export function MuokkaaKatkoLomake({
       <form className="admin-lomake" onSubmit={tallenna}>
         <label className="kentta">
           <span className="kentan-nimi">alue</span>
-          <input className="teksti-syote" value={alue} onChange={(e) => setAlue(e.target.value)} />
+          {/* Alueen admin ei voi siirtää kätköä toiselle alueelle (worker tarkistaa saman). */}
+          <input
+            className="teksti-syote"
+            value={alue}
+            onChange={(e) => setAlue(e.target.value)}
+            readOnly={tunnus.alue !== null}
+          />
         </label>
 
         <label className="kentta">

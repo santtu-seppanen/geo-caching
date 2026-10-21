@@ -290,3 +290,25 @@ export async function paivitaEtsinnanSijainti(
     .run();
   return tulos.meta.changes > 0;
 }
+
+export async function haeAlueenSalasanaHash(db: D1Database, alueAvain: string): Promise<string | null> {
+  const rivi = await db
+    .prepare("SELECT salasana_hash FROM alueet WHERE alue_avain = ?")
+    .bind(alueAvain)
+    .first<{ salasana_hash: string | null }>();
+  return rivi?.salasana_hash ?? null;
+}
+
+/**
+ * Varaa alueen salasanalla. Palauttaa false, jos alueella on jo salasana
+ * (joku ehti ensin) — olemassa olevan rivin pelimoodi säilyy.
+ */
+export async function luoAlue(db: D1Database, alueAvain: string, salasanaHash: string): Promise<boolean> {
+  const tulos = await db
+    .prepare(
+      "INSERT INTO alueet (alue_avain, pelimoodi, salasana_hash) VALUES (?, 'vapaa', ?) ON CONFLICT (alue_avain) DO UPDATE SET salasana_hash = excluded.salasana_hash WHERE alueet.salasana_hash IS NULL",
+    )
+    .bind(alueAvain, salasanaHash)
+    .run();
+  return tulos.meta.changes > 0;
+}

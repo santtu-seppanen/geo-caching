@@ -3,6 +3,7 @@ import {
   asetaAlueenPelimoodi,
   asetaHaaste,
   haeHaaste,
+  haeAlueenSalasanaHash,
   haeAlueidenPelimoodit,
   haeKaynnissaOlevatEtsinnat,
   paivitaEtsinnanSijainti,
@@ -12,11 +13,19 @@ import {
   haePaikkaKuva,
   lisaaLoyto,
   lisaaPaikka,
+  luoAlue,
   onkoJoLoytanyt,
   paivitaPaikka,
   poistaPaikka,
 } from "./d1.js";
 import { haeKuva, poistaKuva, tallennaKuva } from "./r2.js";
+import {
+  alueTunnisteeksi,
+  hashaaSalasana,
+  normalisoiAlueNimi,
+  paikanTunniste,
+  tarkistaSalasana,
+} from "./alueSalasana.js";
 import {
   etaisyysMetreina,
   ETSINTA_MAX_MS,
@@ -28,6 +37,7 @@ import {
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
   validoiPoistoPyynto,
+  validoiUusiAluePyynto,
   validoiUusiKatkoPyynto,
 } from "./validointi.js";
 
@@ -47,7 +57,7 @@ export default {
       "Access-Control-Allow-Origin": env.CORS_ORIGIN,
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
       "Access-Control-Allow-Headers":
-        "Content-Type, X-Jaettu-Salasana, X-Admin-Salasana",
+        "Content-Type, X-Jaettu-Salasana, X-Admin-Salasana, X-Admin-Alue",
     };
 
     if (request.method === "OPTIONS") {
@@ -93,6 +103,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/etsinta-sijainti") {
       return kasitteleEtsinnanSijainti(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/alue/luo") {
+      return kasitteleLuoAlue(request, env, corsHeaders);
     }
 
     if (request.method === "POST" && url.pathname === "/admin/kirjaudu") {
@@ -248,17 +262,90 @@ async function kasitteleEtsinnanSijainti(
   return jsonVastaus({ ok: true }, 200, corsHeaders);
 }
 
+/** Master-salasana (ADMIN_SALASANA) oikeuttaa kaikkeen, alueen oma salasana vain sen alueeseen. */
+type AdminOikeus = { kaikki: true } | { kaikki: false; alueAvain: string };
+
+/**
+ * Tunnistaa admin-pyynnön: `X-Admin-Salasana` on joko master-salasana tai
+ * `X-Admin-Alue`-headerissa (URI-enkoodattu alueen nimi) nimetyn alueen oma
+ * salasana. null = ei oikeuksia.
+ */
+async function tarkistaAdmin(request: Request, env: Env): Promise<AdminOikeus | null> {
+  const salasana = request.headers.get("X-Admin-Salasana");
+  if (!salasana) return null;
+  if (salasana === env.ADMIN_SALASANA) return { kaikki: true };
+
+  const alueOtsake = request.headers.get("X-Admin-Alue");
+  if (!alueOtsake) return null;
+  let alue: string;
+  try {
+    alue = decodeURIComponent(alueOtsake);
+  } catch {
+    return null;
+  }
+
+  const alueAvain = normalisoiAlueNimi(alue);
+  const hash = await haeAlueenSalasanaHash(env.DB, alueAvain);
+  if (!hash || !(await tarkistaSalasana(salasana, hash))) return null;
+  return { kaikki: false, alueAvain };
+}
+
+/** Saako oikeuden haltija hallita annettua aluetta (näytettävä nimi tai valmiiksi normalisoitu avain). */
+function saaHallita(oikeus: AdminOikeus, alue: string): boolean {
+  return oikeus.kaikki || normalisoiAlueNimi(alue) === oikeus.alueAvain;
+}
+
+/**
+ * Kuka tahansa voi luoda uuden alueen omalla salasanallaan (jaettu
+ * salasana karsii botit kuten löydöissä). Nimi ei saa olla jo käytössä
+ * olemassa olevilla kätköillä — ei näytettävänä nimenä eikä id-tunnisteena —
+ * eikä toisella salasanallisella alueella.
+ */
+async function kasitteleLuoAlue(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Jaettu-Salasana") !== env.JAETTU_SALASANA) {
+    return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
+  }
+
+  let data: unknown;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  const tulos = validoiUusiAluePyynto(data);
+  if (!tulos.ok) {
+    return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  const alueAvain = normalisoiAlueNimi(tulos.pyynto.alue);
+  const tunniste = alueTunnisteeksi(tulos.pyynto.alue);
+  const varattu = (await haePaikat(env.DB)).some(
+    (p) => normalisoiAlueNimi(p.alue) === alueAvain || paikanTunniste(p.id) === tunniste,
+  );
+  if (varattu || !(await luoAlue(env.DB, alueAvain, await hashaaSalasana(tulos.pyynto.salasana)))) {
+    return jsonVastaus({ error: "Alue on jo olemassa — valitse toinen nimi" }, 409, corsHeaders);
+  }
+
+  return jsonVastaus({ ok: true }, 201, corsHeaders);
+}
+
 /** Tarkistaa admin-salasanan ilman sivuvaikutuksia, jotta lomake voi näyttää virheen heti kirjautuessa. */
 async function kasitteleKirjautuminen(
   request: Request,
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Väärä salasana" }, 401, corsHeaders);
   }
 
-  return jsonVastaus({ ok: true }, 200, corsHeaders);
+  return jsonVastaus({ ok: true, kaikki: oikeus.kaikki }, 200, corsHeaders);
 }
 
 async function kasitteleLuoKatko(
@@ -266,7 +353,8 @@ async function kasitteleLuoKatko(
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
   }
 
@@ -284,6 +372,9 @@ async function kasitteleLuoKatko(
   }
 
   const { pyynto } = tulos;
+  if (!saaHallita(oikeus, pyynto.alue)) {
+    return jsonVastaus({ error: "Salasana ei oikeuta tälle alueelle" }, 403, corsHeaders);
+  }
   const kuvaTiedosto = `${pyynto.id}.${pyynto.kuva.tiedostopaate}`;
 
   try {
@@ -311,7 +402,8 @@ async function kasitteleMuokkausKatko(
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
   }
 
@@ -329,6 +421,10 @@ async function kasitteleMuokkausKatko(
   }
 
   const { pyynto } = tulos;
+  const nykyinen = (await haePaikat(env.DB)).find((p) => p.id === pyynto.id);
+  if (!nykyinen || !saaHallita(oikeus, nykyinen.alue) || !saaHallita(oikeus, pyynto.alue)) {
+    return jsonVastaus({ error: "Salasana ei oikeuta tälle alueelle" }, 403, corsHeaders);
+  }
   const nykyinenKuva = await haePaikkaKuva(env.DB, pyynto.id);
   const kuvaTiedosto = pyynto.kuva
     ? `${pyynto.id}.${pyynto.kuva.tiedostopaate}`
@@ -365,7 +461,8 @@ async function kasittelePoistoKatko(
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
   }
 
@@ -380,6 +477,10 @@ async function kasittelePoistoKatko(
   const tulos = validoiPoistoPyynto(data, tunnetutPaikkaIdt);
   if (!tulos.ok) {
     return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+  const poistettava = (await haePaikat(env.DB)).find((p) => p.id === tulos.pyynto.id);
+  if (!poistettava || !saaHallita(oikeus, poistettava.alue)) {
+    return jsonVastaus({ error: "Salasana ei oikeuta tälle alueelle" }, 403, corsHeaders);
   }
 
   try {
@@ -400,7 +501,8 @@ async function kasitteleAsetaPelimoodi(
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
   }
 
@@ -414,6 +516,9 @@ async function kasitteleAsetaPelimoodi(
   const tulos = validoiPelimoodiPyynto(data);
   if (!tulos.ok) {
     return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+  if (!saaHallita(oikeus, tulos.pyynto.alueAvain)) {
+    return jsonVastaus({ error: "Salasana ei oikeuta tälle alueelle" }, 403, corsHeaders);
   }
 
   try {
@@ -431,7 +536,8 @@ async function kasitteleAsetaHaaste(
   env: Env,
   corsHeaders: Record<string, string>,
 ): Promise<Response> {
-  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+  const oikeus = await tarkistaAdmin(request, env);
+  if (!oikeus) {
     return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
   }
 
@@ -440,6 +546,10 @@ async function kasitteleAsetaHaaste(
     data = await request.json();
   } catch {
     return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  if (!oikeus.kaikki) {
+    return jsonVastaus({ error: "Yhteishaasteen voi asettaa vain pääkäyttäjä" }, 403, corsHeaders);
   }
 
   const tulos = validoiHaastePyynto(data);

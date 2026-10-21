@@ -8,6 +8,7 @@ import {
   validoiPelimoodiPyynto,
   validoiEtsinnanAloitusPyynto,
   validoiEtsinnanSijaintiPyynto,
+  validoiUusiAluePyynto,
   validoiUusiKatkoPyynto,
 } from "./validointi";
 
@@ -1076,5 +1077,26 @@ describe("validoiEtsinnanSijaintiPyynto", () => {
 
   it("hylkää virheelliset perustiedot", () => {
     expect(validoiEtsinnanSijaintiPyynto({ ...PERUS, laiteId: "x", lat: 60, lng: 24 }).ok).toBe(false);
+  });
+});
+
+describe("validoiUusiAluePyynto", () => {
+  it("hyväksyy nimen ja salasanan, trimmaa nimen", () => {
+    expect(validoiUusiAluePyynto({ alue: " Äpätti ", salasana: "salainen" })).toEqual({
+      ok: true,
+      pyynto: { alue: "Äpätti", salasana: "salainen" },
+    });
+  });
+
+  it("hylkää tyhjän, liian pitkän tai pelkistä erikoismerkeistä koostuvan nimen", () => {
+    for (const alue of [undefined, "  ", "a".repeat(81), "!!!"]) {
+      expect(validoiUusiAluePyynto({ alue, salasana: "salainen" }).ok).toBe(false);
+    }
+  });
+
+  it("hylkää liian lyhyen, liian pitkän tai puuttuvan salasanan", () => {
+    for (const salasana of [undefined, "lyhyt", "a".repeat(101), 123456]) {
+      expect(validoiUusiAluePyynto({ alue: "Äpätti", salasana }).ok).toBe(false);
+    }
   });
 });
