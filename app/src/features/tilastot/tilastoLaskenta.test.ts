@@ -5,6 +5,7 @@ import {
   laskeOmatLoydot,
   mitalitYhdelleKatkolle,
   laskeMitaliMaaratNimittain,
+  alueenMestarit,
 } from "./tilastoLaskenta";
 import type { Loyto, Paikka } from "../paikat/types";
 
@@ -189,5 +190,34 @@ describe("laskeOmatLoydot", () => {
 
     expect(tulos[0].alue).toBe("Tuntematon alue");
     expect(tulos[0].kuvaus).toBe("Tuntematon kätkö");
+  });
+});
+
+describe("alueenMestarit", () => {
+  const idt = new Set(["a-1", "a-2", "a-3"]);
+
+  it("palauttaa tyhjän kun alueella ei ole löytöjä", () => {
+    expect(alueenMestarit(idt, [loyto({ paikkaId: "muu-1" })])).toEqual({ nimet: [], maara: 0 });
+  });
+
+  it("palauttaa eniten löytäneen ja huomioi vain alueen kätköt", () => {
+    const loydot = [
+      loyto({ paikkaId: "a-1", nimi: "Matti" }),
+      loyto({ paikkaId: "a-2", nimi: "Matti" }),
+      loyto({ paikkaId: "a-1", nimi: "Liisa" }),
+      loyto({ paikkaId: "muu-1", nimi: "Liisa" }),
+      loyto({ paikkaId: "muu-2", nimi: "Liisa" }),
+    ];
+    expect(alueenMestarit(idt, loydot)).toEqual({ nimet: ["Matti"], maara: 2 });
+  });
+
+  it("palauttaa kaikki tasatilanteessa aakkosjärjestyksessä", () => {
+    const loydot = [loyto({ paikkaId: "a-1", nimi: "Zeta" }), loyto({ paikkaId: "a-2", nimi: "Alfa" })];
+    expect(alueenMestarit(idt, loydot)).toEqual({ nimet: ["Alfa", "Zeta"], maara: 1 });
+  });
+
+  it("laskee saman nimimerkin saman kätkön vain kerran", () => {
+    const loydot = [loyto({ paikkaId: "a-1", nimi: "Matti" }), loyto({ paikkaId: "a-1", nimi: "matti" })];
+    expect(alueenMestarit(idt, loydot).maara).toBe(1);
   });
 });
