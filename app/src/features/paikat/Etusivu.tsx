@@ -3,6 +3,7 @@ import type { Alue } from "./alueet";
 import { normalisoiAlueNimi } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
+import { NimimerkkiKentta } from "./NimimerkkiKentta";
 import { Edistymispalkki } from "./Edistymispalkki";
 import { HaasteKortti } from "../haaste/HaasteKortti";
 import type { Haaste } from "../haaste/haaste";
@@ -27,6 +28,8 @@ interface EtusivuProps {
   onValitseAlue: (nimi: string) => void;
   /** Kuten onValitseAlue, mutta aloittaa samalla alueen etsinnän (ks. tallennaEtsinnanAlku). */
   onAloitaEtsinta: (nimi: string) => void;
+  /** Kutsutaan kun nimimerkki on tallennettu — käynnistää muilla laitteilla aloitettujen etsintöjen palautuksen. */
+  onNimimerkki: () => void;
 }
 
 /** Muotoilee etäisyyden ihmisluettavaksi: metrit alle kilometrin, muuten kilometrit yhden desimaalin tarkkuudella. */
@@ -47,6 +50,7 @@ export function Etusivu({
   loydettyjaAlueitaKokonaan,
   onValitseAlue,
   onAloitaEtsinta,
+  onNimimerkki,
 }: EtusivuProps) {
   const [haku, setHaku] = useState("");
   const [virhe, setVirhe] = useState<string | null>(null);
@@ -180,6 +184,7 @@ export function Etusivu({
         <p className="aluehaku-lisatieto">
           Kätköalue on vapaasti valittava nimi, se voi olla myös paikannimi.
         </p>
+        <NimimerkkiKentta onTallennettu={onNimimerkki} />
         {virhe && (
           <p className="vihje-tooltip" role="alert">
             {virhe}

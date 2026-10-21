@@ -68,6 +68,13 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   päättyessä (`etsinnanIlmoitus`, `useEtsinnanIlmoitukset`) — vain kun
   sovellus on auki, koska push-palvelinta ei ole. Tilastot-näkymä näyttää
   ajastetun haun ohitetut kätköt nykyisessä etsinnässä (`laskeOhitukset`).
+  Etsintä jatkuu toisella laitteella samalla nimimerkillä: aloitus
+  ilmoitetaan jo tilannekuvaa varten workerille (`etsinnat`), ja
+  `useEtsinnanPalautus` hakee nimimerkin käynnissä olevat etsinnät
+  `GET /etsinnat`-reitiltä ja tallentaa laitteelle ne, jotka ovat
+  uudempia kuin laitteen oma aloitus (uusin voittaa). Nimimerkin voi
+  asettaa etusivulla (`NimimerkkiKentta`) ennen ensimmäistä löytöä.
+  Kolmiomittaukset eivät siirry laitteiden välillä.
   Aloitus ilmoitetaan lisäksi workerille (`POST /aloita-etsinta`) pelkästään
   tilannekuvaa varten; peli itse ei lue sitä. Etsinnän ollessa käynnissä
   laite jakaa myös sijaintinsa 15 s välein (`POST /etsinta-sijainti`, ks.
