@@ -9,6 +9,8 @@ import {
   normalisoiAlueNimi,
 } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
+import { haeJono } from "./lib/loytoJono";
+import { lahetaJonotetutLoydot } from "./features/paikat/loydotApi";
 import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
 import { yhdistaLoydot, mitalitYhdelleKatkolle } from "./features/tilastot/tilastoLaskenta";
 import { Etusivu } from "./features/paikat/Etusivu";
@@ -34,6 +36,7 @@ type Lataustila = "lataa" | "valmis" | "virhe";
 
 /** Kuinka usein muiden pelaajien löytöjä tarkistetaan taustalla. */
 const LOYTO_POLLAUS_MS = 20_000;
+const JONON_LAHETYS_MS = 30_000;
 
 export function App() {
   const [valittuAlue, setValittuAlue] = useState<string | null>(null);
@@ -43,7 +46,10 @@ export function App() {
   const [naytaAdmin, setNaytaAdmin] = useState(false);
   const [paikat, setPaikat] = useState<Paikka[]>([]);
   const [loydot, setLoydot] = useState<Loyto[]>([]);
-  const [omatLoydot, setOmatLoydot] = useState<Loyto[]>([]);
+  // Jonotetut (vielä lähettämättä olevat) löydöt näkyvät omina löytöinä heti.
+  const [omatLoydot, setOmatLoydot] = useState<Loyto[]>(() =>
+    haeJono().map(({ paikkaId, nimi, aika, kestoMs, kommentti }) => ({ paikkaId, nimi, aika, kestoMs, kommentti })),
+  );
   const [pelimoodit, setPelimoodit] = useState<AlueidenPelimoodit>(new Map());
   const [lataustila, setLataustila] = useState<Lataustila>("lataa");
 
@@ -95,6 +101,18 @@ export function App() {
   const lisaaOmaLoyto = useCallback((loyto: Loyto) => {
     setOmatLoydot((edelliset) => [...edelliset, loyto]);
     setLoytoAnimaatio(loyto);
+  }, []);
+
+  // Lähetetään offline-tilassa jonotetut löydöt heti kun yhteys palaa.
+  useEffect(() => {
+    const laheta = () => void lahetaJonotetutLoydot();
+    laheta();
+    window.addEventListener("online", laheta);
+    const ajastin = setInterval(laheta, JONON_LAHETYS_MS);
+    return () => {
+      window.removeEventListener("online", laheta);
+      clearInterval(ajastin);
+    };
   }, []);
 
   const paikatRef = useRef<Paikka[]>([]);

@@ -90,9 +90,9 @@ export async function onkoJoLoytanyt(
 
 export async function lisaaLoyto(
   db: D1Database,
-  pyynto: { paikkaId: string; nimi: string; kestoMs: number | null; kommentti: string | null },
+  pyynto: { paikkaId: string; nimi: string; kestoMs: number | null; kommentti: string | null; aika?: string | null },
 ): Promise<Loyto> {
-  const aika = new Date().toISOString();
+  const aika = pyynto.aika ?? new Date().toISOString();
   await db
     .prepare("INSERT INTO loydot (paikka_id, nimi, aika, kesto_ms, kommentti) VALUES (?, ?, ?, ?, ?)")
     .bind(pyynto.paikkaId, pyynto.nimi, aika, pyynto.kestoMs, pyynto.kommentti)
