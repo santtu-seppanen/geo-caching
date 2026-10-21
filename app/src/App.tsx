@@ -9,6 +9,8 @@ import {
   normalisoiAlueNimi,
 } from "./features/paikat/alueet";
 import { uudetLoydot, muodostaLoytoIlmoitus } from "./features/paikat/loytoVertailu";
+import { LoytoAnimaatio } from "./features/paikat/LoytoAnimaatio";
+import { yhdistaLoydot, mitalitYhdelleKatkolle } from "./features/tilastot/tilastoLaskenta";
 import { Etusivu } from "./features/paikat/Etusivu";
 import { Aluesivu } from "./features/paikat/Aluesivu";
 import { Saannot } from "./features/saannot/Saannot";
@@ -80,8 +82,19 @@ export function App() {
     };
   }, []);
 
+  const [loytoAnimaatio, setLoytoAnimaatio] = useState<Loyto | null>(null);
+  const suljeLoytoAnimaatio = useCallback(() => setLoytoAnimaatio(null), []);
+  const animaationMitali = useMemo(() => {
+    if (!loytoAnimaatio) return undefined;
+    const katkonLoydot = yhdistaLoydot(loydot, omatLoydot).filter(
+      (l) => l.paikkaId === loytoAnimaatio.paikkaId,
+    );
+    return mitalitYhdelleKatkolle(katkonLoydot).get(loytoAnimaatio.nimi);
+  }, [loytoAnimaatio, loydot, omatLoydot]);
+
   const lisaaOmaLoyto = useCallback((loyto: Loyto) => {
     setOmatLoydot((edelliset) => [...edelliset, loyto]);
+    setLoytoAnimaatio(loyto);
   }, []);
 
   const paikatRef = useRef<Paikka[]>([]);
@@ -225,6 +238,15 @@ export function App() {
             onSulje={() => setNaytaTilastot(false)}
           />
         </Modaali>
+      )}
+
+      {loytoAnimaatio && (
+        <LoytoAnimaatio
+          nimi={loytoAnimaatio.nimi}
+          mitali={animaationMitali}
+          kestoMs={loytoAnimaatio.kestoMs ?? null}
+          onSulje={suljeLoytoAnimaatio}
+        />
       )}
 
       {naytaAdmin ? (
