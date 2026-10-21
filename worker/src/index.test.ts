@@ -172,7 +172,7 @@ describe("POST /loyda", () => {
 describe("admin-reitit", () => {
   it("vaativat admin-salasanan", async () => {
     const env = luoEnv({ paikat: [], loydot: [] });
-    for (const polku of ["/admin/luo-katko", "/admin/poista-katko", "/admin/aseta-pelimoodi", "/admin/muokkaa-katko"]) {
+    for (const polku of ["/admin/luo-katko", "/admin/poista-katko", "/admin/aseta-pelimoodi", "/admin/aseta-haaste", "/admin/muokkaa-katko"]) {
       const vastaus = await worker.fetch(
         new Request(`https://worker.test${polku}`, {
           method: "POST",

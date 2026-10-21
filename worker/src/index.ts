@@ -1,5 +1,7 @@
 import {
   asetaAlueenPelimoodi,
+  asetaHaaste,
+  haeHaaste,
   haeAlueidenPelimoodit,
   haeLoydot,
   haePaikat,
@@ -15,6 +17,7 @@ import { haeKuva, poistaKuva, tallennaKuva } from "./r2.js";
 import {
   etaisyysMetreina,
   LOYTO_MAX_ETAISYYS_M,
+  validoiHaastePyynto,
   validoiLoytoPyynto,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
@@ -62,6 +65,10 @@ export default {
       return jsonVastaus(alueet, 200, corsHeaders);
     }
 
+    if (request.method === "GET" && url.pathname === "/haaste") {
+      return jsonVastaus(await haeHaaste(env.DB), 200, corsHeaders);
+    }
+
     if (request.method === "GET" && url.pathname.startsWith(KUVAT_POLKU_ETULIITE)) {
       return kasitteleKuva(url.pathname.slice(KUVAT_POLKU_ETULIITE.length), env, corsHeaders);
     }
@@ -88,6 +95,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/admin/aseta-pelimoodi") {
       return kasitteleAsetaPelimoodi(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/admin/aseta-haaste") {
+      return kasitteleAsetaHaaste(request, env, corsHeaders);
     }
 
     return jsonVastaus({ error: "Reittiä ei löydy" }, 404, corsHeaders);
@@ -338,6 +349,37 @@ async function kasitteleAsetaPelimoodi(
   } catch (virhe) {
     console.error(virhe);
     return jsonVastaus({ error: "Pelimoodin tallennus epäonnistui" }, 502, corsHeaders);
+  }
+
+  return jsonVastaus({ ok: true }, 200, corsHeaders);
+}
+
+async function kasitteleAsetaHaaste(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Admin-Salasana") !== env.ADMIN_SALASANA) {
+    return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
+  }
+
+  let data: unknown;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  const tulos = validoiHaastePyynto(data);
+  if (!tulos.ok) {
+    return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  try {
+    await asetaHaaste(env.DB, tulos.haaste);
+  } catch (virhe) {
+    console.error(virhe);
+    return jsonVastaus({ error: "Haasteen tallennus epäonnistui" }, 502, corsHeaders);
   }
 
   return jsonVastaus({ ok: true }, 200, corsHeaders);

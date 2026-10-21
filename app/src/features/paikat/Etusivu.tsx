@@ -4,6 +4,9 @@ import { normalisoiAlueNimi } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
 import { Edistymispalkki } from "./Edistymispalkki";
+import { HaasteKortti } from "../haaste/HaasteKortti";
+import type { Haaste } from "../haaste/haaste";
+import type { Loyto } from "./types";
 import { PELIMOODIN_NIMI } from "../pelimoodit/pelimoodit";
 import { alueenPelimoodi, type AlueidenPelimoodit } from "../pelimoodit/pelimoodiApi";
 import { lataaEtsinnanAlku } from "../pelimoodit/pelitila";
@@ -15,6 +18,10 @@ interface EtusivuProps {
   /** ALUE_AVAUTUU_METREINA-säteellä olevat alueet lähimmästä alkaen, ks. etsiLahellaOlevatAlueet. */
   lahellaOlevatAlueet: LahellaOlevaAlue[];
   pelimoodit: AlueidenPelimoodit;
+  /** Aktiivinen yhteishaaste, null jos ei ole. */
+  haaste: Haaste | null;
+  /** Kaikki löydöt (palvelimen + omat) haasteen edistymisen laskemiseen. */
+  kaikkiLoydot: Loyto[];
   loydettyjaAlueitaKokonaan: number;
   /** Kutsutaan alueen näytettävällä nimellä (ei id:n tekstiosalla), ks. yhdistaSamannimiset. */
   onValitseAlue: (nimi: string) => void;
@@ -35,6 +42,8 @@ export function Etusivu({
   lahellaOlevaAlue,
   lahellaOlevatAlueet,
   pelimoodit,
+  haaste,
+  kaikkiLoydot,
   loydettyjaAlueitaKokonaan,
   onValitseAlue,
   onAloitaEtsinta,
@@ -141,6 +150,7 @@ export function Etusivu({
           )}
         </div>
       )}
+      {haaste && <HaasteKortti haaste={haaste} loydot={kaikkiLoydot} />}
       <div className="aluehaku-kortti">
         <h2>Etsi kätköjä</h2>
         <Edistymispalkki
