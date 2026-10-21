@@ -64,6 +64,17 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   `etsintaKestoMs` ylittää takarajan. Etsinnän aloitus ja kolmiomittaukset
   muistetaan laitteella `localStorage`:ssa — ei huijauksenestoa, koska
   koordinaatit ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
+  Aloitus ilmoitetaan lisäksi workerille (`POST /aloita-etsinta`) pelkästään
+  tilannekuvaa varten; peli itse ei lue sitä.
+- **Tilannekuva** (`/tilannekuva`, ks. `app/src/features/tilannekuva/`):
+  telkkariin tarkoitettu koko ruudun katselunäkymä — käynnissä olevat
+  etsinnät alueittain sekä valitun alueen kaikki kätköt kartalla ja
+  listana löytäjineen (mitalit). Päivittyy itsestään. Alueen voi valita
+  vain käynnissä olevien etsintöjen listasta (oletuksena alue, jolla on
+  eniten etsijöitä); alueita, joilla kukaan ei etsi, ei näytetä eikä
+  hakukenttää ole. Ainoa oma URL-reitti: `main.tsx` valitsee näkymän
+  polusta, ja build kopioi `index.html`:n `dist/tilannekuva/`:aan GitHub
+  Pagesia varten.
 
 ## Arkkitehtuuri lyhyesti
 
@@ -96,6 +107,13 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     kaikille näkyvässä JS-bundlessa, joten tämä ei ole regressio).
   - `GET /alueet` — alueiden pelimoodit (`[{ alueAvain, pelimoodi }]`).
     Julkinen.
+  - `GET /etsinnat` — käynnissä olevat (alle 3 h vanhat) etsinnät
+    tilannekuvaa varten (`[{ alueAvain, nimi, alkoi }]`). Julkinen.
+  - `POST /aloita-etsinta` — jaettu salasana; kirjaa etsinnän aloituksen
+    (`{ laiteId, alueAvain, nimi? }`, D1-taulu `etsinnat`, yksi rivi per
+    laite+alue, aloitusaika workerin kellosta). Laite-id on satunnainen
+    `localStorage`-tunniste (`app/src/lib/laiteId.ts`), koska nimimerkki voi
+    puuttua aloitushetkellä.
   - `GET /kuvat/:tiedostonimi` — striimaa kuvan R2:sta oikealla
     `Content-Type`-headerilla.
   - `POST /loyda` — validoi pyynnön (tunnettu `paikkaId`, nimi ei

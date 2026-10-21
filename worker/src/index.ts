@@ -1,8 +1,10 @@
 import {
+  aloitaEtsinta,
   asetaAlueenPelimoodi,
   asetaHaaste,
   haeHaaste,
   haeAlueidenPelimoodit,
+  haeKaynnissaOlevatEtsinnat,
   haeLoydot,
   haePaikat,
   haePaikkaIdt,
@@ -16,7 +18,9 @@ import {
 import { haeKuva, poistaKuva, tallennaKuva } from "./r2.js";
 import {
   etaisyysMetreina,
+  ETSINTA_MAX_MS,
   LOYTO_MAX_ETAISYYS_M,
+  validoiEtsinnanAloitusPyynto,
   validoiHaastePyynto,
   validoiLoytoPyynto,
   validoiMuokkausKatkoPyynto,
@@ -69,12 +73,20 @@ export default {
       return jsonVastaus(await haeHaaste(env.DB), 200, corsHeaders);
     }
 
+    if (request.method === "GET" && url.pathname === "/etsinnat") {
+      return jsonVastaus(await haeKaynnissaOlevatEtsinnat(env.DB, Date.now(), ETSINTA_MAX_MS), 200, corsHeaders);
+    }
+
     if (request.method === "GET" && url.pathname.startsWith(KUVAT_POLKU_ETULIITE)) {
       return kasitteleKuva(url.pathname.slice(KUVAT_POLKU_ETULIITE.length), env, corsHeaders);
     }
 
     if (request.method === "POST" && url.pathname === "/loyda") {
       return kasitteleLoyda(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/aloita-etsinta") {
+      return kasitteleAloitaEtsinta(request, env, corsHeaders);
     }
 
     if (request.method === "POST" && url.pathname === "/admin/kirjaudu") {
@@ -173,6 +185,32 @@ async function kasitteleLoyda(
     return jsonVastaus({ error: "Löydön tallennus epäonnistui" }, 502, corsHeaders);
   }
 
+  return jsonVastaus({ ok: true }, 201, corsHeaders);
+}
+
+/** Kirjaa etsinnän aloituksen tilannekuvaa varten. Sama jaettu salasana kuin löydöissä. */
+async function kasitteleAloitaEtsinta(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Jaettu-Salasana") !== env.JAETTU_SALASANA) {
+    return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
+  }
+
+  let data: unknown;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  const tulos = validoiEtsinnanAloitusPyynto(data);
+  if (!tulos.ok) {
+    return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  await aloitaEtsinta(env.DB, tulos.pyynto, Date.now(), ETSINTA_MAX_MS);
   return jsonVastaus({ ok: true }, 201, corsHeaders);
 }
 

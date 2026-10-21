@@ -207,3 +207,41 @@ export async function asetaHaaste(db: D1Database, haaste: Haaste | null): Promis
     .bind(haaste.nimi, haaste.alku, haaste.loppu, haaste.tavoite)
     .run();
 }
+
+export interface Etsinta {
+  alueAvain: string;
+  /** null jos pelaaja ei ollut vielä antanut nimimerkkiä aloittaessaan. */
+  nimi: string | null;
+  /** Aloitushetki ISO-muodossa (workerin kello). */
+  alkoi: string;
+}
+
+/**
+ * Kirjaa etsinnän aloituksen (korvaa saman laitteen aiemman aloituksen
+ * samalla alueella) ja siivoaa samalla takarajan ylittäneet rivit, jottei
+ * taulu kasva loputtomasti.
+ */
+export async function aloitaEtsinta(
+  db: D1Database,
+  etsinta: { laiteId: string; alueAvain: string; nimi: string | null },
+  nyt: number,
+  maxMs: number,
+): Promise<void> {
+  await db.batch([
+    db.prepare("DELETE FROM etsinnat WHERE alkoi < ?").bind(new Date(nyt - maxMs).toISOString()),
+    db
+      .prepare(
+        "INSERT INTO etsinnat (laite_id, alue_avain, nimi, alkoi) VALUES (?, ?, ?, ?) ON CONFLICT (laite_id, alue_avain) DO UPDATE SET nimi = excluded.nimi, alkoi = excluded.alkoi",
+      )
+      .bind(etsinta.laiteId, etsinta.alueAvain, etsinta.nimi, new Date(nyt).toISOString()),
+  ]);
+}
+
+/** Palauttaa etsinnät, joiden takaraja ei ole vielä umpeutunut (laite_id jätetään pois). */
+export async function haeKaynnissaOlevatEtsinnat(db: D1Database, nyt: number, maxMs: number): Promise<Etsinta[]> {
+  const { results } = await db
+    .prepare("SELECT alue_avain, nimi, alkoi FROM etsinnat WHERE alkoi >= ? ORDER BY alkoi")
+    .bind(new Date(nyt - maxMs).toISOString())
+    .all<{ alue_avain: string; nimi: string | null; alkoi: string }>();
+  return results.map((rivi) => ({ alueAvain: rivi.alue_avain, nimi: rivi.nimi, alkoi: rivi.alkoi }));
+}

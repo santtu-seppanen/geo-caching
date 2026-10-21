@@ -6,6 +6,7 @@ import {
   validoiHaastePyynto,
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
+  validoiEtsinnanAloitusPyynto,
   validoiUusiKatkoPyynto,
 } from "./validointi";
 
@@ -1014,5 +1015,44 @@ describe("validoiHaastePyynto", () => {
       expect(validoiHaastePyynto(huono).ok, JSON.stringify(huono)).toBe(false);
     }
     expect(validoiHaastePyynto(null).ok).toBe(false);
+  });
+});
+
+describe("validoiEtsinnanAloitusPyynto", () => {
+  const LAITE = "3f2b8c1e-1234-4abc-9def-0123456789ab";
+
+  it("hyväksyy pyynnön nimellä ja trimmaa sen", () => {
+    expect(validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: " apatti ", nimi: " Pekka " })).toEqual({
+      ok: true,
+      pyynto: { laiteId: LAITE, alueAvain: "apatti", nimi: "Pekka" },
+    });
+  });
+
+  it("hyväksyy puuttuvan tai tyhjän nimen nullina", () => {
+    for (const nimi of [undefined, null, "   "]) {
+      const tulos = validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: "apatti", nimi });
+      expect(tulos).toEqual({ ok: true, pyynto: { laiteId: LAITE, alueAvain: "apatti", nimi: null } });
+    }
+  });
+
+  it("hylkää virheellisen laiteId:n", () => {
+    for (const laiteId of [undefined, "", "lyhyt", "a".repeat(65), "ei sallittu!"]) {
+      expect(validoiEtsinnanAloitusPyynto({ laiteId, alueAvain: "apatti" }).ok).toBe(false);
+    }
+  });
+
+  it("hylkää puuttuvan tai liian pitkän alueAvaimen", () => {
+    expect(validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: " " }).ok).toBe(false);
+    expect(validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: "a".repeat(81) }).ok).toBe(false);
+  });
+
+  it("hylkää liian pitkän tai ei-merkkijono-nimen", () => {
+    expect(validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: "apatti", nimi: "a".repeat(51) }).ok).toBe(false);
+    expect(validoiEtsinnanAloitusPyynto({ laiteId: LAITE, alueAvain: "apatti", nimi: 5 }).ok).toBe(false);
+  });
+
+  it("hylkää muun kuin objektin", () => {
+    expect(validoiEtsinnanAloitusPyynto([]).ok).toBe(false);
+    expect(validoiEtsinnanAloitusPyynto(null).ok).toBe(false);
   });
 });

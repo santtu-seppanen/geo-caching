@@ -30,6 +30,7 @@ import {
   type AlueidenPelimoodit,
 } from "./features/pelimoodit/pelimoodiApi";
 import { tallennaEtsinnanAlku } from "./features/pelimoodit/pelitila";
+import { ilmoitaEtsinnanAloitus } from "./features/pelimoodit/etsinnatApi";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
 import heroKuva from "./assets/hero-aarrearkku.jpg";
@@ -196,6 +197,7 @@ export function App() {
 
   const aloitaEtsinta = useCallback((nimi: string) => {
     tallennaEtsinnanAlku(normalisoiAlueNimi(nimi), Date.now());
+    ilmoitaEtsinnanAloitus(normalisoiAlueNimi(nimi));
     setValittuAlue(nimi);
   }, []);
 

@@ -457,3 +457,49 @@ export function validoiHaastePyynto(data: unknown): HaasteValidointiTulos {
     },
   };
 }
+
+export interface EtsinnanAloitusPyynto {
+  /** Laitteen satunnainen tunniste (ks. app/src/lib/laiteId.ts). */
+  laiteId: string;
+  alueAvain: string;
+  /** Pelaajan nimimerkki, null jos sitä ei ole vielä annettu. */
+  nimi: string | null;
+}
+
+export type EtsinnanAloitusValidointiTulos =
+  | { ok: true; pyynto: EtsinnanAloitusPyynto }
+  | { ok: false; virhe: string };
+
+const LAITE_ID_PATTERN = /^[A-Za-z0-9-]{8,64}$/;
+
+export function validoiEtsinnanAloitusPyynto(data: unknown): EtsinnanAloitusValidointiTulos {
+  if (typeof data !== "object" || data === null || Array.isArray(data)) {
+    return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
+  }
+
+  const { laiteId, alueAvain, nimi } = data as Record<string, unknown>;
+
+  if (typeof laiteId !== "string" || !LAITE_ID_PATTERN.test(laiteId)) {
+    return { ok: false, virhe: "laiteId on virheellinen" };
+  }
+
+  if (typeof alueAvain !== "string" || alueAvain.trim().length === 0) {
+    return { ok: false, virhe: "alueAvain on pakollinen" };
+  }
+  if (alueAvain.length > ALUE_MAX_PITUUS) {
+    return { ok: false, virhe: `alueAvain saa olla enintään ${ALUE_MAX_PITUUS} merkkiä` };
+  }
+
+  if (nimi !== undefined && nimi !== null && typeof nimi !== "string") {
+    return { ok: false, virhe: "nimi täytyy olla merkkijono" };
+  }
+  const siistiNimi = typeof nimi === "string" ? nimi.trim() : "";
+  if (siistiNimi.length > NIMI_MAX_PITUUS) {
+    return { ok: false, virhe: `nimi saa olla enintään ${NIMI_MAX_PITUUS} merkkiä` };
+  }
+
+  return {
+    ok: true,
+    pyynto: { laiteId, alueAvain: alueAvain.trim(), nimi: siistiNimi || null },
+  };
+}

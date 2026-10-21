@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && mkdir -p dist/tilannekuva && cp dist/index.html dist/tilannekuva/index.html",
     "preview": "vite preview",
     "test": "vitest run",
     "test:e2e": "playwright test"

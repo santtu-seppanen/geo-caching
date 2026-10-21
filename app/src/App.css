@@ -1312,3 +1312,190 @@ body {
     animation: none;
   }
 }
+
+/* Telkkarin tilannekuva (/tilannekuva) — koko ruutu, luettava kauempaa. */
+.tilannekuva {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5vh 1.5vw;
+  gap: 1.5vh;
+  font-size: clamp(1rem, 1.4vw, 1.75rem);
+}
+
+.tilannekuva-otsikko {
+  display: flex;
+  align-items: baseline;
+  gap: 1.5rem;
+}
+
+.tilannekuva-otsikko h1 {
+  margin: 0;
+  font-size: 2em;
+  flex: 1;
+}
+
+.tilannekuva-otsikko h1 span {
+  color: var(--vari-ensisijainen);
+}
+
+.tilannekuva-kello {
+  font-size: 2em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.tilannekuva-virhe {
+  color: var(--vari-aksentti);
+  font-weight: 700;
+}
+
+.tilannekuva-sisalto {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr);
+  gap: 1.5vw;
+}
+
+.tilannekuva-kartta {
+  border-radius: 1rem;
+  overflow: hidden;
+  border: 1px solid var(--vari-reuna);
+  background: var(--vari-pinta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tilannekuva-tyhja {
+  font-size: 1.6em;
+  color: var(--vari-teksti-himmea);
+}
+
+.tilannekuva-sivupalkki {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5vh;
+}
+
+.tilannekuva-sivupalkki > section {
+  background: var(--vari-pinta);
+  border: 1px solid var(--vari-reuna);
+  border-radius: 1rem;
+  padding: 0.8em 1em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6em;
+}
+
+.tilannekuva-sivupalkki h2 {
+  margin: 0;
+  font-size: 1.3em;
+}
+
+.tilannekuva-ryhma {
+  border-radius: 0.6rem;
+  padding: 0.4em 0.6em;
+}
+
+.tilannekuva-ryhma.valittu {
+  background: rgba(47, 107, 79, 0.12);
+  outline: 2px solid var(--vari-ensisijainen);
+}
+
+.tilannekuva-ryhma-nimi {
+  all: unset;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 1.1em;
+  color: var(--vari-ensisijainen-tumma);
+}
+
+.tilannekuva-ryhma-nimi:focus-visible {
+  outline: 2px solid var(--vari-ensisijainen);
+}
+
+.tilannekuva-etsinnat,
+.tilannekuva-katkot {
+  margin: 0.3em 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35em;
+}
+
+.tilannekuva-etsinnat li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 0.8em;
+  align-items: baseline;
+}
+
+.tilannekuva-etsinnat .etsija {
+  font-weight: 700;
+  flex: 1;
+}
+
+.etsinnan-aika {
+  font-variant-numeric: tabular-nums;
+}
+
+.etsinnan-aika small,
+.tilannekuva-ryhma-nimi small {
+  color: var(--vari-teksti-himmea);
+  font-weight: 400;
+}
+
+.etsinnan-loydot {
+  width: 100%;
+  color: var(--vari-teksti-himmea);
+}
+
+.tilannekuva-katkot {
+  counter-reset: katko;
+}
+
+.tilannekuva-katkot li {
+  counter-increment: katko;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2em 0.7em;
+}
+
+.tilannekuva-katkot li::before {
+  content: counter(katko) ".";
+  font-weight: 700;
+  min-width: 1.8em;
+}
+
+.tilannekuva-katkot li.loydetty::before {
+  color: var(--vari-ensisijainen);
+}
+
+.leaflet-tooltip.tilannekuva-merkki {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 0 0.4em;
+}
+
+@media (max-width: 800px) {
+  .tilannekuva {
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .tilannekuva-sisalto {
+    grid-template-columns: 1fr;
+  }
+
+  .tilannekuva-kartta {
+    height: 60vh;
+  }
+}
+
+.tilannekuva .edistymispalkki-teksti {
+  font-size: 0.8em;
+}

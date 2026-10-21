@@ -24,6 +24,7 @@ import {
 import { useNyt, usePelitila } from "../pelimoodit/usePelitila";
 import { lataaEtsinnanAlku, tallennaEtsinnanAlku } from "../pelimoodit/pelitila";
 import { PelimoodiPaneeli } from "../pelimoodit/PelimoodiPaneeli";
+import { ilmoitaEtsinnanAloitus } from "../pelimoodit/etsinnatApi";
 
 interface AluesivuProps {
   alue: Alue;
@@ -108,6 +109,7 @@ export function Aluesivu({
   function aloitaEtsinta() {
     const alkoi = Date.now();
     tallennaEtsinnanAlku(alueAvain, alkoi);
+    ilmoitaEtsinnanAloitus(alueAvain);
     setEtsintaAlkoi(alkoi);
   }
 
