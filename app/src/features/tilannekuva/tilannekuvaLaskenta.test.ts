@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { ryhmitteleAlueiksi, yhdistaKaikkiSamannimiset } from "../paikat/alueet";
 import type { Loyto, Paikka } from "../paikat/types";
 import { ETSINTA_MAX_MS } from "../pelimoodit/etsinta";
-import { etsintaRivit, katkoRivit, muotoileKesto, ryhmitteleAlueittain, valitseAlue } from "./tilannekuvaLaskenta";
+import { etsintaRivit, katkoRivit, muotoileIka, muotoileKesto, ryhmitteleAlueittain, valitseAlue } from "./tilannekuvaLaskenta";
 
 function paikka(id: string, alue: string): Paikka {
   return { id, alue, kuvaus: "", lat: 60, lng: 25, kuva: "" };
@@ -15,9 +15,9 @@ const iso = (minuuttiaSitten: number) => new Date(NYT - minuuttiaSitten * 60_000
 
 describe("valitseAlue", () => {
   const etsinnat = [
-    { alueAvain: "neittava", nimi: "A", alkoi: iso(30) },
-    { alueAvain: "apatti", nimi: "B", alkoi: iso(20) },
-    { alueAvain: "apatti", nimi: "C", alkoi: iso(10) },
+    { alueAvain: "neittava", nimi: "A", alkoi: iso(30), sijainti: null },
+    { alueAvain: "apatti", nimi: "B", alkoi: iso(20), sijainti: null },
+    { alueAvain: "apatti", nimi: "C", alkoi: iso(10), sijainti: null },
   ];
 
   it("valitsee alueen, jolla on eniten etsintöjä", () => {
@@ -38,7 +38,7 @@ describe("valitseAlue", () => {
 
   it("palauttaa null, jos kukaan ei etsi tai alue on poistettu", () => {
     expect(valitseAlue(alueet, "apatti", [])).toBeNull();
-    expect(valitseAlue(alueet, null, [{ alueAvain: "poistettu", nimi: null, alkoi: iso(1) }])).toBeNull();
+    expect(valitseAlue(alueet, null, [{ alueAvain: "poistettu", nimi: null, alkoi: iso(1), sijainti: null }])).toBeNull();
   });
 });
 
@@ -50,7 +50,7 @@ describe("etsintaRivit", () => {
   ];
 
   it("laskee ajat ja aloituksen jälkeiset löydöt alueelta nimimerkillä", () => {
-    const [rivi] = etsintaRivit([{ alueAvain: "apatti", nimi: "Pekka ", alkoi: iso(60) }], alueet, loydot, NYT);
+    const [rivi] = etsintaRivit([{ alueAvain: "apatti", nimi: "Pekka ", alkoi: iso(60), sijainti: null }], alueet, loydot, NYT);
     expect(rivi).toEqual({
       alueNimi: "Äpätti",
       alueAvain: "apatti",
@@ -59,19 +59,30 @@ describe("etsintaRivit", () => {
       jaljellaMs: ETSINTA_MAX_MS - 60 * 60_000,
       loydetty: 1,
       yhteensa: 2,
+      sijainti: null,
     });
   });
 
+  it("laskee sijainnin iän", () => {
+    const [rivi] = etsintaRivit(
+      [{ alueAvain: "apatti", nimi: "A", alkoi: iso(60), sijainti: { lat: 60.1, lng: 24.9, aika: iso(2) } }],
+      alueet,
+      [],
+      NYT,
+    );
+    expect(rivi.sijainti).toEqual({ lat: 60.1, lng: 24.9, ikaMs: 2 * 60_000 });
+  });
+
   it("ei laske löytöjä nimettömälle etsijälle", () => {
-    expect(etsintaRivit([{ alueAvain: "apatti", nimi: null, alkoi: iso(60) }], alueet, loydot, NYT)[0].loydetty).toBeNull();
+    expect(etsintaRivit([{ alueAvain: "apatti", nimi: null, alkoi: iso(60), sijainti: null }], alueet, loydot, NYT)[0].loydetty).toBeNull();
   });
 
   it("pudottaa takarajan ylittäneet ja järjestää vanhimman ensin", () => {
     const rivit = etsintaRivit(
       [
-        { alueAvain: "apatti", nimi: "uusi", alkoi: iso(1) },
-        { alueAvain: "apatti", nimi: "vanha", alkoi: iso(100) },
-        { alueAvain: "apatti", nimi: "ohi", alkoi: iso(181) },
+        { alueAvain: "apatti", nimi: "uusi", alkoi: iso(1), sijainti: null },
+        { alueAvain: "apatti", nimi: "vanha", alkoi: iso(100), sijainti: null },
+        { alueAvain: "apatti", nimi: "ohi", alkoi: iso(181), sijainti: null },
       ],
       alueet,
       [],
@@ -85,9 +96,9 @@ describe("ryhmitteleAlueittain", () => {
   it("ryhmittelee rivit alueittain ensimmäisen rivin järjestyksessä", () => {
     const rivit = etsintaRivit(
       [
-        { alueAvain: "apatti", nimi: "A", alkoi: iso(50) },
-        { alueAvain: "neittava", nimi: "B", alkoi: iso(40) },
-        { alueAvain: "apatti", nimi: "C", alkoi: iso(30) },
+        { alueAvain: "apatti", nimi: "A", alkoi: iso(50), sijainti: null },
+        { alueAvain: "neittava", nimi: "B", alkoi: iso(40), sijainti: null },
+        { alueAvain: "apatti", nimi: "C", alkoi: iso(30), sijainti: null },
       ],
       alueet,
       [],
@@ -112,6 +123,13 @@ describe("katkoRivit", () => {
       { nimi: "Toinen", mitali: "hopea" },
     ]);
     expect(rivit[1].loytajat).toEqual([]);
+  });
+});
+
+describe("muotoileIka", () => {
+  it("näyttää sekunnit alle minuutin ja muuten minuutit", () => {
+    expect(muotoileIka(12_400)).toBe("12 s sitten");
+    expect(muotoileIka(4 * 60_000 + 59_000)).toBe("4 min sitten");
   });
 });
 

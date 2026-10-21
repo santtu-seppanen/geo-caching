@@ -9,22 +9,48 @@ import { loydettyIkoni, oletusIkoni } from "../paikat/leafletIkonit";
 import { haeKaynnissaOlevatEtsinnat, type KaynnissaOlevaEtsinta } from "../pelimoodit/etsinnatApi";
 import { useNyt } from "../pelimoodit/usePelitila";
 import { alueenMestarit, MITALI_EMOJI } from "../tilastot/tilastoLaskenta";
-import { etsintaRivit, katkoRivit, muotoileKesto, ryhmitteleAlueittain, valitseAlue } from "./tilannekuvaLaskenta";
+import {
+  etsintaRivit,
+  katkoRivit,
+  muotoileIka,
+  muotoileKesto,
+  ryhmitteleAlueittain,
+  SIJAINTI_VANHENTUNUT_MS,
+  valitseAlue,
+  type EtsintaRivi,
+} from "./tilannekuvaLaskenta";
+import { etaisyysMetreina } from "../etsi/distance";
+import { ALUE_AVAUTUU_METREINA } from "../etsi/kynnykset";
 
 /** Kuinka usein telkkari hakee tuoreet löydöt ja etsinnät. */
 const PAIVITYS_MS = 15_000;
 
-function SovitaKartta({ paikat }: { paikat: Paikka[] }) {
+/**
+ * Sovittaa kartan kätköihin ja etsijöihin. Sovitetaan uudelleen vain kun
+ * pisteiden joukko muuttuu (ei jokaisella sijaintipäivityksellä), ettei
+ * kartta nyi 15 s välein.
+ */
+function SovitaKartta({ pisteet, avain }: { pisteet: { lat: number; lng: number }[]; avain: string }) {
   const kartta = useMap();
-  const avain = paikat.map((p) => p.id).join(",");
 
   useEffect(() => {
-    const rajat = L.latLngBounds(paikat.map((p) => [p.lat, p.lng] as [number, number]));
+    const rajat = L.latLngBounds(pisteet.map((p) => [p.lat, p.lng] as [number, number]));
     if (rajat.isValid()) kartta.fitBounds(rajat, { padding: [60, 60], maxZoom: 17 });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- avain kattaa paikat
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- avain kattaa pisteet
   }, [kartta, avain]);
 
   return null;
+}
+
+function etsijaIkoni(rivi: EtsintaRivi): L.DivIcon {
+  const vanha = (rivi.sijainti?.ikaMs ?? 0) > SIJAINTI_VANHENTUNUT_MS;
+  const nimi = (rivi.nimi ?? "Nimetön").replace(/[&<>"']/g, (m) => `&#${m.charCodeAt(0)};`);
+  return L.divIcon({
+    className: `etsija-merkki${vanha ? " vanha" : ""}`,
+    html: `<span class="etsija-piste"></span><span class="etsija-nimi">${nimi}</span>`,
+    iconSize: [0, 0],
+    iconAnchor: [0, 0],
+  });
 }
 
 /**
@@ -84,6 +110,18 @@ export function Tilannekuva() {
     etsinnat.filter((e) => rivit.some((r) => r.alueAvain === e.alueAvain)),
   );
   const alueAvain = alue ? normalisoiAlueNimi(alue.nimi) : null;
+  const alueenEtsijat = rivit.filter((r) => r.alueAvain === alueAvain && r.sijainti);
+  // Kartta sovitetaan kätköihin ja alueen lähellä oleviin etsijöihin — kaukana
+  // (esim. vielä kotona) olevat näkyvät listassa, mutta eivät loitonna karttaa.
+  const sovitusPisteet = alue
+    ? [
+        ...alue.paikat,
+        ...alueenEtsijat
+          .map((r) => r.sijainti!)
+          .filter((s) => etaisyysMetreina(s, alue.keskipiste) <= ALUE_AVAUTUU_METREINA),
+      ]
+    : [];
+  const sovitusAvain = `${alueAvain}|${alue?.paikat.length}|${sovitusPisteet.length}`;
   const katkot = useMemo(() => (alue ? katkoRivit(alue, loydot) : []), [alue, loydot]);
   const loydetytIdt = useMemo(() => new Set(loydot.map((l) => l.paikkaId)), [loydot]);
   const mestarit = useMemo(
@@ -119,7 +157,7 @@ export function Tilannekuva() {
                   url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                   attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                 />
-                <SovitaKartta paikat={alue.paikat} />
+                <SovitaKartta pisteet={sovitusPisteet} avain={sovitusAvain} />
                 {katkot.map(({ paikka }, indeksi) => (
                   <Marker
                     key={paikka.id}
@@ -130,6 +168,14 @@ export function Tilannekuva() {
                       {indeksi + 1}
                     </Tooltip>
                   </Marker>
+                ))}
+                {alueenEtsijat.map((rivi, indeksi) => (
+                  <Marker
+                    key={`etsija-${rivi.nimi ?? "?"}-${indeksi}`}
+                    position={[rivi.sijainti!.lat, rivi.sijainti!.lng]}
+                    icon={etsijaIkoni(rivi)}
+                    zIndexOffset={1000}
+                  />
                 ))}
               </MapContainer>
             ) : (
@@ -163,6 +209,9 @@ export function Tilannekuva() {
                           <span className="etsinnan-aika">
                             ⏱ {muotoileKesto(rivi.kulunutMs)}
                             <small> (jäljellä {muotoileKesto(rivi.jaljellaMs)})</small>
+                          </span>
+                          <span className="etsinnan-sijainti">
+                            {rivi.sijainti ? `📍 ${muotoileIka(rivi.sijainti.ikaMs)}` : "📍 ei sijaintia"}
                           </span>
                           {rivi.loydetty !== null && (
                             <span className="etsinnan-loydot">

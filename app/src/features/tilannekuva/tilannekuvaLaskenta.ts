@@ -53,7 +53,12 @@ export interface EtsintaRivi {
   /** Pelaajan löydöt alueella aloituksen jälkeen (vain jos nimimerkki tiedossa). */
   loydetty: number | null;
   yhteensa: number;
+  /** Etsijän viimeisin sijainti ja sen ikä (ms), null jos ei ilmoitettu. */
+  sijainti: { lat: number; lng: number; ikaMs: number } | null;
 }
+
+/** Tätä vanhempi etsijän sijainti näytetään haaleana — puhelin lienee taskussa tai sovellus kiinni. */
+export const SIJAINTI_VANHENTUNUT_MS = 5 * 60_000;
 
 /** Käynnissä olevat etsinnät näytettävinä riveinä, vanhin ensin; takarajan ylittäneet pois. */
 export function etsintaRivit(
@@ -88,6 +93,13 @@ export function etsintaRivit(
         jaljellaMs: alkoi + ETSINTA_MAX_MS - nyt,
         loydetty: loydetyt,
         yhteensa: alueenIdt.size,
+        sijainti: etsinta.sijainti
+          ? {
+              lat: etsinta.sijainti.lat,
+              lng: etsinta.sijainti.lng,
+              ikaMs: Math.max(0, nyt - Date.parse(etsinta.sijainti.aika)),
+            }
+          : null,
       };
     })
     .filter((rivi) => rivi.jaljellaMs > 0)
@@ -111,6 +123,12 @@ export function katkoRivit(alue: Alue, loydot: Loyto[]): KatkoRivi[] {
       loytajat: katkonLoydot.map((l) => ({ nimi: l.nimi, mitali: mitalit.get(l.nimi) ?? null })),
     };
   });
+}
+
+/** "12 s sitten", "4 min sitten". */
+export function muotoileIka(ms: number): string {
+  const sekunnit = Math.max(0, Math.round(ms / 1000));
+  return sekunnit < 60 ? `${sekunnit} s sitten` : `${Math.floor(sekunnit / 60)} min sitten`;
 }
 
 /** "1:05:09" tai "5:09". */

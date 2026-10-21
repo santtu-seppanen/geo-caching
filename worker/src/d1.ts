@@ -214,6 +214,8 @@ export interface Etsinta {
   nimi: string | null;
   /** Aloitushetki ISO-muodossa (workerin kello). */
   alkoi: string;
+  /** Viimeisin laitteen ilmoittama sijainti (aika workerin kellosta), null jos ei vielä ilmoitettu. */
+  sijainti: { lat: number; lng: number; aika: string } | null;
 }
 
 /**
@@ -240,8 +242,51 @@ export async function aloitaEtsinta(
 /** Palauttaa etsinnät, joiden takaraja ei ole vielä umpeutunut (laite_id jätetään pois). */
 export async function haeKaynnissaOlevatEtsinnat(db: D1Database, nyt: number, maxMs: number): Promise<Etsinta[]> {
   const { results } = await db
-    .prepare("SELECT alue_avain, nimi, alkoi FROM etsinnat WHERE alkoi >= ? ORDER BY alkoi")
+    .prepare("SELECT alue_avain, nimi, alkoi, lat, lng, sijainti_aika FROM etsinnat WHERE alkoi >= ? ORDER BY alkoi")
     .bind(new Date(nyt - maxMs).toISOString())
-    .all<{ alue_avain: string; nimi: string | null; alkoi: string }>();
-  return results.map((rivi) => ({ alueAvain: rivi.alue_avain, nimi: rivi.nimi, alkoi: rivi.alkoi }));
+    .all<{
+      alue_avain: string;
+      nimi: string | null;
+      alkoi: string;
+      lat: number | null;
+      lng: number | null;
+      sijainti_aika: string | null;
+    }>();
+  return results.map((rivi) => ({
+    alueAvain: rivi.alue_avain,
+    nimi: rivi.nimi,
+    alkoi: rivi.alkoi,
+    sijainti:
+      rivi.lat !== null && rivi.lng !== null && rivi.sijainti_aika !== null
+        ? { lat: rivi.lat, lng: rivi.lng, aika: rivi.sijainti_aika }
+        : null,
+  }));
+}
+
+/**
+ * Päivittää käynnissä olevan etsinnän sijainnin (ja nimimerkin, jos se on
+ * nyt tiedossa). Palauttaa false, jos laitteella ei ole alueella käynnissä
+ * olevaa etsintää — sijaintia ei tallenneta ilman etsintää.
+ */
+export async function paivitaEtsinnanSijainti(
+  db: D1Database,
+  sijainti: { laiteId: string; alueAvain: string; nimi: string | null; lat: number; lng: number },
+  nyt: number,
+  maxMs: number,
+): Promise<boolean> {
+  const tulos = await db
+    .prepare(
+      "UPDATE etsinnat SET lat = ?, lng = ?, sijainti_aika = ?, nimi = COALESCE(?, nimi) WHERE laite_id = ? AND alue_avain = ? AND alkoi >= ?",
+    )
+    .bind(
+      sijainti.lat,
+      sijainti.lng,
+      new Date(nyt).toISOString(),
+      sijainti.nimi,
+      sijainti.laiteId,
+      sijainti.alueAvain,
+      new Date(nyt - maxMs).toISOString(),
+    )
+    .run();
+  return tulos.meta.changes > 0;
 }

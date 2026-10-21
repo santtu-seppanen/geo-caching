@@ -65,11 +65,14 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   muistetaan laitteella `localStorage`:ssa — ei huijauksenestoa, koska
   koordinaatit ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
   Aloitus ilmoitetaan lisäksi workerille (`POST /aloita-etsinta`) pelkästään
-  tilannekuvaa varten; peli itse ei lue sitä.
+  tilannekuvaa varten; peli itse ei lue sitä. Etsinnän ollessa käynnissä
+  laite jakaa myös sijaintinsa 15 s välein (`POST /etsinta-sijainti`, ks.
+  `useSijainninJako.ts`) — ei koskaan ilman käynnissä olevaa etsintää.
 - **Tilannekuva** (`/tilannekuva`, ks. `app/src/features/tilannekuva/`):
   telkkariin tarkoitettu koko ruudun katselunäkymä — käynnissä olevat
-  etsinnät alueittain sekä valitun alueen kaikki kätköt kartalla ja
-  listana löytäjineen (mitalit). Päivittyy itsestään. Alueen voi valita
+  etsinnät alueittain, etsijöiden viimeisimmät sijainnit kartalla (yli
+  5 min vanha haaleana) sekä valitun alueen kaikki kätköt kartalla ja
+  listana löytäjineen (mitalit). Telkkari ei itse kysy sijaintia. Päivittyy itsestään. Alueen voi valita
   vain käynnissä olevien etsintöjen listasta (oletuksena alue, jolla on
   eniten etsijöitä); alueita, joilla kukaan ei etsi, ei näytetä eikä
   hakukenttää ole. Ainoa oma URL-reitti: `main.tsx` valitsee näkymän
@@ -108,12 +111,16 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   - `GET /alueet` — alueiden pelimoodit (`[{ alueAvain, pelimoodi }]`).
     Julkinen.
   - `GET /etsinnat` — käynnissä olevat (alle 3 h vanhat) etsinnät
-    tilannekuvaa varten (`[{ alueAvain, nimi, alkoi }]`). Julkinen.
+    tilannekuvaa varten (`[{ alueAvain, nimi, alkoi, sijainti }]`).
+    Julkinen — sisältää siis etsijöiden sijainnit etsinnän ajan.
   - `POST /aloita-etsinta` — jaettu salasana; kirjaa etsinnän aloituksen
     (`{ laiteId, alueAvain, nimi? }`, D1-taulu `etsinnat`, yksi rivi per
     laite+alue, aloitusaika workerin kellosta). Laite-id on satunnainen
     `localStorage`-tunniste (`app/src/lib/laiteId.ts`), koska nimimerkki voi
     puuttua aloitushetkellä.
+  - `POST /etsinta-sijainti` — jaettu salasana; päivittää käynnissä olevan
+    etsinnän sijainnin (`{ laiteId, alueAvain, nimi?, lat, lng }`) ja
+    nimimerkin, jos se on nyt tiedossa. 404 jos etsintää ei ole.
   - `GET /kuvat/:tiedostonimi` — striimaa kuvan R2:sta oikealla
     `Content-Type`-headerilla.
   - `POST /loyda` — validoi pyynnön (tunnettu `paikkaId`, nimi ei

@@ -8,6 +8,8 @@ export interface KaynnissaOlevaEtsinta {
   nimi: string | null;
   /** Aloitushetki ISO-muodossa (workerin kello). */
   alkoi: string;
+  /** Etsijän viimeisin sijainti (aika workerin kellosta), null jos ei vielä ilmoitettu. */
+  sijainti: { lat: number; lng: number; aika: string } | null;
 }
 
 /**
@@ -23,6 +25,28 @@ export function ilmoitaEtsinnanAloitus(alueAvain: string): void {
       "X-Jaettu-Salasana": import.meta.env.VITE_LOYTO_SALASANA,
     },
     body: JSON.stringify({ laiteId: haeLaiteId(), alueAvain, nimi: haePelaajanNimi() }),
+  }).catch(() => {});
+}
+
+/**
+ * Lähettää etsijän sijainnin tilannekuvaa varten. Kuten aloitusilmoitus,
+ * epäonnistuminen ei haittaa pelaamista. Mukana tämänhetkinen nimimerkki,
+ * jotta nimettömänä aloittanut saa nimensä näkyviin ensimmäisen löydön jälkeen.
+ */
+export function ilmoitaEtsinnanSijainti(alueAvain: string, sijainti: { lat: number; lng: number }): void {
+  fetch(`${import.meta.env.VITE_LOYTO_API_URL}/etsinta-sijainti`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Jaettu-Salasana": import.meta.env.VITE_LOYTO_SALASANA,
+    },
+    body: JSON.stringify({
+      laiteId: haeLaiteId(),
+      alueAvain,
+      nimi: haePelaajanNimi(),
+      lat: sijainti.lat,
+      lng: sijainti.lng,
+    }),
   }).catch(() => {});
 }
 

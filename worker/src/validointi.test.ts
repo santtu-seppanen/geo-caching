@@ -7,6 +7,7 @@ import {
   validoiMuokkausKatkoPyynto,
   validoiPelimoodiPyynto,
   validoiEtsinnanAloitusPyynto,
+  validoiEtsinnanSijaintiPyynto,
   validoiUusiKatkoPyynto,
 } from "./validointi";
 
@@ -1054,5 +1055,26 @@ describe("validoiEtsinnanAloitusPyynto", () => {
   it("hylkää muun kuin objektin", () => {
     expect(validoiEtsinnanAloitusPyynto([]).ok).toBe(false);
     expect(validoiEtsinnanAloitusPyynto(null).ok).toBe(false);
+  });
+});
+
+describe("validoiEtsinnanSijaintiPyynto", () => {
+  const PERUS = { laiteId: "3f2b8c1e-1234-4abc-9def-0123456789ab", alueAvain: "apatti", nimi: "Pekka" };
+
+  it("hyväksyy sijainnin", () => {
+    expect(validoiEtsinnanSijaintiPyynto({ ...PERUS, lat: 60.1, lng: 24.9 })).toEqual({
+      ok: true,
+      pyynto: { ...PERUS, lat: 60.1, lng: 24.9 },
+    });
+  });
+
+  it("hylkää puuttuvan tai virheellisen sijainnin", () => {
+    for (const [lat, lng] of [[undefined, 24], [60, undefined], [91, 24], [60, 181], [Number.NaN, 24], ["60", 24]]) {
+      expect(validoiEtsinnanSijaintiPyynto({ ...PERUS, lat, lng }).ok).toBe(false);
+    }
+  });
+
+  it("hylkää virheelliset perustiedot", () => {
+    expect(validoiEtsinnanSijaintiPyynto({ ...PERUS, laiteId: "x", lat: 60, lng: 24 }).ok).toBe(false);
   });
 });

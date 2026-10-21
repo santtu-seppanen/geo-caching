@@ -503,3 +503,28 @@ export function validoiEtsinnanAloitusPyynto(data: unknown): EtsinnanAloitusVali
     pyynto: { laiteId, alueAvain: alueAvain.trim(), nimi: siistiNimi || null },
   };
 }
+
+export interface EtsinnanSijaintiPyynto extends EtsinnanAloitusPyynto {
+  lat: number;
+  lng: number;
+}
+
+export type EtsinnanSijaintiValidointiTulos =
+  | { ok: true; pyynto: EtsinnanSijaintiPyynto }
+  | { ok: false; virhe: string };
+
+/** Kuten aloitus, lisäksi pakollinen lat/lng. */
+export function validoiEtsinnanSijaintiPyynto(data: unknown): EtsinnanSijaintiValidointiTulos {
+  const perus = validoiEtsinnanAloitusPyynto(data);
+  if (!perus.ok) return perus;
+
+  const { lat, lng } = data as Record<string, unknown>;
+  if (typeof lat !== "number" || !Number.isFinite(lat) || lat < -90 || lat > 90) {
+    return { ok: false, virhe: "lat täytyy olla luku välillä -90..90" };
+  }
+  if (typeof lng !== "number" || !Number.isFinite(lng) || lng < -180 || lng > 180) {
+    return { ok: false, virhe: "lng täytyy olla luku välillä -180..180" };
+  }
+
+  return { ok: true, pyynto: { ...perus.pyynto, lat, lng } };
+}

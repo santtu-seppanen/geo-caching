@@ -5,6 +5,7 @@ import {
   haeHaaste,
   haeAlueidenPelimoodit,
   haeKaynnissaOlevatEtsinnat,
+  paivitaEtsinnanSijainti,
   haeLoydot,
   haePaikat,
   haePaikkaIdt,
@@ -21,6 +22,7 @@ import {
   ETSINTA_MAX_MS,
   LOYTO_MAX_ETAISYYS_M,
   validoiEtsinnanAloitusPyynto,
+  validoiEtsinnanSijaintiPyynto,
   validoiHaastePyynto,
   validoiLoytoPyynto,
   validoiMuokkausKatkoPyynto,
@@ -87,6 +89,10 @@ export default {
 
     if (request.method === "POST" && url.pathname === "/aloita-etsinta") {
       return kasitteleAloitaEtsinta(request, env, corsHeaders);
+    }
+
+    if (request.method === "POST" && url.pathname === "/etsinta-sijainti") {
+      return kasitteleEtsinnanSijainti(request, env, corsHeaders);
     }
 
     if (request.method === "POST" && url.pathname === "/admin/kirjaudu") {
@@ -212,6 +218,34 @@ async function kasitteleAloitaEtsinta(
 
   await aloitaEtsinta(env.DB, tulos.pyynto, Date.now(), ETSINTA_MAX_MS);
   return jsonVastaus({ ok: true }, 201, corsHeaders);
+}
+
+/** Päivittää etsijän sijainnin tilannekuvaa varten (vain käynnissä olevalle etsinnälle). */
+async function kasitteleEtsinnanSijainti(
+  request: Request,
+  env: Env,
+  corsHeaders: Record<string, string>,
+): Promise<Response> {
+  if (request.headers.get("X-Jaettu-Salasana") !== env.JAETTU_SALASANA) {
+    return jsonVastaus({ error: "Virheellinen salasana" }, 401, corsHeaders);
+  }
+
+  let data: unknown;
+  try {
+    data = await request.json();
+  } catch {
+    return jsonVastaus({ error: "Virheellinen JSON" }, 400, corsHeaders);
+  }
+
+  const tulos = validoiEtsinnanSijaintiPyynto(data);
+  if (!tulos.ok) {
+    return jsonVastaus({ error: tulos.virhe }, 400, corsHeaders);
+  }
+
+  if (!(await paivitaEtsinnanSijainti(env.DB, tulos.pyynto, Date.now(), ETSINTA_MAX_MS))) {
+    return jsonVastaus({ error: "Ei käynnissä olevaa etsintää" }, 404, corsHeaders);
+  }
+  return jsonVastaus({ ok: true }, 200, corsHeaders);
 }
 
 /** Tarkistaa admin-salasanan ilman sivuvaikutuksia, jotta lomake voi näyttää virheen heti kirjautuessa. */

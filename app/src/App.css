@@ -1499,3 +1499,41 @@ body {
 .tilannekuva .edistymispalkki-teksti {
   font-size: 0.8em;
 }
+
+.etsija-merkki {
+  position: relative;
+}
+
+.etsija-piste {
+  position: absolute;
+  left: -11px;
+  top: -11px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--vari-aksentti);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 4px rgba(192, 57, 43, 0.3);
+}
+
+.etsija-nimi {
+  position: absolute;
+  left: 16px;
+  top: -14px;
+  white-space: nowrap;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  background: var(--vari-aksentti);
+  padding: 0 0.45em;
+  border-radius: 0.4em;
+}
+
+.etsija-merkki.vanha {
+  opacity: 0.45;
+}
+
+.etsinnan-sijainti {
+  width: 100%;
+  color: var(--vari-teksti-himmea);
+}

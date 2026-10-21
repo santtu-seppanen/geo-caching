@@ -31,6 +31,7 @@ import {
 } from "./features/pelimoodit/pelimoodiApi";
 import { tallennaEtsinnanAlku } from "./features/pelimoodit/pelitila";
 import { ilmoitaEtsinnanAloitus } from "./features/pelimoodit/etsinnatApi";
+import { useSijainninJako } from "./features/pelimoodit/useSijainninJako";
 import { pyydaIlmoituslupa, nayttaIlmoitus } from "./lib/ilmoitukset";
 import { virheTeksti } from "./lib/geolocation";
 import heroKuva from "./assets/hero-aarrearkku.jpg";
@@ -184,6 +185,9 @@ export function App() {
     [paikat],
   );
   const aktiivinenAlue = valittuAlue ? yhdistaSamannimiset(alueet, valittuAlue) : null;
+
+  const alueAvaimet = useMemo(() => alueet.map((alue) => normalisoiAlueNimi(alue.nimi)), [alueet]);
+  useSijainninJako(sijainti, alueAvaimet);
 
   const lahellaOlevaAlue = useMemo(
     () => etsiLaheisinAlue(paikat, sijainti),
