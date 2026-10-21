@@ -1,5 +1,9 @@
 import { useState } from "react";
 import type { Loyto, Paikka } from "../paikat/types";
+import { ryhmitteleAlueiksi, yhdistaKaikkiSamannimiset } from "../paikat/alueet";
+import type { AlueidenPelimoodit } from "../pelimoodit/pelimoodiApi";
+import { laskeOhitukset } from "../pelimoodit/ohitukset";
+import { lataaEtsinnanAlku } from "../pelimoodit/pelitila";
 import { haePelaajanNimi } from "../../lib/pelaajanNimi";
 import { muotoileKesto } from "../../lib/kesto";
 import {
@@ -12,18 +16,27 @@ import {
 
 interface TilastotProps {
   paikat: Paikka[];
+  pelimoodit: AlueidenPelimoodit;
   loydot: Loyto[];
   omatLoydot: Loyto[];
   onSulje: () => void;
 }
 
-export function Tilastot({ paikat, loydot, omatLoydot, onSulje }: TilastotProps) {
+export function Tilastot({ paikat, pelimoodit, loydot, omatLoydot, onSulje }: TilastotProps) {
   const [laajennettuNimi, setLaajennettuNimi] = useState<string | null>(null);
 
   const kaikkiLoydot = yhdistaLoydot(loydot, omatLoydot);
   const pistetaulu = laskePistetaulu(kaikkiLoydot);
   const mitalit = laskeMitaliMaaratNimittain(kaikkiLoydot);
   const omaNimi = haePelaajanNimi();
+  const ohitukset = laskeOhitukset(
+    yhdistaKaikkiSamannimiset(ryhmitteleAlueiksi(paikat)),
+    pelimoodit,
+    kaikkiLoydot,
+    omaNimi,
+    lataaEtsinnanAlku,
+    Date.now(),
+  );
   const omatLoydotAikajarjestyksessa = laskeOmatLoydot(kaikkiLoydot, paikat, omaNimi);
 
   return (
@@ -33,6 +46,19 @@ export function Tilastot({ paikat, loydot, omatLoydot, onSulje }: TilastotProps)
       </button>
 
       <h2>Tilastot</h2>
+
+      {ohitukset.length > 0 && (
+        <div className="tilastot-osio">
+          <h3>Ohitetut kätköt</h3>
+          <ul className="ohitukset-lista">
+            {ohitukset.map((o) => (
+              <li key={o.alue}>
+                {o.alue}: ohitettu {o.ohitettu} / {o.yhteensa} kätköä tässä etsinnässä
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="tilastot-osio">
         <h3>Löytäjät</h3>

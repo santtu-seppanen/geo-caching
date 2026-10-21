@@ -64,6 +64,10 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
   `etsintaKestoMs` ylittää takarajan. Etsinnän aloitus ja kolmiomittaukset
   muistetaan laitteella `localStorage`:ssa — ei huijauksenestoa, koska
   koordinaatit ovat joka tapauksessa julkisia `GET /paikat`-vastauksessa.
+  Käynnissä olevista etsinnöistä ilmoitetaan 15 min ennen takarajaa ja
+  päättyessä (`etsinnanIlmoitus`, `useEtsinnanIlmoitukset`) — vain kun
+  sovellus on auki, koska push-palvelinta ei ole. Tilastot-näkymä näyttää
+  ajastetun haun ohitetut kätköt nykyisessä etsinnässä (`laskeOhitukset`).
   Aloitus ilmoitetaan lisäksi workerille (`POST /aloita-etsinta`) pelkästään
   tilannekuvaa varten; peli itse ei lue sitä. Etsinnän ollessa käynnissä
   laite jakaa myös sijaintinsa 15 s välein (`POST /etsinta-sijainti`, ks.
