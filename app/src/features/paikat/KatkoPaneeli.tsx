@@ -18,6 +18,8 @@ interface KatkoPaneeliProps {
   etsintaAlkoi: number | null;
   /** Edellinen oma löytö tai etsinnän aloitus — löydölle tallennetaan kesto tästä. null jos etsintää ei ole aloitettu. */
   loytoajastinAlkoi: number | null;
+  /** Pelaajan nykyinen sijainti — worker vertaa sitä kätkön koordinaatteihin. */
+  sijainti: { lat: number; lng: number } | null;
   onLoyto: (loyto: Loyto) => void;
   onSulje: () => void;
 }
@@ -28,6 +30,7 @@ export function KatkoPaneeli({
   omatLoydot,
   etsintaAlkoi,
   loytoajastinAlkoi,
+  sijainti,
   onLoyto,
   onSulje,
 }: KatkoPaneeliProps) {
@@ -64,7 +67,7 @@ export function KatkoPaneeli({
         : null;
     const kestoMs = ajat?.kestoMs ?? null;
     try {
-      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat);
+      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat, sijainti);
       tallennaPelaajanNimi(siistittyNimi);
       onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date(nyt).toISOString(), kestoMs });
     } catch (virhe) {
