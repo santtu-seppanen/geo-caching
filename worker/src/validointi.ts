@@ -5,6 +5,8 @@ export interface LoytoPyynto {
   kestoMs: number | null;
   /** Vapaaehtoinen kommentti, null jos tyhjä. */
   kommentti: string | null;
+  /** Löytöhetki (ISO), jos client ilmoitti sen (offline-jonotettu löytö), muuten null = nyt. */
+  aika: string | null;
   /** Pelaajan sijainti löytöhetkellä — worker vertaa sitä kätkön koordinaatteihin. null jos puuttuu. */
   sijainti: { lat: number; lng: number } | null;
 }
@@ -41,6 +43,8 @@ export type ValidointiTulos =
 
 const NIMI_MAX_PITUUS = 50;
 export const KOMMENTTI_MAX_PITUUS = 140;
+/** Offline-jonotetun löydön löytöhetki saa olla enintään näin vanha. */
+export const AIKA_MAX_IKA_MS = 7 * 24 * 60 * 60 * 1000;
 
 export interface UusiKatkoPyynto {
   id: string;
@@ -300,7 +304,7 @@ export function validoiLoytoPyynto(
     return { ok: false, virhe: "Pyyntö täytyy olla JSON-objekti" };
   }
 
-  const { paikkaId, nimi, kestoMs, etsintaKestoMs, lat, lng, kommentti } = data as Record<string, unknown>;
+  const { paikkaId, nimi, kestoMs, etsintaKestoMs, lat, lng, kommentti, aika } = data as Record<string, unknown>;
 
   if (typeof paikkaId !== "string" || !tunnetutPaikkaIdt.has(paikkaId)) {
     return { ok: false, virhe: "Tuntematon paikkaId" };
@@ -340,6 +344,16 @@ export function validoiLoytoPyynto(
     siistittyKommentti = kommentti.trim() || null;
   }
 
+  let siistittyAika: string | null = null;
+  if (aika !== undefined && aika !== null) {
+    const ms = typeof aika === "string" ? Date.parse(aika) : NaN;
+    const nyt = Date.now();
+    if (Number.isNaN(ms) || ms > nyt + 60_000 || ms < nyt - AIKA_MAX_IKA_MS) {
+      return { ok: false, virhe: "aika täytyy olla ISO-aikaleima viimeisen 7 päivän ajalta" };
+    }
+    siistittyAika = new Date(ms).toISOString();
+  }
+
   let sijainti: { lat: number; lng: number } | null = null;
   if (lat !== undefined || lng !== undefined) {
     if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) {
@@ -348,7 +362,7 @@ export function validoiLoytoPyynto(
     sijainti = { lat, lng };
   }
 
-  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null, kommentti: siistittyKommentti, sijainti } };
+  return { ok: true, pyynto: { paikkaId, nimi: nimi.trim(), kestoMs: kestoMs ?? null, kommentti: siistittyKommentti, aika: siistittyAika, sijainti } };
 }
 
 function onKesto(arvo: unknown): arvo is number {

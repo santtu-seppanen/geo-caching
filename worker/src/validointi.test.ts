@@ -962,3 +962,24 @@ describe("löydön kommentti", () => {
     expect(pyynto(123).ok).toBe(false);
   });
 });
+
+describe("löydön aika (offline-jono)", () => {
+  const tunnetut = new Set(["paikka-1"]);
+  const pyynto = (aika: unknown) => validoiLoytoPyynto({ paikkaId: "paikka-1", nimi: "A", aika }, tunnetut);
+
+  it("puuttuva aika on null", () => {
+    expect(pyynto(undefined)).toMatchObject({ ok: true, pyynto: { aika: null } });
+  });
+
+  it("hyväksyy tuoreen ISO-ajan", () => {
+    const tunti = new Date(Date.now() - 3_600_000).toISOString();
+    expect(pyynto(tunti)).toMatchObject({ ok: true, pyynto: { aika: tunti } });
+  });
+
+  it("hylkää tulevan, liian vanhan ja virheellisen ajan", () => {
+    expect(pyynto(new Date(Date.now() + 3_600_000).toISOString()).ok).toBe(false);
+    expect(pyynto(new Date(Date.now() - 8 * 24 * 3_600_000).toISOString()).ok).toBe(false);
+    expect(pyynto("eilen").ok).toBe(false);
+    expect(pyynto(123).ok).toBe(false);
+  });
+});

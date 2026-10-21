@@ -1,7 +1,8 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
 import type { Paikka, Loyto } from "./types";
-import { ilmoitaLoyto } from "./loydotApi";
+import { ilmoitaLoyto, VerkkoVirhe } from "./loydotApi";
+import { lisaaJonoon, type JonotettuLoyto } from "../../lib/loytoJono";
 import { haePelaajanNimi, tallennaPelaajanNimi } from "../../lib/pelaajanNimi";
 import { mitalitYhdelleKatkolle, MITALI_EMOJI } from "../tilastot/tilastoLaskenta";
 import { pullonKokoNimi } from "./pullonKoko";
@@ -66,19 +67,36 @@ export function KatkoPaneeli({
 
     setLahetetaan(true);
     setVirhe(null);
+    const siistittyKommentti = kommentti.trim() || null;
     // Tarkistetaan takaraja vasta lähetyshetkellä — paneeli on voinut olla
     // auki takarajan yli. Takarajan jälkeen löytö kirjataan ilman kestoa.
-    const siistittyKommentti = kommentti.trim() || null;
     const nyt = Date.now();
     const ajat =
       etsintaAlkoi !== null && loytoajastinAlkoi !== null && etsintaKaynnissa(etsintaAlkoi, nyt)
         ? { kestoMs: nyt - loytoajastinAlkoi, etsintaKestoMs: nyt - etsintaAlkoi }
         : null;
     const kestoMs = ajat?.kestoMs ?? null;
+    const aika = new Date(nyt).toISOString();
+    const loyto: JonotettuLoyto = {
+      paikkaId: paikka.id,
+      nimi: siistittyNimi,
+      aika,
+      kestoMs,
+      etsintaKestoMs: ajat?.etsintaKestoMs ?? null,
+      lat: sijainti?.lat ?? null,
+      lng: sijainti?.lng ?? null,
+      kommentti: siistittyKommentti,
+    };
     try {
-      await ilmoitaLoyto(paikka.id, siistittyNimi, ajat, sijainti, siistittyKommentti);
+      try {
+        await ilmoitaLoyto(loyto);
+      } catch (virhe) {
+        // Ei verkkoa: säilytetään löytö laitteella ja lähetetään kun yhteys palaa.
+        if (!(virhe instanceof VerkkoVirhe)) throw virhe;
+        lisaaJonoon(loyto);
+      }
       tallennaPelaajanNimi(siistittyNimi);
-      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika: new Date(nyt).toISOString(), kestoMs, kommentti: siistittyKommentti });
+      onLoyto({ paikkaId: paikka.id, nimi: siistittyNimi, aika, kestoMs, kommentti: siistittyKommentti });
     } catch (virhe) {
       setVirhe(virhe instanceof Error ? virhe.message : "Löydön tallennus epäonnistui");
     } finally {

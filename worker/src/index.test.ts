@@ -149,6 +149,13 @@ describe("POST /loyda", () => {
     expect(rivit.loydot).toHaveLength(1);
   });
 
+  it("käyttää clientin ilmoittamaa löytöhetkeä", async () => {
+    const aika = new Date(Date.now() - 600_000).toISOString();
+    const vastaus = await loyda(env, { paikkaId: "neittava-1", nimi: "A", ...KATKO, aika });
+    expect(vastaus.status).toBe(201);
+    expect(rivit.loydot[0].aika).toBe(aika);
+  });
+
   it("hylkää virheellisen JSON:in (400)", async () => {
     const vastaus = await worker.fetch(
       new Request("https://worker.test/loyda", {

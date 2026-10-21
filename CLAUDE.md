@@ -100,6 +100,9 @@ lähemmäs, ja löytäjä voi jättää nimensä kätkön yhteyteen.
     merkinnyt saman kätkön löydetyksi, ja lisää rivin `loydot`-tauluun.
     Löytäjä voi jättää myös vapaaehtoisen kommentin (`loydot.kommentti`,
     max 140 merkkiä, trimmattuna; tyhjä = NULL).
+    Ilman verkkoa löytö jonotetaan laitteelle (`app/src/lib/loytoJono.ts`,
+    `localStorage`) ja lähetetään kun yhteys palaa; jonotettu löytö lähettää
+    oman löytöhetkensä (`aika`, worker hyväksyy max 7 pv vanhan).
     Sama tuplan esto tehdään ensin myös clientillä (`KatkoPaneeli.tsx`)
     UX:n vuoksi, mutta worker on aina lopullinen totuus.
   - `POST /admin/luo-katko` — validoi uuden kätkön kentät (id, alue,

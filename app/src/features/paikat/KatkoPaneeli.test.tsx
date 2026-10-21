@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { KatkoPaneeli } from "./KatkoPaneeli";
+import { haeJono } from "../../lib/loytoJono";
 import type { Paikka, Loyto } from "./types";
 import type { Sijainti } from "../../lib/geolocation";
 
@@ -102,6 +103,29 @@ describe("KatkoPaneeli löytöflow", () => {
     expect(JSON.parse(fetchMock.mock.calls[0][1].body).kommentti).toBe("Löytyi kiven alta");
   });
 
+  it("jonottaa löydön kun verkkoa ei ole ja kutsuu silti onLoyto", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new TypeError("Failed to fetch")));
+    const onLoyto = vi.fn();
+    piirra({ onLoyto });
+    kirjoitaNimi("Matti");
+    await act(async () => {
+      lahetaNappi().click();
+    });
+    expect(onLoyto).toHaveBeenCalledTimes(1);
+    expect(haeJono()).toMatchObject([{ paikkaId: "neittava-1", nimi: "Matti", lat: 60.17 }]);
+    expect(kontti.textContent).not.toContain("Ei verkkoyhteyttä");
+  });
+
+  it("ei jonota pysyvästi hylättyä löytöä (403)", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: false, status: 403, json: async () => ({ error: "Olet liian kaukana kätköstä" }) }));
+    piirra();
+    kirjoitaNimi("Matti");
+    await act(async () => {
+      lahetaNappi().click();
+    });
+    expect(haeJono()).toHaveLength(0);
+  });
+
   it("estää lähetyksen ilman nimeä", () => {
     piirra();
     expect(lahetaNappi().disabled).toBe(true);
@@ -132,6 +156,7 @@ describe("KatkoPaneeli löytöflow", () => {
   it("näyttää workerin virheen eikä kutsu onLoyto", async () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
       ok: false,
+      status: 400,
       json: async () => ({ error: "Olet liian kaukana kätköstä" }),
     }));
     const onLoyto = vi.fn();
