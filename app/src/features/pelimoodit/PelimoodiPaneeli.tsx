@@ -11,6 +11,8 @@ import {
 } from "./vihjeet";
 import { muotoileKesto } from "../../lib/kesto";
 import { pelitapahtuma, type TapahtumaTila } from "./tapahtumat";
+import { haePelaajanNimi } from "../../lib/pelaajanNimi";
+import { NimimerkkiKentta } from "../paikat/NimimerkkiKentta";
 
 /** Kuinka kauan tapahtumakupla näkyy. */
 const KUPLA_NAKYVISSA_MS = 4000;
@@ -47,6 +49,7 @@ export function PelimoodiPaneeli({
   onAloita,
 }: PelimoodiPaneeliProps) {
   const [vahvistaAlusta, setVahvistaAlusta] = useState(false);
+  const [nimimerkkiTiedossa, setNimimerkkiTiedossa] = useState(() => haePelaajanNimi().trim() !== "");
   const { kohde, vuoroAlkoi, ohitetutIdt } = eteneminen;
   const aloitettu = etsintaAlkoi !== null;
   const paattyi = aloitettu && !kaynnissa;
@@ -174,9 +177,22 @@ export function PelimoodiPaneeli({
       )}
 
       {!kaynnissa ? (
-        <button type="button" className="nappi nappi-ensisijainen" onClick={onAloita}>
-          {paattyi ? "Aloita uusi etsintä" : "Aloita etsintä"}
-        </button>
+        <>
+          {!nimimerkkiTiedossa && (
+            <>
+              <p className="pelimoodi-tila">Aseta nimimerkki ennen kuin aloitat etsinnän.</p>
+              <NimimerkkiKentta onTallennettu={() => setNimimerkkiTiedossa(true)} />
+            </>
+          )}
+          <button
+            type="button"
+            className="nappi nappi-ensisijainen"
+            disabled={!nimimerkkiTiedossa}
+            onClick={onAloita}
+          >
+            {paattyi ? "Aloita uusi etsintä" : "Aloita etsintä"}
+          </button>
+        </>
       ) : vahvistaAlusta ? (
         <div className="pelimoodi-vahvistus">
           <p className="pelimoodi-tila">

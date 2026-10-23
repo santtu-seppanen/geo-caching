@@ -3,6 +3,7 @@ import type { Alue } from "./alueet";
 import { normalisoiAlueNimi } from "./alueet";
 import type { LahellaOlevaAlue } from "../etsi/laheisinAlue";
 import { ilmansuuntaTekstiksi } from "../etsi/ilmansuunta";
+import { haePelaajanNimi } from "../../lib/pelaajanNimi";
 import { NimimerkkiKentta } from "./NimimerkkiKentta";
 import { Edistymispalkki } from "./Edistymispalkki";
 import { HaasteKortti } from "../haaste/HaasteKortti";
@@ -60,6 +61,9 @@ export function Etusivu({
     lahellaOlevatAlueet.find((alue) => alue.nimi === valittuNimi) ?? lahellaOlevatAlueet[0] ?? null;
   const valitunEtsintaKaynnissa =
     valittu !== null && etsintaKaynnissa(lataaEtsinnanAlku(normalisoiAlueNimi(valittu.nimi)), Date.now());
+
+  // Luetaan joka renderillä: NimimerkkiKentta kutsuu tallennuksen jälkeen onNimimerkki, joka renderöi tämän uudelleen.
+  const nimimerkkiTiedossa = haePelaajanNimi().trim() !== "";
 
   function hae(e: FormEvent) {
     e.preventDefault();
@@ -135,10 +139,16 @@ export function Etusivu({
                   <button
                     type="button"
                     className="nappi nappi-ensisijainen"
+                    disabled={!nimimerkkiTiedossa}
                     onClick={() => onAloitaEtsinta(valittu.nimi)}
                   >
                     Aloita etsintä
                   </button>
+                  {!nimimerkkiTiedossa && (
+                    <span className="lahella-rivi lahella-vihje">
+                      Aseta nimimerkki (etusivun alaosassa) ennen etsinnän aloittamista.
+                    </span>
+                  )}
                   <button
                     type="button"
                     className="nappi nappi-toissijainen"

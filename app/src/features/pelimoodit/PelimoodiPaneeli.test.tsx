@@ -8,6 +8,12 @@ import type { Eteneminen } from "./etsinta";
 import type { Pelimoodi } from "./pelimoodit";
 import { ETSINTA_MAX_MS } from "./etsinta";
 
+const haePelaajanNimi = vi.hoisted(() => vi.fn(() => "Testaaja"));
+vi.mock("../../lib/pelaajanNimi", () => ({
+  haePelaajanNimi,
+  tallennaPelaajanNimi: vi.fn(),
+}));
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const paikka = (id: string) => ({ id, alue: "Neittävä", kuvaus: "", lat: 0, lng: 0, kuva: "" }) as Paikka;
@@ -68,6 +74,15 @@ afterEach(() => {
 });
 
 describe("PelimoodiPaneeli", () => {
+  it("estää etsinnän aloituksen ilman nimimerkkiä", () => {
+    haePelaajanNimi.mockReturnValueOnce("");
+    const onAloita = vi.fn();
+    piirra({ etsintaAlkoi: null, kaynnissa: false, onAloita });
+    expect(nappi(/^Aloita etsintä$/)!.disabled).toBe(true);
+    act(() => nappi(/^Aloita etsintä$/)!.click());
+    expect(onAloita).not.toHaveBeenCalled();
+  });
+
   it("näyttää Aloita etsintä -napin ennen aloitusta ja kutsuu onAloita", () => {
     const onAloita = vi.fn();
     piirra({ etsintaAlkoi: null, kaynnissa: false, onAloita });
